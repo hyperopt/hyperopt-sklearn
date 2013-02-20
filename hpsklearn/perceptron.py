@@ -6,10 +6,11 @@ optimizes the hyper-parameters of sklearn.linear_model.Perceptron
 
 import numpy as np
 import hyperopt
+
 from sklearn.linear_model import Perceptron
 
 from hpcv import HyperoptMetaEstimator
-from hpcv import classification_scoring
+from hpcv import classification_loss
 
 
 def search_space(
@@ -100,7 +101,7 @@ class AutoPerceptron(HyperoptMetaEstimator):
             self,
             estimator=Perceptron,
             search_space=search_space,
-            scoring=classification_scoring,
+            valid_loss_fn=classification_loss,
             **kwargs
             )
 

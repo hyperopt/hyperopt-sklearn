@@ -2,7 +2,9 @@ import numpy as np
 import hyperopt
 
 
-def classification_scoring(y_val, y_hat):
+def classification_loss(y_val, y_hat):
+    """Return average zero-one loss
+    """
     return np.mean(y_hat != y_val)
 
 
@@ -27,15 +29,13 @@ class HyperoptMetaEstimator(object):
         A sample from the search space should be a dictionary that can be used as kwargs
         to the estimator.
 
-    scoring : string or callable, optional
-        Either one of either a string ("zero_one", "f1", "roc_auc", ... for
-        classification, "mse", "r2",... for regression) or a callable.
-        See 'Scoring objects' in the model evaluation section of the user guide
-        for details.
-
-
+    valid_loss_fn : callable
+        Loss function that should return a scalar for the validation set
+        predictions `valid_loss_fn(y, model.predict(x))`. The hyperopt search
+        algorithm is tasked with finding a model to minimize this value.
+        
     """
-    def __init__(self, estimator, search_space, scoring=None,
+    def __init__(self, estimator, search_space, valid_loss_fn=None,
                  n_valid=0.2,
                  algo=hyperopt.tpe.suggest,
                  max_evals=100,
@@ -59,7 +59,7 @@ class HyperoptMetaEstimator(object):
         """
         self.estimator = estimator
         self.search_space = search_space
-        self.scoring = scoring
+        self.valid_loss_fn = valid_loss_fn
         self.n_valid = n_valid
         self.algo = algo
         self.max_evals = max_evals
@@ -93,7 +93,7 @@ class HyperoptMetaEstimator(object):
                     return err_rval
                 raise
             y_hat = model.predict(X_val)
-            val_erate = self.scoring(y_val, y_hat)
+            val_erate = self.valid_loss_fn(y_val, y_hat)
             return {'loss': val_erate,
                     'status': hyperopt.STATUS_OK,
                     'model': model}
