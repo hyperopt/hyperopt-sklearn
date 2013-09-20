@@ -309,4 +309,12 @@ def pca(name,
 
 
 def rbm(name):
-    return None
+    raise NotImplementedError()
+
+
+def any_preprocessing(name):
+    return hp.choice('%s', [
+        pca(name + '.pca'),
+        #rbm(name + '.rbm'),
+        ])
+
