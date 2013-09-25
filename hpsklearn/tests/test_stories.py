@@ -7,6 +7,7 @@ test the correctness of the result.
 
 """
 
+from functools import partial
 try:
     import unittest2 as unittest
 except:
@@ -15,13 +16,12 @@ except:
 import sklearn
 
 from hyperopt import hp
-from hpsklearn.components import svc, pca, any_classifier
-from hpsklearn.components import rbm
+from hpsklearn import components as hpc
 
 import skdata.iris.view
 from skdata.base import SklearnClassifier
 #from hpsklearn.perceptron import AutoPerceptron
-from hpsklearn.estimator import HyperoptEstimatorFactory
+from hpsklearn.estimator import hyperopt_estimator
 
 
 class SkdataInterface(unittest.TestCase):
@@ -36,7 +36,7 @@ class SkdataInterface(unittest.TestCase):
         set.
 
         """
-        algo = SklearnClassifier(HyperoptEstimatorFactory())
+        algo = SklearnClassifier(hyperopt_estimator)
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
 
@@ -46,13 +46,15 @@ class SkdataInterface(unittest.TestCase):
         As a ML researcher, I want to evaluate a certain parly-defined model
         class, in order to do model-family comparisons.
 
-        For example, PCA followed by SVM.
+        For example, PCA followed by linear SVM.
 
         """
         algo = SklearnClassifier(
-            HyperoptEstimatorFactory(
-                preprocessing=[pca('pca')],
-                classifier=svc('svc')))
+            partial(
+                hyperopt_estimator,
+                preprocessing=[hpc.pca('pca')],
+                classifier=hpc.svc_linear('classif'),
+                max_evals=10))
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
 
@@ -65,10 +67,11 @@ class SkdataInterface(unittest.TestCase):
 
         # -- for testing purpose, suppose that the RBM is our "domain-specific
         #    pre-processing"
-        my_algo = rbm
+        my_algo = hpc.rbm
 
         algo = SklearnClassifier(
-            HyperoptEstimatorFactory(
+            partial(
+                hyperopt_estimator,
                 preprocessing=hp.choice('pp', [
                     [my_algo(name='alone')],
                     [my_algo(name='pre_pca'), pca('pca')],
@@ -78,4 +81,5 @@ class SkdataInterface(unittest.TestCase):
         print 'mean test error:', mean_test_error
 
 # -- TODO: develop tests with pure sklearn stories
-
+if __name__ == '__main__':
+    unittest.main()
