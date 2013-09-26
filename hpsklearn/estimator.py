@@ -5,28 +5,66 @@ from functools import partial
 import hyperopt
 import components
 
+class NonFiniteFeature(Exception):
+    """
+    """
+
 def _cost_fn(argd, Xfit, yfit, Xval, yval):
-    classifier = argd['classifier']
-    # -- N.B. modify argd['preprocessing'] in-place
-    for pp_algo in argd['preprocessing']:
-        pp_algo.fit(Xfit)
-        Xfit = pp_algo.transform(Xfit)
-        Xval = pp_algo.transform(Xval)
-    classifier.fit(Xfit, yfit)
-    loss = -classifier.score(Xval, yval)
-    rval = {
-        'loss': loss,
-        'classifier': classifier,
-        'preprocs': argd['preprocessing'],
-        'status': 'ok',
-        }
-    return rval
+    try:
+        classifier = argd['classifier']
+        # -- N.B. modify argd['preprocessing'] in-place
+        for pp_algo in argd['preprocessing']:
+            pp_algo.fit(Xfit)
+            Xfit = pp_algo.transform(Xfit)
+            Xval = pp_algo.transform(Xval)
+            if not (
+                np.all(np.isfinite(Xfit))
+                and np.all(np.isfinite(Xval))):
+                raise NonFiniteFeature(pp_algo)
+
+        classifier.fit(Xfit, yfit)
+        loss = 1.0 - classifier.score(Xval, yval)
+        print 'OK trial with accuracy %.1f'  % (100 * (1 - loss))
+        rval = {
+            'loss': loss,
+            'classifier': classifier,
+            'preprocs': argd['preprocessing'],
+            'status': hyperopt.STATUS_OK,
+            }
+        return rval
+
+    except (NonFiniteFeature,), exc:
+        print 'Failing trial due to NaN in', str(exc)
+        rval = {
+            'loss': None,
+            'status': hyperopt.STATUS_FAIL,
+            'failure': str(exc),
+            }
+
+    except (AttributeError,), exc:
+        if "'NoneType' object has no attribute 'copy'" in str(exc):
+            # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
+            rval = {
+                'loss': None,
+                'status': hyperopt.STATUS_FAIL,
+                'failure': str(exc),
+                }
+        else:
+            raise
+        return rval
 
 
 class hyperopt_estimator(object):
-    def __init__(self, preprocessing=None, classifier=None,
-            max_evals=100):
+    def __init__(self,
+        preprocessing=None,
+        classifier=None,
+        algo=None,
+        max_evals=100):
         self.max_evals = max_evals
+        if algo is None:
+            algo=hyperopt.rand.suggest
+        else:
+            self.algo = algo
         if classifier is None:
             classifier = components.any_classifier('classifier')
 
@@ -59,9 +97,10 @@ class hyperopt_estimator(object):
                 Xfit=Xfit, yfit=yfit,
                 Xval=Xval, yval=yval),
             space=self.space,
-            algo=hyperopt.rand.suggest,
+            algo=self.algo,
             trials=self.trials,
             max_evals=self.max_evals)
+        # -- XXX: retrain best model on full data
         #print argmin
 
     def predict(self, X):

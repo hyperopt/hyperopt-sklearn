@@ -15,7 +15,10 @@ except:
 
 import sklearn
 
+
 from hyperopt import hp
+from hyperopt import tpe
+from hyperopt.pyll import scope
 from hpsklearn import components as hpc
 
 import skdata.iris.view
@@ -28,7 +31,6 @@ class SkdataInterface(unittest.TestCase):
     def setUp(self):
         self.view = skdata.iris.view.KfoldClassification(4)
 
-
     def test_search_all(self):
         """
         As a ML researcher, I want a quick way to do model selection
@@ -39,7 +41,6 @@ class SkdataInterface(unittest.TestCase):
         algo = SklearnClassifier(hyperopt_estimator)
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
-
 
     def test_pca_svm(self):
         """
@@ -72,14 +73,42 @@ class SkdataInterface(unittest.TestCase):
         algo = SklearnClassifier(
             partial(
                 hyperopt_estimator,
-                preprocessing=hp.choice('pp', [
-                    [my_algo(name='alone')],
-                    [my_algo(name='pre_pca'), pca('pca')],
+                preprocessing=hp.choice('pp',
+                    [
+                        # -- VQ (alone)
+                        [
+                            hpc.colkmeans('vq0',
+                                n_init=1),
+                        ],
+                        # -- VQ -> RBM
+                        [
+                            hpc.colkmeans('vq1',
+                                n_clusters=scope.int(
+                                    hp.quniform(
+                                        'vq1.n_clusters', 1, 5, q=1)),
+                                n_init=1),
+                            hpc.rbm(name='rbm:alone',
+                                verbose=0)
+                        ],
+                        # -- VQ -> RBM -> PCA
+                        [
+                            hpc.colkmeans('vq2',
+                                n_clusters=scope.int(
+                                    hp.quniform(
+                                        'vq2.n_clusters', 1, 5, q=1)),
+                                n_init=1),
+                            hpc.rbm(name='rbm:pre-pca',
+                                verbose=0),
+                            hpc.pca('pca')
+                        ],
                     ]),
-                classifier=any_classifier('classif')))
+                classifier=hpc.any_classifier('classif'),
+                algo=tpe.suggest,
+                ))
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
 
 # -- TODO: develop tests with pure sklearn stories
 if __name__ == '__main__':
     unittest.main()
+

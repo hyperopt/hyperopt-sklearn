@@ -1,8 +1,10 @@
 import numpy as np
 import sklearn.svm
 import sklearn.decomposition
+import sklearn.neural_network
 from hyperopt.pyll import scope
 from hyperopt import hp
+from .vkmeans import ColumnKMeans
 
 @scope.define
 def sklearn_SVC(*args, **kwargs):
@@ -12,6 +14,16 @@ def sklearn_SVC(*args, **kwargs):
 @scope.define
 def sklearn_PCA(*args, **kwargs):
     return sklearn.decomposition.PCA(*args, **kwargs)
+
+
+@scope.define
+def sklearn_BernoulliRBM(*args, **kwargs):
+    return sklearn.neural_network.BernoulliRBM(*args, **kwargs)
+
+
+@scope.define
+def sklearn_ColumnKMeans(*args, **kwargs):
+    return ColumnKMeans(*args, **kwargs)
 
 
 @scope.define
@@ -315,8 +327,90 @@ def pca(name,
     return rval
 
 
-def rbm(name):
-    raise NotImplementedError()
+def rbm(name,
+    n_components=None,
+    learning_rate=None,
+    batch_size=None,
+    n_iter=None,
+    verbose=False,
+    random_state=None):
+    rval = scope.sklearn_BernoulliRBM(
+        n_components=scope.int(
+            hp.qloguniform(
+                name + '.n_components',
+                low=np.log(0.51),
+                high=np.log(999.5),
+                q=1.0)) if n_components is None else n_components,
+        learning_rate=hp.lognormal(
+            name + '.learning_rate',
+            np.log(0.01),
+            np.log(10),
+            ) if learning_rate is None else learning_rate,
+        batch_size=scope.int(
+            hp.qloguniform(
+                name + '.batch_size',
+                np.log(1),
+                np.log(100),
+                q=1,
+                )) if batch_size is None else batch_size,
+        n_iter=scope.int(
+            hp.qloguniform(
+                name + '.n_iter',
+                np.log(1),
+                np.log(1000),
+                q=1,
+                )) if n_iter is None else n_iter,
+        verbose=verbose,
+        random_state=random_state,
+        )
+    return rval
+
+
+def colkmeans(name,
+    n_clusters=None,
+    init=None,
+    n_init=None,
+    max_iter=None,
+    tol=None,
+    precompute_distances=True,
+    verbose=0,
+    random_state=None,
+    copy_x=True,
+    n_jobs=1):
+    rval = scope.sklearn_ColumnKMeans(
+        n_clusters=scope.int(
+            hp.qloguniform(
+                name + '.n_clusters',
+                low=np.log(1.51),
+                high=np.log(19.5),
+                q=1.0)) if n_clusters is None else n_clusters,
+        init=hp.choice(
+            name + '.init',
+            ['k-means++', 'random'],
+            ) if init is None else init,
+        n_init=hp.choice(
+            name + '.n_init',
+            [1, 2, 10, 20],
+            ) if n_init is None else n_init,
+        max_iter=scope.int(
+            hp.qlognormal(
+                name + '.max_iter',
+                np.log(300),
+                np.log(10),
+                q=1,
+                )) if max_iter is None else max_iter,
+        tol=hp.lognormal(
+            name + '.tol',
+            np.log(0.0001),
+            np.log(10),
+            ) if tol is None else tol,
+        precompute_distances=precompute_distances,
+        verbose=verbose,
+        random_state=random_state,
+        copy_x=copy_x,
+        n_jobs=n_jobs,
+        )
+    return rval
 
 
 def any_preprocessing(name):
