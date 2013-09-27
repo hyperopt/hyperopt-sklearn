@@ -13,8 +13,6 @@ try:
 except:
     import unittest
 
-import sklearn
-
 
 from hyperopt import hp
 from hyperopt import tpe
@@ -68,7 +66,6 @@ class SkdataInterface(unittest.TestCase):
 
         # -- for testing purpose, suppose that the RBM is our "domain-specific
         #    pre-processing"
-        my_algo = hpc.rbm
 
         algo = SklearnClassifier(
             partial(
