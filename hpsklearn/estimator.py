@@ -62,7 +62,7 @@ class hyperopt_estimator(object):
         max_evals=100):
         self.max_evals = max_evals
         if algo is None:
-            algo=hyperopt.rand.suggest
+            self.algo=hyperopt.rand.suggest
         else:
             self.algo = algo
         if classifier is None:

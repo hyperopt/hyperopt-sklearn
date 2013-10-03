@@ -12,6 +12,11 @@ def sklearn_SVC(*args, **kwargs):
 
 
 @scope.define
+def sklearn_LinearSVC(*args, **kwargs):
+    return sklearn.svm.LinearSVC(*args, **kwargs)
+
+
+@scope.define
 def sklearn_PCA(*args, **kwargs):
     return sklearn.decomposition.PCA(*args, **kwargs)
 
@@ -302,12 +307,66 @@ def svc(name,
         rval = hp.choice('%s.kernel' % name, choices)
     return rval
 
+# TODO: Some combinations of parameters are not allowed in LinearSVC
+def liblinear_svc(name,
+    C=None,
+    loss=None,
+    penalty=None,
+    dual=None,
+    tol=None,
+    multi_class=None,
+    fit_intercept=None,
+    intercept_scaling=None,
+    class_weight=None,
+    verbose=False,
+    ):
+
+    def _name(msg):
+      return '%s.%s_%s' % (name, 'linear_svc', msg)
+    
+    """
+    The combination of penalty='l1' and loss='l1' is not supported
+    """
+    loss_penalty = hp.choice( 'loss_penalty', [ ('l1', 'l2'), 
+                                                ('l2', 'l1'),
+                                                ('l2', 'l2') ] )
+
+    #loss_penalty[0]
+    #loss_penalty[1]
+    rval = scope.sklearn_LinearSVC(
+        C=hp.lognormal(
+            _name('C'),
+            np.log(1.0),
+            np.log(4.0)) if C is None else C,
+        loss=hp.choice(
+            _name('loss'),
+            ('l1', 'l2')) if loss is None else loss,
+        penalty=hp.choice(
+            _name('penalty'),
+            ('l1', 'l2')) if penalty is None else penalty,
+        dual=hp.choice(
+            _name('dual'),
+            (True, False)) if dual is None else dual,
+        tol=hp.lognormal(
+            _name('tol'),
+            np.log(1e-3),
+            np.log(10)) if tol is None else tol,
+        multi_class=hp.choice(
+            _name('multi_class'),
+            ('ovr', 'crammer_singer')) if multi_class is None else multi_class,
+        fit_intercept=hp.choice(
+            _name('fit_intercept'),
+            (True, False)) if fit_intercept is None else fit_intercept,
+        verbose=verbose,
+        )
+    return rval
+
 
 def any_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
+        liblinear_svc(name + '.linear_svc'),
         ])
-
 
 def pca(name,
     n_components=None,
