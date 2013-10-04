@@ -114,5 +114,13 @@ class hyperopt_estimator(object):
             X = pp.transform(X)
         return classifier.predict(X)
 
+    def best_model( self ):
+        """
+        Returns the best model found by the previous fit()
+        """
+        best_trial = self.trials.best_trial
+        return { 'classifier' : best_trial['result']['classifier'],
+                 'preprocs' : best_trial['result']['preprocs'] }
+
 
 
