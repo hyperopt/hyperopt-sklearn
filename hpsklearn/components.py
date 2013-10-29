@@ -3,6 +3,7 @@ import sklearn.svm
 import sklearn.ensemble
 import sklearn.neighbors
 import sklearn.decomposition
+import sklearn.preprocessing
 import sklearn.neural_network
 from hyperopt.pyll import scope
 from hyperopt import hp
@@ -580,7 +581,7 @@ def any_classifier(name):
         liblinear_svc(name + '.linear_svc'),
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
-        #extra_trees(name + '.extra_trees'),
+        extra_trees(name + '.extra_trees'),
         ])
 
 def pca(name,
@@ -728,8 +729,8 @@ def colkmeans(name,
 def any_preprocessing(name):
     return hp.choice('%s' % name, [
         [pca(name + '.pca')],
-        #[standard_scaler(name + '.standard_scaler')],
-        #[normalizer(name + '.normalizer')],
+        [standard_scaler(name + '.standard_scaler')],
+        [normalizer(name + '.normalizer')],
         #[one_hot_encoder(name + '.one_hot_encoder')],
         #rbm(name + '.rbm'),
         ])
