@@ -39,6 +39,21 @@ def sklearn_PCA(*args, **kwargs):
 
 
 @scope.define
+def sklearn_StandardScaler(*args, **kwargs):
+    return sklearn.preprocessing.StandardScaler(*args, **kwargs)
+
+
+@scope.define
+def sklearn_Normalizer(*args, **kwargs):
+    return sklearn.preprocessing.Normalizer(*args, **kwargs)
+
+
+@scope.define
+def sklearn_OneHotEncoder(*args, **kwargs):
+    return sklearn.preprocessing.OneHotEncoder(*args, **kwargs)
+
+
+@scope.define
 def sklearn_BernoulliRBM(*args, **kwargs):
     return sklearn.neural_network.BernoulliRBM(*args, **kwargs)
 
@@ -346,7 +361,7 @@ def liblinear_svc(name,
     penalty='l2' and ploss='l1' is only supported when dual='true'
     penalty='l1' is only supported when dual='false'
     """
-    loss_penalty_dual = hp.choice( 'loss_penalty_dual', 
+    loss_penalty_dual = hp.choice( _name('loss_penalty_dual'), 
                                   [ ('l1', 'l2', True), 
                                     ('l2', 'l2', True),
                                     ('l2', 'l1', False),
@@ -467,19 +482,15 @@ def random_forest(name,
     Out of bag estimation only available if bootstrap=True
     """
 
-    bootstrap_oob = hp.choice( 'bootstrap_oob',
+    bootstrap_oob = hp.choice( _name('bootstrap_oob'),
                               [ ( True, True ),
                                 ( True, False ),
                                 ( False, False ) ] )
 
     rval = scope.sklearn_RandomForestClassifier(
-      #TODO: n_estimators must be integer, and cannot be float
-        #n_estimators=hp.quniform(
-        #    _name('n_estimators'),
-        #    1, 50, 1 ) if n_estimators is None else n_estimators,
-        n_estimators=hp.randint(
+        n_estimators=scope.int( hp.quniform(
             _name('n_estimators'),
-            50 ) if n_estimators is None else n_estimators,
+            1, 50, 1 ) ) if n_estimators is None else n_estimators,
         criterion=hp.choice(
             _name('criterion'),
             [ 'gini', 'entropy' ] ) if criterion is None else criterion,
@@ -524,17 +535,17 @@ def extra_trees(name,
     ):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'random_forest', msg)
+      return '%s.%s_%s' % (name, 'extra_trees', msg)
     
-    bootstrap_oob = hp.choice( 'bootstrap_oob',
+    bootstrap_oob = hp.choice( _name('bootstrap_oob'),
                               [ ( True, True ),
                                 ( True, False ),
                                 ( False, False ) ] )
 
     rval = scope.sklearn_ExtraTreesClassifier(
-        n_estimators=hp.randint(
+        n_estimators=scope.int( hp.quniform(
             _name('n_estimators'),
-            50 ) if n_estimators is None else n_estimators,
+            1, 50, 1 ) ) if n_estimators is None else n_estimators,
         criterion=hp.choice(
             _name('criterion'),
             [ 'gini', 'entropy' ] ) if criterion is None else criterion,
@@ -569,7 +580,7 @@ def any_classifier(name):
         liblinear_svc(name + '.linear_svc'),
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
-        extra_trees(name + '.extra_trees'),
+        #extra_trees(name + '.extra_trees'),
         ])
 
 def pca(name,
@@ -586,6 +597,44 @@ def pca(name,
         whiten=hp_bool(
             name + '.whiten',
             ) if whiten is None else whiten,
+        )
+    return rval
+
+def standard_scaler(name,
+    with_mean=None,
+    with_std=None,
+    ):
+    rval = scope.sklearn_StandardScaler(
+        with_mean=hp_bool(
+            name + '.with_mean',
+            ) if with_mean is None else with_mean,
+        with_std=hp_bool(
+            name + '.with_std',
+            ) if with_std is None else with_std,
+        )
+    return rval
+
+def normalizer(name,
+    norm=None,
+    ):
+    rval = scope.sklearn_Normalizer(
+        norm=hp.choice(
+            name + '.with_mean',
+            [ 'l1', 'l2' ],
+            ) if norm is None else norm,
+        )
+    return rval
+
+def one_hot_encoder(name,
+    n_values=None,
+    categorical_features=None,
+    dtype=None,
+    ):
+    rval = scope.sklearn_OneHotEncoder(
+        n_values = 'auto' if n_values is None else n_values,
+        categorical_features = 'all' if categorical_features is None else
+      categorical_features,
+        dtype = np.float if dtype is None else dtype,
         )
     return rval
 
@@ -679,6 +728,9 @@ def colkmeans(name,
 def any_preprocessing(name):
     return hp.choice('%s' % name, [
         [pca(name + '.pca')],
+        #[standard_scaler(name + '.standard_scaler')],
+        #[normalizer(name + '.normalizer')],
+        #[one_hot_encoder(name + '.one_hot_encoder')],
         #rbm(name + '.rbm'),
         ])
 
