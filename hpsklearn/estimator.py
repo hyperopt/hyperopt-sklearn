@@ -40,6 +40,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             }
+        return rval
 
     except (AttributeError,), exc:
         if "'NoneType' object has no attribute 'copy'" in str(exc):
@@ -52,6 +53,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
         else:
             raise
         return rval
+    assert(0) # This line should never be reached
 
 
 class hyperopt_estimator(object):
@@ -62,7 +64,7 @@ class hyperopt_estimator(object):
         max_evals=100):
         self.max_evals = max_evals
         if algo is None:
-            algo=hyperopt.rand.suggest
+            self.algo=hyperopt.rand.suggest
         else:
             self.algo = algo
         if classifier is None:
@@ -113,6 +115,25 @@ class hyperopt_estimator(object):
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.predict(X)
+
+    def score( self, X, y ):
+        """
+        Return the accuracy of the classifier on a given set of data
+        """
+        best_trial = self.trials.best_trial
+        classifier = best_trial['result']['classifier']
+        preprocs = best_trial['result']['preprocs']
+        for pp in preprocs:
+            X = pp.transform(X)
+        return classifier.score(X, y)
+    
+    def best_model( self ):
+        """
+        Returns the best model found by the previous fit()
+        """
+        best_trial = self.trials.best_trial
+        return { 'classifier' : best_trial['result']['classifier'],
+                 'preprocs' : best_trial['result']['preprocs'] }
 
 
 
