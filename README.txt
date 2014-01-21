@@ -5,7 +5,7 @@ Hyper-parameter optimization for machine learning algorithms in sklearn.
 
 This project builds primarily on:
 
-    hyperopt: http://jaberg.github.com/hyperopt/
+    hyperopt: http://hyperopt.github.com/hyperopt
 
     sklearn: http://scikit-learn.org/
 
