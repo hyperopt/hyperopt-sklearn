@@ -9,12 +9,14 @@ class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
     try:
         classifier = argd['classifier']
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in argd['preprocessing']:
+            info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
             pp_algo.fit(Xfit)
+            info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
             if not (
@@ -22,9 +24,12 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
                 and np.all(np.isfinite(Xval))):
                 raise NonFiniteFeature(pp_algo)
 
+        info('Training classifier', classifier,
+             'on X of dimension', Xfit.shape)
         classifier.fit(Xfit, yfit)
+        info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
-        print 'OK trial with accuracy %.1f'  % (100 * (1 - loss))
+        info('OK trial with accuracy %.1f' % (100 * (1 - loss)))
         rval = {
             'loss': loss,
             'classifier': classifier,
@@ -36,7 +41,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         rval = {
-            'loss': None,
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             }
@@ -46,7 +50,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
             rval = {
-                'loss': None,
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
                 }
@@ -58,11 +61,13 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval):
 
 class hyperopt_estimator(object):
     def __init__(self,
-        preprocessing=None,
-        classifier=None,
-        algo=None,
-        max_evals=100):
+                 preprocessing=None,
+                 classifier=None,
+                 algo=None,
+                 max_evals=100,
+                 verbose=0):
         self.max_evals = max_evals
+        self.verbose = verbose
         if algo is None:
             self.algo=hyperopt.rand.suggest
         else:
@@ -82,6 +87,10 @@ class hyperopt_estimator(object):
             'preprocessing': self.preprocessing,
         })
 
+    def info(self, *args):
+        if self.verbose:
+            print ' '.join(map(str, args))
+
     def fit(self, X, y, weights=None):
         """
         Search the space of classifiers and preprocessing steps for a good
@@ -94,10 +103,11 @@ class hyperopt_estimator(object):
         Xval = X[p[n_fit:]]
         yval = y[p[n_fit:]]
         self.trials = hyperopt.Trials()
-        argmin = hyperopt.fmin(
+        hyperopt.fmin(
             fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
-                Xval=Xval, yval=yval),
+                Xval=Xval, yval=yval,
+                info=self.info),
             space=self.space,
             algo=self.algo,
             trials=self.trials,
