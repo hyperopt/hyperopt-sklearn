@@ -45,6 +45,11 @@ def sklearn_StandardScaler(*args, **kwargs):
 
 
 @scope.define
+def sklearn_MinMaxScaler(*args, **kwargs):
+    return sklearn.preprocessing.MinMaxScaler(*args, **kwargs)
+
+
+@scope.define
 def sklearn_Normalizer(*args, **kwargs):
     return sklearn.preprocessing.Normalizer(*args, **kwargs)
 
@@ -584,6 +589,7 @@ def any_classifier(name):
         extra_trees(name + '.extra_trees'),
         ])
 
+
 def pca(name,
     n_components=None,
     whiten=None,
@@ -601,6 +607,7 @@ def pca(name,
         )
     return rval
 
+
 def standard_scaler(name,
     with_mean=None,
     with_std=None,
@@ -615,6 +622,22 @@ def standard_scaler(name,
         )
     return rval
 
+
+def min_max_scaler(name,
+    feature_range=None,
+    copy=True,
+    ):
+    if feature_range is None:
+        feature_range = (
+            hp.choice(name + '.feature_min', [-1.0, 0.0]),
+            1.0)
+    rval = scope.sklearn_MinMaxScaler(
+        feature_range=feature_range,
+        copy=copy,
+        )
+    return rval
+
+
 def normalizer(name,
     norm=None,
     ):
@@ -625,6 +648,7 @@ def normalizer(name,
             ) if norm is None else norm,
         )
     return rval
+
 
 def one_hot_encoder(name,
     n_values=None,
