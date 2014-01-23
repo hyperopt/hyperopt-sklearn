@@ -105,6 +105,7 @@ class SkdataInterface(unittest.TestCase):
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
 
+
 # -- TODO: develop tests with pure sklearn stories
 if __name__ == '__main__':
     unittest.main()
