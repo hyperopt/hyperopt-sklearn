@@ -694,7 +694,7 @@ def rbm(name,
             hp.qloguniform(
                 name + '.n_iter',
                 np.log(1),
-                np.log(1000),
+                np.log(1000),  # -- max sweeps over the *whole* train set
                 q=1,
                 )) if n_iter is None else n_iter,
         verbose=verbose,
@@ -749,13 +749,19 @@ def colkmeans(name,
         )
     return rval
 
+#XXX: todo GaussianRandomProjection
+#XXX: todo SparseRandomProjection
+
 
 def any_preprocessing(name):
+    """Generic pre-processing appropriate for a wide variety of data
+    """
     return hp.choice('%s' % name, [
         [pca(name + '.pca')],
         [standard_scaler(name + '.standard_scaler')],
+        [min_max_scaler(name + '.min_max_scaler')],
         [normalizer(name + '.normalizer')],
+        # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
-        #rbm(name + '.rbm'),
-        ])
+    ])
 
