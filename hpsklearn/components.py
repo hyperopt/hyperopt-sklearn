@@ -426,9 +426,9 @@ def knn(name,
       { 'metric':'manhattan' },
       { 'metric':'chebyshev' },
       { 'metric':'minkowski', 
-        'p':hp.quniform( _name('minkowski_p'), 1, 5, 1 ) },
+        'p':scope.int(hp.quniform( _name('minkowski_p'), 1, 5, 1))},
       { 'metric':'wminkowski', 
-        'p':hp.quniform( _name('wminkowski_p'), 1, 5, 1 ), 
+        'p':scope.int(hp.quniform( _name('wminkowski_p'), 1, 5, 1)),
         'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) },
       { 'metric':'seuclidean', 
         'V':hp.uniform( _name('seuclidean_V'), 0, 100 ) },
@@ -438,9 +438,9 @@ def knn(name,
 
 
     rval = scope.sklearn_KNeighborsClassifier(
-        n_neighbors=hp.quniform(
+        n_neighbors=scope.int(hp.quniform(
             _name('n_neighbors'),
-            1, 10, 1 ) if n_neighbors is None else n_neighbors,
+            1, 10, 1)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
             [ 'uniform', 'distance' ] ) if weights is None else weights,
@@ -448,9 +448,9 @@ def knn(name,
             _name('algorithm'),
             [ 'ball_tree', 'kd_tree', 
               'brute', 'auto' ] ) if algorithm is None else algorithm,
-        leaf_size=hp.quniform(
+        leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
-            1, 100, 1 ) if leaf_size is None else leaf_size,
+            1, 100, 1)) if leaf_size is None else leaf_size,
         #TODO: more metrics available
         ###metric_args,
         ##metric=metric_arg[0] if metric is None else metric,
