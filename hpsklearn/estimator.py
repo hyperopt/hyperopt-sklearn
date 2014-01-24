@@ -4,12 +4,17 @@ import numpy as np
 from functools import partial
 import hyperopt
 import components
+from .thread2 import Thread
+
+class TimeoutError(Exception):
+    pass
+
 
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _rval):
     try:
         classifier = argd['classifier']
         # -- N.B. modify argd['preprocessing'] in-place
@@ -22,6 +27,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
             if not (
                 np.all(np.isfinite(Xfit))
                 and np.all(np.isfinite(Xval))):
+                # -- jump to NonFiniteFeature handler below
                 raise NonFiniteFeature(pp_algo)
 
         info('Training classifier', classifier,
@@ -36,7 +42,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
             'preprocs': argd['preprocessing'],
             'status': hyperopt.STATUS_OK,
             }
-        return rval
+        _rval[0] = rval
 
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
@@ -44,7 +50,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             }
-        return rval
+        _rval[0] = rval
 
     except (AttributeError,), exc:
         if "'NoneType' object has no attribute 'copy'" in str(exc):
@@ -54,9 +60,19 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info):
                 'failure': str(exc),
                 }
         else:
-            raise
-        return rval
-    assert(0) # This line should never be reached
+            rval[:] = (exc, 'raise')
+        _rval[0] = rval
+
+    except (TimeoutError,), exc:
+        rval = {
+            'status': hyperopt.STATUS_FAIL,
+            'failure': 'Timeout',
+            }
+        _rval[0] = rval
+
+    except Exception, exc:
+        rval[:] = (exc, 'raise')
+
 
 
 class hyperopt_estimator(object):
@@ -65,9 +81,11 @@ class hyperopt_estimator(object):
                  classifier=None,
                  algo=None,
                  max_evals=100,
-                 verbose=0):
+                 verbose=0,
+                 fit_timeout=None):
         self.max_evals = max_evals
         self.verbose = verbose
+        self.fit_timeout = fit_timeout
         if algo is None:
             self.algo=hyperopt.rand.suggest
         else:
@@ -103,11 +121,28 @@ class hyperopt_estimator(object):
         Xval = X[p[n_fit:]]
         yval = y[p[n_fit:]]
         self.trials = hyperopt.Trials()
-        hyperopt.fmin(
-            fn=partial(_cost_fn,
+        fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
                 Xval=Xval, yval=yval,
-                info=self.info),
+                info=self.info)
+
+        def fn_with_timeout(*args, **kwargs):
+            kwargs['_rval'] = [None, None]
+            th = Thread(target=fn, args=args, kwargs=kwargs)
+            th.start()
+            th.join(timeout=self.fit_timeout)
+            if th.is_alive():
+                th.terminate(TimeoutError)
+                th.join()  # -- wait for other thread to pick up the exception and exit
+
+            # -- assert _cost_fn exited in a controlled way
+            assert kwargs['_rval'][0] != None
+
+            if kwargs['_rval'][1] == 'raise':
+                raise kwargs['_rval'][0]
+            return kwargs['_rval'][0]
+
+        hyperopt.fmin(fn_with_timeout,
             space=self.space,
             algo=self.algo,
             trials=self.trials,
@@ -122,6 +157,10 @@ class hyperopt_estimator(object):
         best_trial = self.trials.best_trial
         classifier = best_trial['result']['classifier']
         preprocs = best_trial['result']['preprocs']
+
+        # -- copy because otherwise np.utils.check_arrays sometimes does not
+        #    produce a read-write view from read-only memory
+        X = np.array(X)
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.predict(X)
@@ -133,6 +172,9 @@ class hyperopt_estimator(object):
         best_trial = self.trials.best_trial
         classifier = best_trial['result']['classifier']
         preprocs = best_trial['result']['preprocs']
+        # -- copy because otherwise np.utils.check_arrays sometimes does not
+        #    produce a read-write view from read-only memory
+        X = np.array(X)
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.score(X, y)

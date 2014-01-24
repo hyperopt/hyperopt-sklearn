@@ -17,18 +17,9 @@ class TestSmallImages(unittest.TestCase):
     """
     Tests that involve experiments on small rasterized images.
     """
+
     def setUp(self):
-        view_module = skdata.larochelle_etal_2007.view
-        self.view = view_module.RectanglesVectorXV()
-
-
-    def test_small_images(self):
-        """
-        I have been given a database of small labeled images
-        (aka MNIST!) And I understandably want a computer to do my work for me.
-        
-        """
-        algo = SklearnClassifier(
+        self.algo = SklearnClassifier(
             partial(
                 hyperopt_estimator,
                 preprocessing=simple_small_image_preprocessing('pp'),
@@ -36,10 +27,21 @@ class TestSmallImages(unittest.TestCase):
                 max_evals=100,
                 verbose=1,
                 algo=tpe.suggest,
+                fit_timeout=30.0, # -- seconds
                 ))
-        mean_test_error = self.view.protocol(algo)
+
+
+    def test_rectangles(self):
+        view_module = skdata.larochelle_etal_2007.view
+        view = view_module.RectanglesVectorXV()
+        mean_test_error = view.protocol(self.algo)
         print 'mean test error:', mean_test_error
 
+    def test_convex(self):
+        view_module = skdata.larochelle_etal_2007.view
+        view = view_module.ConvexVectorXV()
+        mean_test_error = view.protocol(self.algo)
+        print 'mean test error:', mean_test_error
 
 if __name__ == '__main__':
     unittest.main()
