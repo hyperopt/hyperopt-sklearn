@@ -36,7 +36,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         classifier.fit(Xfit, yfit)
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
-        info('OK trial with accuracy %.1f' % (100 * (1 - loss)))
+        info('OK trial with accuracy %.1f' % (100 * (1.0 - loss)))
         rval = {
             'loss': loss,
             'classifier': classifier,

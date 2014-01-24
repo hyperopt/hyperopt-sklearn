@@ -129,8 +129,8 @@ def svc_linear(name,
         max_iter=scope.patience_param(scope.int(
             hp.qloguniform(
                 _name('max_iter'),
-                np.log(1000),
-                np.log(100000),
+                np.log(100),
+                np.log(10000),
                 q=10,
                 ))) if max_iter is None else max_iter,
         verbose=verbose,
