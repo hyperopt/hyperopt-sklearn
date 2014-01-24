@@ -54,6 +54,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         rtype = 'return'
 
     except (AttributeError,), exc:
+        print 'Failing due to k_means_ weirdness'
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
             rval = {
