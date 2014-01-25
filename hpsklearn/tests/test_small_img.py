@@ -27,7 +27,7 @@ class TestSmallImages(unittest.TestCase):
                 max_evals=100,
                 verbose=1,
                 algo=tpe.suggest,
-                fit_timeout=30.0, # -- seconds
+                fit_timeout=5.0, # -- seconds
                 ))
 
 

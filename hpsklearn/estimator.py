@@ -1,20 +1,21 @@
 """
 """
-import numpy as np
 from functools import partial
-import hyperopt
-import components
-from .thread2 import Thread
+from multiprocessing import Process, Pipe
+import time
 
-class TimeoutError(Exception):
-    pass
+import numpy as np
+
+import hyperopt
+
+from . import components
 
 
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _rval):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
     try:
         classifier = argd['classifier']
         # -- N.B. modify argd['preprocessing'] in-place
@@ -42,7 +43,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _rval):
             'preprocs': argd['preprocessing'],
             'status': hyperopt.STATUS_OK,
             }
-        _rval[0] = rval
+        rtype = 'return'
 
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
@@ -50,7 +51,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _rval):
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             }
-        _rval[0] = rval
+        rtype = 'return'
 
     except (AttributeError,), exc:
         if "'NoneType' object has no attribute 'copy'" in str(exc):
@@ -59,19 +60,17 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _rval):
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
                 }
+            rtype = 'return'
         else:
-            rval[:] = (exc, 'raise')
-        _rval[0] = rval
-
-    except (TimeoutError,), exc:
-        rval = {
-            'status': hyperopt.STATUS_FAIL,
-            'failure': 'Timeout',
-            }
-        _rval[0] = rval
+            rval = exc
+            rtype = 'raise'
 
     except Exception, exc:
-        rval[:] = (exc, 'raise')
+        rval = exc
+        rtype = 'raise'
+
+    # -- return the result to calling process
+    _conn.send((rtype, rval))
 
 
 
@@ -127,20 +126,27 @@ class hyperopt_estimator(object):
                 info=self.info)
 
         def fn_with_timeout(*args, **kwargs):
-            kwargs['_rval'] = [None, None]
-            th = Thread(target=fn, args=args, kwargs=kwargs)
+            conn1, conn2 = Pipe()
+            kwargs['_conn'] = conn2
+            th = Process(target=fn, args=args, kwargs=kwargs)
             th.start()
-            th.join(timeout=self.fit_timeout)
-            if th.is_alive():
-                th.terminate(TimeoutError)
-                th.join()  # -- wait for other thread to pick up the exception and exit
+            if conn1.poll(self.fit_timeout):
+                fn_rval = conn1.recv()
+                th.join()
+            else:
+                print 'TERMINATING DUE TO TIMEOUT'
+                th.terminate()
+                th.join()
+                fn_rval = 'return', {
+                    'status': hyperopt.STATUS_FAIL,
+                    'failure': 'TimeOut'
+                }
 
-            # -- assert _cost_fn exited in a controlled way
-            assert kwargs['_rval'][0] != None
-
-            if kwargs['_rval'][1] == 'raise':
-                raise kwargs['_rval'][0]
-            return kwargs['_rval'][0]
+            assert fn_rval[0] in ('raise', 'return')
+            if fn_rval[0] == 'raise':
+                raise fn_rval[1]
+            else:
+                return fn_rval[1]
 
         hyperopt.fmin(fn_with_timeout,
             space=self.space,
