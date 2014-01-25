@@ -81,7 +81,9 @@ class hyperopt_estimator(object):
                  algo=None,
                  max_evals=100,
                  verbose=0,
-                 fit_timeout=None):
+                 fit_timeout=None,
+                 seed=None,
+                ):
         self.max_evals = max_evals
         self.verbose = verbose
         self.fit_timeout = fit_timeout
@@ -103,6 +105,11 @@ class hyperopt_estimator(object):
             'classifier': self.classifier,
             'preprocessing': self.preprocessing,
         })
+
+        if seed is not None:
+            self.rstate = np.random.RandomState(seed)
+        else:
+            self.rstate = np.random.RandomState()
 
     def info(self, *args):
         if self.verbose:
@@ -149,10 +156,13 @@ class hyperopt_estimator(object):
                 return fn_rval[1]
 
         hyperopt.fmin(fn_with_timeout,
-            space=self.space,
-            algo=self.algo,
-            trials=self.trials,
-            max_evals=self.max_evals)
+                      space=self.space,
+                      algo=self.algo,
+                      trials=self.trials,
+                      max_evals=self.max_evals,
+                      rstate=self.rstate,
+                      catch_eval_exceptions=False,
+                     )
         # -- XXX: retrain best model on full data
         #print argmin
 
