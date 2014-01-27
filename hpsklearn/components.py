@@ -93,13 +93,42 @@ def hp_bool(name):
     return hp.choice(name, [False, True])
 
 
+_svc_default_cache_size=1000.0
+
+
+def _svc_gamma(name):
+    return hp.choice(name + '.gammanz', [
+        0.0,
+        hp.lognormal(name + '.gamma', np.log(0.01), 2.5)])
+
+
+def _svc_max_iter(name):
+    return scope.patience_param(
+        scope.int(
+            hp.loguniform(
+                name + '.max_iter',
+                np.log(1e7),
+                np.log(1e9))))
+
+
+def _svc_C(name):
+    return hp.lognormal( name + '.C', np.log(1000.0), 3.0)
+
+
+def _svc_tol(name):
+    return scope.inv_patience_param(
+            hp.lognormal(
+                name + '.tol',
+                np.log(1e-3),
+                2.0))
+
 def svc_linear(name,
     C=None,
     shrinking=None,
     tol=None,
     max_iter=None,
     verbose=False,
-    cache_size=100.,
+    cache_size=_svc_default_cache_size,
     ):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -111,28 +140,11 @@ def svc_linear(name,
 
     rval = scope.sklearn_SVC(
         kernel='linear',
-        C=hp.lognormal(
-            _name('C'),
-            np.log(1.0),
-            np.log(4.0)) if C is None else C,
+        C=_svc_C(name) if C is None else C,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=scope.inv_patience_param(
-            hp.lognormal(
-                _name('tol'),
-                np.log(1e-3),
-                np.log(10))) if tol is None else tol,
-        # -- this is basically only here to prevent
-        #    an infinite loop in libsvm's solver.
-        #    A more useful control mechanism might be a timer
-        #    or a kill msg to a sub-process or something...
-        max_iter=scope.patience_param(scope.int(
-            hp.qloguniform(
-                _name('max_iter'),
-                np.log(100),
-                np.log(10000),
-                q=10,
-                ))) if max_iter is None else max_iter,
+        tol=_svc_tol(name) if tol is None else tol,
+        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -146,7 +158,7 @@ def svc_rbf(name,
     tol=None,
     max_iter=None,
     verbose=False,
-    cache_size=100.,
+    cache_size=_svc_default_cache_size,
     ):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -158,31 +170,12 @@ def svc_rbf(name,
 
     rval = scope.sklearn_SVC(
         kernel='rbf',
-        C=hp.lognormal(
-            _name('C'),
-            np.log(1.0),
-            np.log(4.0)) if C is None else C,
-        gamma=hp.lognormal(
-            _name('gamma'),
-            np.log(1.0),
-            np.log(3.0)) if gamma is None else gamma,
+        C=_svc_C(name) if C is None else C,
+        gamma=_svc_gamma(name) if gamma is None else gamma,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=hp.lognormal(
-            _name('tol'),
-            np.log(1e-3),
-            np.log(10)) if tol is None else tol,
-        # -- this is basically only here to prevent
-        #    an infinite loop in libsvm's solver.
-        #    A more useful control mechanism might be a timer
-        #    or a kill mesg to a sub-process or something...
-        max_iter=scope.patience_param(scope.int(
-            hp.qloguniform(
-                _name('max_iter'),
-                np.log(1000),
-                np.log(100000),
-                q=10,
-                ))) if max_iter is None else max_iter,
+        tol=_svc_tol(name) if tol is None else tol,
+        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -198,7 +191,7 @@ def svc_poly(name,
     tol=None,
     max_iter=None,
     verbose=False,
-    cache_size=100.,
+    cache_size=_svc_default_cache_size,
     ):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -208,42 +201,25 @@ def svc_poly(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'poly', msg)
 
+    # -- (K(x, y) + coef0)^d
+    poly_coef0 = hp.choice(_name('coef0nz'), [
+            0.0,
+            hp.uniform( _name('coef0'), 0.0, 1.0)])
+
     rval = scope.sklearn_SVC(
         kernel='poly',
-        C=hp.lognormal(
-            _name('C'),
-            np.log(1.0),
-            np.log(4.0)) if C is None else C,
-        gamma=hp.lognormal(
-            _name('gamma'),
-            np.log(1.0),
-            np.log(3.0)) if gamma is None else gamma,
-        coef0=hp.normal(
-            _name('coef0'),
-            0.0,
-            1.0) if coef0 is None else coef0,
+        C=_svc_C(name) if C is None else C,
+        gamma=_svc_gamma(name) if gamma is None else gamma,
+        coef0=poly_coef0 if coef0 is None else coef0,
         degree=hp.quniform(
             _name('degree'),
             low=1.5,
-            high=6.5,
+            high=8.5,
             q=1) if degree is None else degree,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=hp.lognormal(
-            _name('tol'),
-            np.log(1e-3),
-            np.log(10)) if tol is None else tol,
-        # -- this is basically only here to prevent
-        #    an infinite loop in libsvm's solver.
-        #    A more useful control mechanism might be a timer
-        #    or a kill mesg to a sub-process or something...
-        max_iter=scope.patience_param(scope.int(
-            hp.qloguniform(
-                _name('max_iter'),
-                np.log(1000),
-                np.log(100000),
-                q=10,
-                ))) if max_iter is None else max_iter,
+        tol=_svc_tol(name) if tol is None else tol,
+        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -258,7 +234,7 @@ def svc_sigmoid(name,
     tol=None,
     max_iter=None,
     verbose=False,
-    cache_size=100.,
+    cache_size=_svc_default_cache_size,
     ):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -268,37 +244,20 @@ def svc_sigmoid(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'sigmoid', msg)
 
+    # -- tanh(K(x, y) + coef0)
+    sigm_coef0 = hp.choice('coef0nz', [
+        0.0,
+        hp.normal( _name('coef0'), 0.0, 1.0)])
+
     rval = scope.sklearn_SVC(
         kernel='sigmoid',
-        C=hp.lognormal(
-            _name('C'),
-            np.log(1.0),
-            np.log(4.0)) if C is None else C,
-        gamma=hp.lognormal(
-            _name('gamma'),
-            np.log(1.0),
-            np.log(3.0)) if gamma is None else gamma,
-        coef0=hp.normal(
-            _name('coef0'),
-            0.0,
-            1.0) if coef0 is None else coef0,
+        C=_svc_C(name) if C is None else C,
+        gamma=_svc_gamma(name) if gamma is None else gamma,
+        coef0=sigm_coef0 if coef0 is None else coef0,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=hp.lognormal(
-            _name('tol'),
-            np.log(1e-3),
-            np.log(10)) if tol is None else tol,
-        # -- this is basically only here to prevent
-        #    an infinite loop in libsvm's solver.
-        #    A more useful control mechanism might be a timer
-        #    or a kill mesg to a sub-process or something...
-        max_iter=scope.patience_param(scope.int(
-            hp.qloguniform(
-                _name('max_iter'),
-                np.log(1000),
-                np.log(100000),
-                q=10,
-                ))) if max_iter is None else max_iter,
+        tol=_svc_tol(name) if tol is None else tol,
+        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -306,35 +265,40 @@ def svc_sigmoid(name,
 
 
 def svc(name,
-    C=None,
-    kernels=['linear', 'rbf', 'poly', 'sigmoid'],
-    gamma=None,
-    shrinking=None,
-    max_iter=None,
-    verbose=False
-    ):
+        C=None,
+        kernels=['linear', 'rbf', 'poly', 'sigmoid'],
+        shrinking=None,
+        tol=None,
+        max_iter=None,
+        verbose=False,
+        cache_size=_svc_default_cache_size):
     svms = {
-        'linear': svc_linear(name,
+        'linear': svc_linear(
+            name,
             C=C,
             shrinking=shrinking,
+            tol=tol,
             max_iter=max_iter,
             verbose=verbose),
-        'rbf': svc_rbf(name,
+        'rbf': svc_rbf(
+            name,
             C=C,
-            gamma=gamma,
             shrinking=shrinking,
+            tol=tol,
             max_iter=max_iter,
             verbose=verbose),
-        'poly': svc_poly(name,
+        'poly': svc_poly(
+            name,
             C=C,
-            gamma=gamma,
             shrinking=shrinking,
+            tol=tol,
             max_iter=max_iter,
             verbose=verbose),
-        'sigmoid': svc_sigmoid(name,
+        'sigmoid': svc_sigmoid(
+            name,
             C=C,
-            gamma=gamma,
             shrinking=shrinking,
+            tol=tol,
             max_iter=max_iter,
             verbose=verbose),
     }
@@ -595,11 +559,12 @@ def pca(name,
     whiten=None,
     ):
     rval = scope.sklearn_PCA(
-        n_components=scope.int(
+        # -- qloguniform is missing a "scale" parameter
+        n_components=4 * scope.int(
             hp.qloguniform(
                 name + '.n_components',
                 low=np.log(0.5),
-                high=np.log(999.5),
+                high=np.log(30.5),
                 q=1.0)) if n_components is None else n_components,
         whiten=hp_bool(
             name + '.whiten',
