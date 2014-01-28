@@ -45,6 +45,11 @@ def sklearn_StandardScaler(*args, **kwargs):
 
 
 @scope.define
+def sklearn_MinMaxScaler(*args, **kwargs):
+    return sklearn.preprocessing.MinMaxScaler(*args, **kwargs)
+
+
+@scope.define
 def sklearn_Normalizer(*args, **kwargs):
     return sklearn.preprocessing.Normalizer(*args, **kwargs)
 
@@ -421,9 +426,9 @@ def knn(name,
       { 'metric':'manhattan' },
       { 'metric':'chebyshev' },
       { 'metric':'minkowski', 
-        'p':hp.quniform( _name('minkowski_p'), 1, 5, 1 ) },
+        'p':scope.int(hp.quniform( _name('minkowski_p'), 1, 5, 1))},
       { 'metric':'wminkowski', 
-        'p':hp.quniform( _name('wminkowski_p'), 1, 5, 1 ), 
+        'p':scope.int(hp.quniform( _name('wminkowski_p'), 1, 5, 1)),
         'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) },
       { 'metric':'seuclidean', 
         'V':hp.uniform( _name('seuclidean_V'), 0, 100 ) },
@@ -433,9 +438,9 @@ def knn(name,
 
 
     rval = scope.sklearn_KNeighborsClassifier(
-        n_neighbors=hp.quniform(
+        n_neighbors=scope.int(hp.quniform(
             _name('n_neighbors'),
-            1, 10, 1 ) if n_neighbors is None else n_neighbors,
+            1, 10, 1)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
             [ 'uniform', 'distance' ] ) if weights is None else weights,
@@ -443,9 +448,9 @@ def knn(name,
             _name('algorithm'),
             [ 'ball_tree', 'kd_tree', 
               'brute', 'auto' ] ) if algorithm is None else algorithm,
-        leaf_size=hp.quniform(
+        leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
-            1, 100, 1 ) if leaf_size is None else leaf_size,
+            1, 100, 1)) if leaf_size is None else leaf_size,
         #TODO: more metrics available
         ###metric_args,
         ##metric=metric_arg[0] if metric is None else metric,
@@ -584,6 +589,7 @@ def any_classifier(name):
         extra_trees(name + '.extra_trees'),
         ])
 
+
 def pca(name,
     n_components=None,
     whiten=None,
@@ -601,6 +607,7 @@ def pca(name,
         )
     return rval
 
+
 def standard_scaler(name,
     with_mean=None,
     with_std=None,
@@ -615,6 +622,22 @@ def standard_scaler(name,
         )
     return rval
 
+
+def min_max_scaler(name,
+    feature_range=None,
+    copy=True,
+    ):
+    if feature_range is None:
+        feature_range = (
+            hp.choice(name + '.feature_min', [-1.0, 0.0]),
+            1.0)
+    rval = scope.sklearn_MinMaxScaler(
+        feature_range=feature_range,
+        copy=copy,
+        )
+    return rval
+
+
 def normalizer(name,
     norm=None,
     ):
@@ -625,6 +648,7 @@ def normalizer(name,
             ) if norm is None else norm,
         )
     return rval
+
 
 def one_hot_encoder(name,
     n_values=None,
@@ -670,7 +694,7 @@ def rbm(name,
             hp.qloguniform(
                 name + '.n_iter',
                 np.log(1),
-                np.log(1000),
+                np.log(1000),  # -- max sweeps over the *whole* train set
                 q=1,
                 )) if n_iter is None else n_iter,
         verbose=verbose,
@@ -725,13 +749,19 @@ def colkmeans(name,
         )
     return rval
 
+#XXX: todo GaussianRandomProjection
+#XXX: todo SparseRandomProjection
+
 
 def any_preprocessing(name):
+    """Generic pre-processing appropriate for a wide variety of data
+    """
     return hp.choice('%s' % name, [
         [pca(name + '.pca')],
-        #[standard_scaler(name + '.standard_scaler')],
-        #[normalizer(name + '.normalizer')],
+        [standard_scaler(name + '.standard_scaler')],
+        [min_max_scaler(name + '.min_max_scaler')],
+        [normalizer(name + '.normalizer')],
+        # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
-        #rbm(name + '.rbm'),
-        ])
+    ])
 

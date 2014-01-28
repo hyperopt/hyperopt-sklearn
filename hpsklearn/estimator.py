@@ -1,68 +1,92 @@
 """
 """
-import numpy as np
 from functools import partial
+from multiprocessing import Process, Pipe
+import time
+
+import numpy as np
+
 import hyperopt
-import components
+
+from . import components
+
 
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
     try:
         classifier = argd['classifier']
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in argd['preprocessing']:
+            info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
             pp_algo.fit(Xfit)
+            info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
             if not (
                 np.all(np.isfinite(Xfit))
                 and np.all(np.isfinite(Xval))):
+                # -- jump to NonFiniteFeature handler below
                 raise NonFiniteFeature(pp_algo)
 
+        info('Training classifier', classifier,
+             'on X of dimension', Xfit.shape)
         classifier.fit(Xfit, yfit)
+        info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
-        print 'OK trial with accuracy %.1f'  % (100 * (1 - loss))
+        info('OK trial with accuracy %.1f' % (100 * (1 - loss)))
         rval = {
             'loss': loss,
             'classifier': classifier,
             'preprocs': argd['preprocessing'],
             'status': hyperopt.STATUS_OK,
             }
-        return rval
+        rtype = 'return'
 
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         rval = {
-            'loss': None,
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             }
-        return rval
+        rtype = 'return'
 
     except (AttributeError,), exc:
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
             rval = {
-                'loss': None,
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
                 }
+            rtype = 'return'
         else:
-            raise
-        return rval
-    assert(0) # This line should never be reached
+            rval = exc
+            rtype = 'raise'
+
+    except Exception, exc:
+        rval = exc
+        rtype = 'raise'
+
+    # -- return the result to calling process
+    _conn.send((rtype, rval))
+
 
 
 class hyperopt_estimator(object):
     def __init__(self,
-        preprocessing=None,
-        classifier=None,
-        algo=None,
-        max_evals=100):
+                 preprocessing=None,
+                 classifier=None,
+                 algo=None,
+                 max_evals=100,
+                 verbose=0,
+                 fit_timeout=None,
+                 seed=None,
+                ):
         self.max_evals = max_evals
+        self.verbose = verbose
+        self.fit_timeout = fit_timeout
         if algo is None:
             self.algo=hyperopt.rand.suggest
         else:
@@ -82,6 +106,15 @@ class hyperopt_estimator(object):
             'preprocessing': self.preprocessing,
         })
 
+        if seed is not None:
+            self.rstate = np.random.RandomState(seed)
+        else:
+            self.rstate = np.random.RandomState()
+
+    def info(self, *args):
+        if self.verbose:
+            print ' '.join(map(str, args))
+
     def fit(self, X, y, weights=None):
         """
         Search the space of classifiers and preprocessing steps for a good
@@ -94,14 +127,42 @@ class hyperopt_estimator(object):
         Xval = X[p[n_fit:]]
         yval = y[p[n_fit:]]
         self.trials = hyperopt.Trials()
-        argmin = hyperopt.fmin(
-            fn=partial(_cost_fn,
+        fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
-                Xval=Xval, yval=yval),
-            space=self.space,
-            algo=self.algo,
-            trials=self.trials,
-            max_evals=self.max_evals)
+                Xval=Xval, yval=yval,
+                info=self.info)
+
+        def fn_with_timeout(*args, **kwargs):
+            conn1, conn2 = Pipe()
+            kwargs['_conn'] = conn2
+            th = Process(target=fn, args=args, kwargs=kwargs)
+            th.start()
+            if conn1.poll(self.fit_timeout):
+                fn_rval = conn1.recv()
+                th.join()
+            else:
+                print 'TERMINATING DUE TO TIMEOUT'
+                th.terminate()
+                th.join()
+                fn_rval = 'return', {
+                    'status': hyperopt.STATUS_FAIL,
+                    'failure': 'TimeOut'
+                }
+
+            assert fn_rval[0] in ('raise', 'return')
+            if fn_rval[0] == 'raise':
+                raise fn_rval[1]
+            else:
+                return fn_rval[1]
+
+        hyperopt.fmin(fn_with_timeout,
+                      space=self.space,
+                      algo=self.algo,
+                      trials=self.trials,
+                      max_evals=self.max_evals,
+                      rstate=self.rstate,
+                      catch_eval_exceptions=False,
+                     )
         # -- XXX: retrain best model on full data
         #print argmin
 
@@ -112,6 +173,10 @@ class hyperopt_estimator(object):
         best_trial = self.trials.best_trial
         classifier = best_trial['result']['classifier']
         preprocs = best_trial['result']['preprocs']
+
+        # -- copy because otherwise np.utils.check_arrays sometimes does not
+        #    produce a read-write view from read-only memory
+        X = np.array(X)
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.predict(X)
@@ -123,6 +188,9 @@ class hyperopt_estimator(object):
         best_trial = self.trials.best_trial
         classifier = best_trial['result']['classifier']
         preprocs = best_trial['result']['preprocs']
+        # -- copy because otherwise np.utils.check_arrays sometimes does not
+        #    produce a read-write view from read-only memory
+        X = np.array(X)
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.score(X, y)
