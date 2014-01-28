@@ -309,6 +309,7 @@ def svc(name,
         rval = hp.choice('%s.kernel' % name, choices)
     return rval
 
+
 # TODO: Some combinations of parameters are not allowed in LinearSVC
 def liblinear_svc(name,
     C=None,
@@ -338,17 +339,11 @@ def liblinear_svc(name,
                                     ('l2', 'l2', False) ] )
 
     rval = scope.sklearn_LinearSVC(
-        C=hp.lognormal(
-            _name('C'),
-            np.log(1.0),
-            np.log(4.0)) if C is None else C,
+        C=_svc_C(name + '.liblinear') if C is None else C,
         loss=loss_penalty_dual[0] if loss is None else loss,
         penalty=loss_penalty_dual[1] if penalty is None else penalty,
         dual=loss_penalty_dual[2] if dual is None else dual,
-        tol=hp.lognormal(
-            _name('tol'),
-            np.log(1e-3),
-            np.log(10)) if tol is None else tol,
+        tol=_svc_tol(name + '.liblinear') if tol is None else tol,
         multi_class=hp.choice(
             _name('multi_class'),
             ['ovr', 'crammer_singer']) if multi_class is None else multi_class,
@@ -404,7 +399,7 @@ def knn(name,
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
             _name('n_neighbors'),
-            1, 10, 1)) if n_neighbors is None else n_neighbors,
+            0.5, 50.5, 3)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
             [ 'uniform', 'distance' ] ) if weights is None else weights,
@@ -414,7 +409,7 @@ def knn(name,
               'brute', 'auto' ] ) if algorithm is None else algorithm,
         leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
-            1, 100, 1)) if leaf_size is None else leaf_size,
+            0.5, 100.5, 4)) if leaf_size is None else leaf_size,
         #TODO: more metrics available
         ###metric_args,
         ##metric=metric_arg[0] if metric is None else metric,
@@ -559,7 +554,8 @@ def pca(name,
     whiten=None,
     ):
     rval = scope.sklearn_PCA(
-        # -- qloguniform is missing a "scale" parameter
+        # -- qloguniform is missing a "scale" parameter so we
+        #    lower the "high" parameter and multiply by 4 out front
         n_components=4 * scope.int(
             hp.qloguniform(
                 name + '.n_components',
