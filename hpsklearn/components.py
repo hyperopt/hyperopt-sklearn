@@ -729,8 +729,8 @@ def colkmeans(name,
 def any_preprocessing(name):
     return hp.choice('%s' % name, [
         [pca(name + '.pca')],
-        [standard_scaler(name + '.standard_scaler')],
-        [normalizer(name + '.normalizer')],
+        #[standard_scaler(name + '.standard_scaler')],
+        #[normalizer(name + '.normalizer')],
         #[one_hot_encoder(name + '.one_hot_encoder')],
         #rbm(name + '.rbm'),
         ])
