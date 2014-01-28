@@ -399,7 +399,7 @@ def knn(name,
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
             _name('n_neighbors'),
-            0.5, 50.5, 3)) if n_neighbors is None else n_neighbors,
+            0.5, 50, 1)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
             [ 'uniform', 'distance' ] ) if weights is None else weights,
@@ -409,7 +409,7 @@ def knn(name,
               'brute', 'auto' ] ) if algorithm is None else algorithm,
         leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
-            0.5, 100.5, 4)) if leaf_size is None else leaf_size,
+            0.51, 100, 1)) if leaf_size is None else leaf_size,
         #TODO: more metrics available
         ###metric_args,
         ##metric=metric_arg[0] if metric is None else metric,
@@ -559,7 +559,7 @@ def pca(name,
         n_components=4 * scope.int(
             hp.qloguniform(
                 name + '.n_components',
-                low=np.log(0.5),
+                low=np.log(0.51),
                 high=np.log(30.5),
                 q=1.0)) if n_components is None else n_components,
         whiten=hp_bool(
