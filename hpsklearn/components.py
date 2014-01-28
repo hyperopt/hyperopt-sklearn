@@ -140,7 +140,7 @@ def svc_linear(name,
 
     rval = scope.sklearn_SVC(
         kernel='linear',
-        C=_svc_C(name) if C is None else C,
+        C=_svc_C(name + '.linear') if C is None else C,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
         tol=_svc_tol(name) if tol is None else tol,
@@ -170,12 +170,12 @@ def svc_rbf(name,
 
     rval = scope.sklearn_SVC(
         kernel='rbf',
-        C=_svc_C(name) if C is None else C,
+        C=_svc_C(name + '.rbf') if C is None else C,
         gamma=_svc_gamma(name) if gamma is None else gamma,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name) if tol is None else tol,
-        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
+        tol=_svc_tol(name + '.rbf') if tol is None else tol,
+        max_iter=_svc_max_iter(name + '.rbf') if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -208,8 +208,8 @@ def svc_poly(name,
 
     rval = scope.sklearn_SVC(
         kernel='poly',
-        C=_svc_C(name) if C is None else C,
-        gamma=_svc_gamma(name) if gamma is None else gamma,
+        C=_svc_C(name + '.poly') if C is None else C,
+        gamma=_svc_gamma(name + '.poly') if gamma is None else gamma,
         coef0=poly_coef0 if coef0 is None else coef0,
         degree=hp.quniform(
             _name('degree'),
@@ -218,8 +218,8 @@ def svc_poly(name,
             q=1) if degree is None else degree,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name) if tol is None else tol,
-        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
+        tol=_svc_tol(name + '.poly') if tol is None else tol,
+        max_iter=_svc_max_iter(name + '.poly') if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -245,19 +245,19 @@ def svc_sigmoid(name,
         return '%s.%s_%s' % (name, 'sigmoid', msg)
 
     # -- tanh(K(x, y) + coef0)
-    sigm_coef0 = hp.choice('coef0nz', [
+    sigm_coef0 = hp.choice(_name('coef0nz'), [
         0.0,
         hp.normal( _name('coef0'), 0.0, 1.0)])
 
     rval = scope.sklearn_SVC(
         kernel='sigmoid',
-        C=_svc_C(name) if C is None else C,
-        gamma=_svc_gamma(name) if gamma is None else gamma,
+        C=_svc_C(name + '.sigmoid') if C is None else C,
+        gamma=_svc_gamma(name + '.sigmoid') if gamma is None else gamma,
         coef0=sigm_coef0 if coef0 is None else coef0,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name) if tol is None else tol,
-        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
+        tol=_svc_tol(name + '.sigmoid') if tol is None else tol,
+        max_iter=_svc_max_iter(name + '.sigmoid') if max_iter is None else max_iter,
         verbose=verbose,
         cache_size=cache_size,
         )
