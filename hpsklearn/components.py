@@ -552,6 +552,7 @@ def any_classifier(name):
 def pca(name,
     n_components=None,
     whiten=None,
+    copy=True,
     ):
     rval = scope.sklearn_PCA(
         # -- qloguniform is missing a "scale" parameter so we
@@ -565,6 +566,7 @@ def pca(name,
         whiten=hp_bool(
             name + '.whiten',
             ) if whiten is None else whiten,
+        copy=copy,
         )
     return rval
 
