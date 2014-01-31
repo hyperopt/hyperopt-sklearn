@@ -589,6 +589,12 @@ def any_classifier(name):
         extra_trees(name + '.extra_trees'),
         ])
 
+def any_sparse_classifier(name):
+    return hp.choice('%s' % name, [
+        svc(name + '.svc'),
+        liblinear_svc(name + '.linear_svc'),
+        ])
+
 
 def pca(name,
     n_components=None,
