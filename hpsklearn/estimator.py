@@ -11,7 +11,6 @@ import hyperopt
 
 from . import components
 
-
 class NonFiniteFeature(Exception):
     """
     """
@@ -27,14 +26,22 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
+            """ np.isfinite() does not work on sparse matrices
             if not (
                 np.all(np.isfinite(Xfit))
                 and np.all(np.isfinite(Xval))):
                 # -- jump to NonFiniteFeature handler below
                 raise NonFiniteFeature(pp_algo)
+            """
+            if (
+                np.any(np.isnan(Xfit))
+                and np.any(np.isnan(Xval))):
+                # -- jump to NonFiniteFeature handler below
+                raise NonFiniteFeature(pp_algo)
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
+
         classifier.fit(Xfit, yfit)
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
@@ -48,7 +55,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
             'duration': t_done - t_start,
             }
         rtype = 'return'
-
+        
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
@@ -94,7 +101,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
 
     # -- return the result to calling process
     _conn.send((rtype, rval))
-
 
 
 class hyperopt_estimator(object):
@@ -179,8 +185,9 @@ class hyperopt_estimator(object):
         assert weights is None
         increment = self.fit_increment if increment is None else increment
 
-        p = np.random.RandomState(123).permutation(len(X))
-        n_fit = int(.8 * len(X))
+        # len does not work on sparse matrices, so using shape[0] instead
+        p = np.random.RandomState(123).permutation(X.shape[0])
+        n_fit = int(.8 * X.shape[0])
         Xfit = X[p[:n_fit]]
         yfit = y[p[:n_fit]]
         Xval = X[p[n_fit:]]
