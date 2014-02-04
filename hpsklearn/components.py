@@ -551,7 +551,7 @@ def any_classifier(name):
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
-        liblinear_svc(name + '.linear_svc'),
+        #liblinear_svc(name + '.linear_svc'),
         ])
 
 
