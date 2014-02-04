@@ -7,6 +7,7 @@ import time
 import numpy as np
 
 import hyperopt
+import scipy.sparse
 
 from . import components
 
@@ -183,7 +184,11 @@ class hyperopt_estimator(object):
 
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
-        X = np.array(X)
+        if scipy.sparse.issparse(X):
+          X = scipy.sparse.csr_matrix(X)
+        else:
+          X = np.array(X)
+
         for pp in preprocs:
             X = pp.transform(X)
         return classifier.predict(X)
