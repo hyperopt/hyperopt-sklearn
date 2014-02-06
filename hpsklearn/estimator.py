@@ -17,6 +17,7 @@ class NonFiniteFeature(Exception):
 
 def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
     try:
+        t_start = time.time()
         classifier = argd['classifier']
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in argd['preprocessing']:
@@ -37,19 +38,23 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
         info('OK trial with accuracy %.1f' % (100 * (1.0 - loss)))
+        t_done = time.time()
         rval = {
             'loss': loss,
             'classifier': classifier,
             'preprocs': argd['preprocessing'],
             'status': hyperopt.STATUS_OK,
+            'duration': t_done - t_start,
             }
         rtype = 'return'
 
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
+        t_done = time.time()
         rval = {
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
+            'duration': t_done - t_start,
             }
         rtype = 'return'
 
@@ -57,9 +62,11 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         print 'Failing due to k_means_ weirdness'
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
+            t_done = time.time()
             rval = {
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
+                'duration': t_done - t_start,
                 }
             rtype = 'return'
         else:
