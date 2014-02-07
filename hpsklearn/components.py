@@ -5,6 +5,7 @@ import sklearn.neighbors
 import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
+import sklearn.linear_model
 from hyperopt.pyll import scope
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
@@ -32,6 +33,11 @@ def sklearn_RandomForestClassifier(*args, **kwargs):
 @scope.define
 def sklearn_ExtraTreesClassifier(*args, **kwargs):
     return sklearn.ensemble.ExtraTreesClassifier(*args, **kwargs)
+
+
+@scope.define
+def sklearn_SGDClassifier(*args, **kwargs):
+    return sklearn.linear_model.SGDClassifier(*args, **kwargs)
 
 
 @scope.define
@@ -538,6 +544,73 @@ def extra_trees(name,
         )
     return rval
 
+def sgd(name,
+    loss=None,            #default - 'hinge'
+    penalty=None,         #default - 'l2'
+    alpha=None,           #default - 0.0001
+    l1_ratio=None,        #default - 0.15, must be within [0, 1]
+    fit_intercept=None,   #default - True
+    n_iter=None,          #default - 5
+    shuffle=None,         #default - False
+    random_state=None,    #default - None
+    epsilon=None,
+    n_jobs=1,             #default - 1 (-1 means all CPUs)
+    learning_rate=None,   #default - 'invscaling'
+    eta0=None,            #default - 0.01
+    power_t=None,         #default - 0.5
+    class_weight=None,
+    warm_start=False,
+    verbose=True,
+    ):
+
+    def _name(msg):
+      return '%s.%s_%s' % (name, 'sgd', msg)
+    
+    rval = scope.sklearn_SGDClassifier(
+        loss=hp.choice(
+            _name('loss'),
+            [ 'hinge', 'log', 'modified_huber', 'squared_hinge', 'perceptron',
+              'squared_loss', 'huber', 'epsilon_insensitive',
+              'squared_epsilon_insensitive' ] ) if loss is None else loss,
+        penalty=hp.choice(
+            _name('penalty'),
+            [ 'l2', 'l1', 'elasticnet' ] ) if penalty is None else penalty,
+        alpha=hp.lognormal(
+            _name('alpha'),
+            np.log(1.0),
+            np.log(4.0)) if alpha is None else alpha,
+        l1_ratio=hp.quniform(
+            _name('l1_ratio'),
+            0, 1, 0.0001 ) if l1_ratio is None else l1_ratio,
+        fit_intercept=hp.choice(
+            _name('fit_intercept'),
+            [ True, False ]) if fit_intercept is None else fit_intercept,
+        n_iter=scope.int( hp.quniform(
+            _name('n_iter'),
+            1, 10, 1 ) ) if n_iter is None else n_iter,
+        shuffle=hp.choice(
+            _name('shuffle'),
+            [ True, False ]) if shuffle is None else shuffle,
+        epsilon=hp.lognormal(
+            _name('epsilon'),
+            np.log(1.0),
+            np.log(2.0)) if epsilon is None else epsilon,
+        learning_rate=hp.choice(
+            _name('learning_rate'),
+            [ 'constant', 'optimal', 
+              'invscaling' ] ) if learning_rate is None else learning_rate,
+        eta0=hp.lognormal(
+            _name('eta0'),
+            np.log(1.001),
+            np.log(10.0)) if eta0 is None else eta0,
+        power_t=hp.lognormal(
+            _name('power_t'),
+            np.log(1.5),
+            np.log(10.0)) if power_t is None else power_t,
+        n_jobs=n_jobs,
+        verbose=verbose,
+        )
+    return rval
 
 def any_classifier(name):
     return hp.choice('%s' % name, [
@@ -546,11 +619,14 @@ def any_classifier(name):
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
+        sgd(name + '.sgd'),
         ])
 
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
+        sgd(name + '.sgd'),
+        knn(name + '.knn'),
         #liblinear_svc(name + '.linear_svc'),
         ])
 
