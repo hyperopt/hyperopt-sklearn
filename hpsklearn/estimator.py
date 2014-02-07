@@ -159,7 +159,13 @@ class hyperopt_estimator(object):
 
             assert fn_rval[0] in ('raise', 'return')
             if fn_rval[0] == 'raise':
-                raise fn_rval[1]
+                #FIXME: temporarily skipping raise step and returning error
+                #raise fn_rval[1]
+                fn_rval = 'return', {
+                    'status': hyperopt.STATUS_FAIL,
+                    'failure': fn_rval[1]
+                }
+                return fn_rval[1]
             else:
                 return fn_rval[1]
 
