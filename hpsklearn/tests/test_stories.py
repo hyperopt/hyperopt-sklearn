@@ -36,7 +36,11 @@ class SkdataInterface(unittest.TestCase):
         set.
 
         """
-        algo = SklearnClassifier(hyperopt_estimator)
+        algo = SklearnClassifier(
+            partial(hyperopt_estimator,
+                    fit_timeout=15.0, # seconds
+                    verbose=1,
+                    ))
         mean_test_error = self.view.protocol(algo)
         print 'mean test error:', mean_test_error
 
