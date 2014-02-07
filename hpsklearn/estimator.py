@@ -59,6 +59,20 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
             }
         rtype = 'return'
 
+    except (ValueError,), exc:
+        if ('k must be less than or equal'
+            ' to the number of training points') in str(exc):
+            t_done = time.time()
+            rval = {
+                'status': hyperopt.STATUS_FAIL,
+                'failure': str(exc),
+                'duration': t_done - t_start,
+                }
+            rtype = 'return'
+        else:
+            rval = exc
+            rtype = 'raise'
+
     except (AttributeError,), exc:
         print 'Failing due to k_means_ weirdness'
         if "'NoneType' object has no attribute 'copy'" in str(exc):
