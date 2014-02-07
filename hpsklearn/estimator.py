@@ -228,7 +228,7 @@ class hyperopt_estimator(object):
             return fn_rval[1]
 
         while True:
-            new_increment = yield self
+            new_increment = yield self.trials
             if new_increment is not None:
                 increment = new_increment
             hyperopt.fmin(fn_with_timeout,
