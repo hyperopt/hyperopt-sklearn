@@ -8,6 +8,7 @@ import numpy as np
 
 import hyperopt
 import scipy.sparse
+import sklearn.datasets.base
 
 from . import components
 
@@ -128,8 +129,18 @@ class hyperopt_estimator(object):
         predictive model of y <- X. Store the best model for predictions.
         """
         # len does not work on sparse matrices, so using shape[0] instead
-        p = np.random.RandomState(123).permutation(X.shape[0])
-        n_fit = int(.8 * X.shape[0])
+        # shape[0] does not work on lists, so using len() for those
+        if scipy.sparse.issparse(X):
+          data_length = X.shape[0]
+        else:
+          data_length = len(X)
+        if type(X) is list:
+          X = np.array(X)
+        if type(y) is list:
+          y = np.array(y)
+        
+        p = np.random.RandomState(123).permutation( data_length )
+        n_fit = int(.8 * data_length)
         Xfit = X[p[:n_fit]]
         yfit = y[p[:n_fit]]
         Xval = X[p[n_fit:]]
@@ -160,7 +171,7 @@ class hyperopt_estimator(object):
             assert fn_rval[0] in ('raise', 'return')
             if fn_rval[0] == 'raise':
                 #FIXME: temporarily skipping raise step and returning error
-                #raise fn_rval[1]
+                raise fn_rval[1]
                 fn_rval = 'return', {
                     'status': hyperopt.STATUS_FAIL,
                     'failure': fn_rval[1]
@@ -185,6 +196,8 @@ class hyperopt_estimator(object):
         Use the best model found by previous fit() to make a prediction.
         """
         best_trial = self.trials.best_trial
+        print(best_trial)
+        print(best_trial['result'])
         classifier = best_trial['result']['classifier']
         preprocs = best_trial['result']['preprocs']
 
