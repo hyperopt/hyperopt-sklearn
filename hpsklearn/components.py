@@ -6,6 +6,7 @@ import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
 import sklearn.linear_model
+import sklearn.feature_extraction
 from hyperopt.pyll import scope
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
@@ -43,6 +44,11 @@ def sklearn_SGDClassifier(*args, **kwargs):
 @scope.define
 def sklearn_PCA(*args, **kwargs):
     return sklearn.decomposition.PCA(*args, **kwargs)
+
+
+@scope.define
+def sklearn_Tfidf(*args, **kwargs):
+    return sklearn.feature_extraction.TfidfVectorizer(*args, **kwargs)
 
 
 @scope.define
@@ -667,6 +673,59 @@ def standard_scaler(name,
         )
     return rval
 
+def tfidf(name,
+    analyzer=None,
+    ngram_range=None,
+    stop_words=None,
+    lowercase=None,
+    max_df=None,
+    min_df=None,
+    max_features=None,
+    binary=None,
+    norm=None,
+    use_idf=None,
+    smooth_idf=None,
+    sublinear_tf=None,
+    ):
+    
+    def _name(msg):
+      return '%s.%s_%s' % (name, 'sgd', msg)
+    
+    rval = scope.sklearn_Tfidf(
+        analyzer=hp.choice(
+            _name('analyzer'),
+            [ 'word', 'char' ] ) if analyzer is None else analyzer,
+        #ngram_range=
+        stop_words=hp.choice(
+            _name('stop_words'),
+            [ 'english', None ] ) if analyzer is None else analyzer,
+        lowercase=hp_bool(
+            _name('lowercase'),
+            ) if lowercase is None else lowercase,
+        max_df=hp.quniform(
+            _name('max_df'),
+            0, 1, 0.0001 ) if max_df is None else max_df,
+        mid_df=hp.quniform(
+            _name('min_df'),
+            0, 1, 0.0001 ) if min_df is None else min_df,
+        binary=hp_bool(
+            _name('binary'),
+            ) if binary is None else binary,
+        norm=hp.choice(
+            _name('norm'),
+            [ 'l1', 'l2', None ] ) if norm is None else norm,
+        use_idf=hp_bool(
+            _name('use_idf'),
+            ) if use_idf is None else use_idf,
+        smooth_idf=hp_bool(
+            _name('smooth_idf'),
+            ) if smooth_idf is None else smooth_idf,
+        sublinear_tf=hp_bool(
+            _name('sublinear_tf'),
+            ) if sublinear_tf is None else sublinear_tf,
+        )
+    return rval
+
 
 def min_max_scaler(name,
     feature_range=None,
@@ -806,6 +865,7 @@ def any_preprocessing(name):
         [standard_scaler(name + '.standard_scaler')],
         [min_max_scaler(name + '.min_max_scaler')],
         [normalizer(name + '.normalizer')],
+        #[tfidf(name + '.tfidf')],
         # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
     ])
