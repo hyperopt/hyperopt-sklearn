@@ -28,18 +28,14 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
-            """ np.isfinite() does not work on sparse matrices
-            if not (
-                np.all(np.isfinite(Xfit))
-                and np.all(np.isfinite(Xval))):
-                # -- jump to NonFiniteFeature handler below
-                raise NonFiniteFeature(pp_algo)
-            """
-            if (
-                np.any(np.isnan(Xfit))
-                and np.any(np.isnan(Xval))):
-                # -- jump to NonFiniteFeature handler below
-                raise NonFiniteFeature(pp_algo)
+            
+            # np.isfinite() does not work on sparse matrices
+            if not scipy.sparse.issparse(Xfit) and not scipy.sparse.issparse(Xval):
+              if not (
+                  np.all(np.isfinite(Xfit))
+                  and np.all(np.isfinite(Xval))):
+                  # -- jump to NonFiniteFeature handler below
+                  raise NonFiniteFeature(pp_algo)
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
@@ -230,7 +226,14 @@ class hyperopt_estimator(object):
 
             assert fn_rval[0] in ('raise', 'return')
             if fn_rval[0] == 'raise':
-                raise fn_rval[1]
+                #raise fn_rval[1]
+                #"""
+                fn_rval = 'raise', {
+                    'status': hyperopt.STATUS_FAIL,
+                    'failure': fn_rval[1]
+                }
+                #return fn_rval[1]
+                #"""
 
             # -- remove potentially large objects from the rval
             #    so that the Trials() object below stays small
@@ -287,11 +290,8 @@ class hyperopt_estimator(object):
         """
         Use the best model found by previous fit() to make a prediction.
         """
-        best_trial = self.trials.best_trial
-        print(best_trial)
-        print(best_trial['result'])
-        classifier = best_trial['result']['classifier']
-        preprocs = best_trial['result']['preprocs']
+        classifier = self._best_classif
+        preprocs = self._best_preprocs
 
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
@@ -309,8 +309,8 @@ class hyperopt_estimator(object):
         Return the accuracy of the classifier on a given set of data
         """
         best_trial = self.trials.best_trial
-        classifier = best_trial['result']['classifier']
-        preprocs = best_trial['result']['preprocs']
+        classifier = self._best_classif
+        preprocs = self._best_preprocs
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
         X = np.array(X)
@@ -322,9 +322,11 @@ class hyperopt_estimator(object):
         """
         Returns the best model found by the previous fit()
         """
-        best_trial = self.trials.best_trial
-        return { 'classifier' : best_trial['result']['classifier'],
-                 'preprocs' : best_trial['result']['preprocs'] }
+        #best_trial = self.trials.best_trial
+        #return { 'classifier' : best_trial['result']['classifier'],
+        #         'preprocs' : best_trial['result']['preprocs'] }
+        return { 'classifier' : self._best_classif
+                 'preprocs' : self._best_preprocs }
 
 
 

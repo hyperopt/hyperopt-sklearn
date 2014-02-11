@@ -6,7 +6,7 @@ import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
 import sklearn.linear_model
-import sklearn.feature_extraction
+import sklearn.feature_extraction.text
 from hyperopt.pyll import scope
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
@@ -48,7 +48,7 @@ def sklearn_PCA(*args, **kwargs):
 
 @scope.define
 def sklearn_Tfidf(*args, **kwargs):
-    return sklearn.feature_extraction.TfidfVectorizer(*args, **kwargs)
+    return sklearn.feature_extraction.text.TfidfVectorizer(*args, **kwargs)
 
 
 @scope.define
@@ -704,10 +704,10 @@ def tfidf(name,
             ) if lowercase is None else lowercase,
         max_df=hp.quniform(
             _name('max_df'),
-            0, 1, 0.0001 ) if max_df is None else max_df,
-        mid_df=hp.quniform(
+            0.5, 1, 0.0001 ) if max_df is None else max_df,
+        min_df=hp.quniform(
             _name('min_df'),
-            0, 1, 0.0001 ) if min_df is None else min_df,
+            0, 0.5, 0.0001 ) if min_df is None else min_df,
         binary=hp_bool(
             _name('binary'),
             ) if binary is None else binary,
@@ -870,3 +870,9 @@ def any_preprocessing(name):
         #[one_hot_encoder(name + '.one_hot_encoder')],
     ])
 
+def any_text_preprocessing(name):
+    """Generic pre-processing appropriate for text data
+    """
+    return hp.choice('%s' % name, [
+        [tfidf(name + '.tfidf')],
+    ])
