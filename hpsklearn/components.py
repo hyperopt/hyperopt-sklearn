@@ -715,3 +715,16 @@ def any_preprocessing(name):
         #[one_hot_encoder(name + '.one_hot_encoder')],
     ])
 
+
+def generic_space(name='space'):
+    model = hp.pchoice('%s' % name, [
+        (.8, {'preprocessing': [pca(name + '.pca')],
+              'classifier': any_classifier(name + '.pca_clsf')
+              }),
+        (.2, {'preprocessing': [min_max_scaler(name + '.min_max_scaler')],
+              'classifier': any_classifier(name + '.min_max_clsf'),
+              }),
+    ])
+    return as_apply({'model': model})
+
+# -- flake8 eof
