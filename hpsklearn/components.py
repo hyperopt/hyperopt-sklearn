@@ -5,9 +5,10 @@ import sklearn.neighbors
 import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, as_apply
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
+
 
 @scope.define
 def sklearn_SVC(*args, **kwargs):
@@ -93,7 +94,7 @@ def hp_bool(name):
     return hp.choice(name, [False, True])
 
 
-_svc_default_cache_size=1000.0
+_svc_default_cache_size = 1000.0
 
 
 def _svc_gamma(name):
@@ -112,24 +113,24 @@ def _svc_max_iter(name):
 
 
 def _svc_C(name):
-    return hp.lognormal( name + '.C', np.log(1000.0), 3.0)
+    return hp.lognormal(name + '.C', np.log(1000.0), 3.0)
 
 
 def _svc_tol(name):
     return scope.inv_patience_param(
-            hp.lognormal(
-                name + '.tol',
-                np.log(1e-3),
-                2.0))
+        hp.lognormal(
+            name + '.tol',
+            np.log(1e-3),
+            2.0))
+
 
 def svc_linear(name,
-    C=None,
-    shrinking=None,
-    tol=None,
-    max_iter=None,
-    verbose=False,
-    cache_size=_svc_default_cache_size,
-    ):
+               C=None,
+               shrinking=None,
+               tol=None,
+               max_iter=None,
+               verbose=False,
+               cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with a linear kernel.
@@ -152,14 +153,13 @@ def svc_linear(name,
 
 
 def svc_rbf(name,
-    C=None,
-    gamma=None,
-    shrinking=None,
-    tol=None,
-    max_iter=None,
-    verbose=False,
-    cache_size=_svc_default_cache_size,
-    ):
+            C=None,
+            gamma=None,
+            shrinking=None,
+            tol=None,
+            max_iter=None,
+            verbose=False,
+            cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -175,7 +175,8 @@ def svc_rbf(name,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
         tol=_svc_tol(name + '.rbf') if tol is None else tol,
-        max_iter=_svc_max_iter(name + '.rbf') if max_iter is None else max_iter,
+        max_iter=(_svc_max_iter(name + '.rbf')
+                  if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -183,16 +184,15 @@ def svc_rbf(name,
 
 
 def svc_poly(name,
-    C=None,
-    gamma=None,
-    coef0=None,
-    degree=None,
-    shrinking=None,
-    tol=None,
-    max_iter=None,
-    verbose=False,
-    cache_size=_svc_default_cache_size,
-    ):
+             C=None,
+             gamma=None,
+             coef0=None,
+             degree=None,
+             shrinking=None,
+             tol=None,
+             max_iter=None,
+             verbose=False,
+             cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -202,9 +202,9 @@ def svc_poly(name,
         return '%s.%s_%s' % (name, 'poly', msg)
 
     # -- (K(x, y) + coef0)^d
-    poly_coef0 = hp.choice(_name('coef0nz'), [
-            0.0,
-            hp.uniform( _name('coef0'), 0.0, 1.0)])
+    poly_coef0 = hp.choice(_name('coef0nz'),
+                           [0.0,
+                            hp.uniform(_name('coef0'), 0.0, 1.0)])
 
     rval = scope.sklearn_SVC(
         kernel='poly',
@@ -219,7 +219,8 @@ def svc_poly(name,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
         tol=_svc_tol(name + '.poly') if tol is None else tol,
-        max_iter=_svc_max_iter(name + '.poly') if max_iter is None else max_iter,
+        max_iter=(_svc_max_iter(name + '.poly')
+                  if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
         )
@@ -227,15 +228,14 @@ def svc_poly(name,
 
 
 def svc_sigmoid(name,
-    C=None,
-    gamma=None,
-    coef0=None,
-    shrinking=None,
-    tol=None,
-    max_iter=None,
-    verbose=False,
-    cache_size=_svc_default_cache_size,
-    ):
+                C=None,
+                gamma=None,
+                coef0=None,
+                shrinking=None,
+                tol=None,
+                max_iter=None,
+                verbose=False,
+                cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -247,7 +247,7 @@ def svc_sigmoid(name,
     # -- tanh(K(x, y) + coef0)
     sigm_coef0 = hp.choice(_name('coef0nz'), [
         0.0,
-        hp.normal( _name('coef0'), 0.0, 1.0)])
+        hp.normal(_name('coef0'), 0.0, 1.0)])
 
     rval = scope.sklearn_SVC(
         kernel='sigmoid',
@@ -257,10 +257,10 @@ def svc_sigmoid(name,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
         tol=_svc_tol(name + '.sigmoid') if tol is None else tol,
-        max_iter=_svc_max_iter(name + '.sigmoid') if max_iter is None else max_iter,
+        max_iter=(_svc_max_iter(name + '.sigmoid')
+                  if max_iter is None else max_iter),
         verbose=verbose,
-        cache_size=cache_size,
-        )
+        cache_size=cache_size)
     return rval
 
 
@@ -312,31 +312,30 @@ def svc(name,
 
 # TODO: Some combinations of parameters are not allowed in LinearSVC
 def liblinear_svc(name,
-    C=None,
-    loss=None,
-    penalty=None,
-    dual=None,
-    tol=None,
-    multi_class=None,
-    fit_intercept=None,
-    intercept_scaling=None,
-    class_weight=None,
-    verbose=False,
-    ):
+                  C=None,
+                  loss=None,
+                  penalty=None,
+                  dual=None,
+                  tol=None,
+                  multi_class=None,
+                  fit_intercept=None,
+                  intercept_scaling=None,
+                  class_weight=None,
+                  verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'linear_svc', msg)
-    
+        return '%s.%s_%s' % (name, 'linear_svc', msg)
+
     """
     The combination of penalty='l1' and loss='l1' is not supported
     penalty='l2' and ploss='l1' is only supported when dual='true'
     penalty='l1' is only supported when dual='false'
     """
-    loss_penalty_dual = hp.choice( _name('loss_penalty_dual'), 
-                                  [ ('l1', 'l2', True), 
-                                    ('l2', 'l2', True),
-                                    ('l2', 'l1', False),
-                                    ('l2', 'l2', False) ] )
+    loss_penalty_dual = hp.choice(_name('loss_penalty_dual'),
+                                  [('l1', 'l2', True),
+                                   ('l2', 'l2', True),
+                                   ('l2', 'l1', False),
+                                   ('l2', 'l2', False)])
 
     rval = scope.sklearn_LinearSVC(
         C=_svc_C(name + '.liblinear') if C is None else C,
@@ -354,47 +353,48 @@ def liblinear_svc(name,
         )
     return rval
 
+
 # TODO: Pick reasonable default values
 def knn(name,
-    n_neighbors=None,
-    weights=None,
-    algorithm=None,
-    leaf_size=None,
-    metric=None,
-    p=None,
-    **kwargs
-    ):
+        n_neighbors=None,
+        weights=None,
+        algorithm=None,
+        leaf_size=None,
+        metric=None,
+        p=None,
+        **kwargs):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'knn', msg)
-    
+        return '%s.%s_%s' % (name, 'knn', msg)
+
     """
     metric_arg = hp.choice( _name('metric'), [
-      ( 'euclidean', None, None, None ),
-      ( 'manhattan', None, None, None ),
-      ( 'chebyshev', None, None, None ),
-      ( 'minkowski', hp.quniform( _name('minkowski_p'), 1, 5, 1 ), None, None ),
-      ( 'wminkowski', hp.quniform( _name('wminkowski_p'), 1, 5, 1 ), 
-                      hp.uniform( _name('wminkowski_w'), 0, 100 ), None ),
-      ( 'seuclidean', None, None, hp.uniform( _name('seuclidean_V'), 0, 100 ) ),
-      ( 'mahalanobis', None, None, hp.uniform( _name('mahalanobis_V'), 0, 100 ) ),
-    ] )
+      ('euclidean', None, None, None ),
+      ('manhattan', None, None, None ),
+      ('chebyshev', None, None, None ),
+      ('minkowski', hp.quniform(_name('minkowski_p'), 1, 5, 1 ), None, None),
+      ('wminkowski', hp.quniform(_name('wminkowski_p'), 1, 5, 1 ),
+                      hp.uniform(_name('wminkowski_w'), 0, 100 ), None ),
+      ('seuclidean', None, None, hp.uniform(_name('seuclidean_V'), 0, 100)),
+      ('mahalanobis', None, None, hp.uniform(_name('mahalanobis_V'), 0, 100)),
+    ])
     """
-    metric_args = hp.choice( _name('metric'), [
+    """
+    metric_args = hp.choice(_name('metric'), [
       { 'metric':'euclidean' },
       { 'metric':'manhattan' },
       { 'metric':'chebyshev' },
-      { 'metric':'minkowski', 
-        'p':scope.int(hp.quniform( _name('minkowski_p'), 1, 5, 1))},
-      { 'metric':'wminkowski', 
-        'p':scope.int(hp.quniform( _name('wminkowski_p'), 1, 5, 1)),
+      { 'metric':'minkowski',
+        'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))},
+      { 'metric':'wminkowski',
+        'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
         'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) },
-      { 'metric':'seuclidean', 
+      { 'metric':'seuclidean',
         'V':hp.uniform( _name('seuclidean_V'), 0, 100 ) },
-      { 'metric':'mahalanobis', 
+      { 'metric':'mahalanobis',
         'V':hp.uniform( _name('mahalanobis_V'), 0, 100 ) },
     ] )
-
+    """
 
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
@@ -402,11 +402,11 @@ def knn(name,
             0.5, 50, 1)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
-            [ 'uniform', 'distance' ] ) if weights is None else weights,
+            ['uniform', 'distance']) if weights is None else weights,
         algorithm=hp.choice(
             _name('algorithm'),
-            [ 'ball_tree', 'kd_tree', 
-              'brute', 'auto' ] ) if algorithm is None else algorithm,
+            ['ball_tree', 'kd_tree',
+             'brute', 'auto']) if algorithm is None else algorithm,
         leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
             0.51, 100, 1)) if leaf_size is None else leaf_size,
@@ -418,7 +418,7 @@ def knn(name,
         ##V=metric_arg[3],
         #metric=hp.choice(
         #    _name('metric'),
-        #    [ 'euclidean', 'manhattan', 'chebyshev', 
+        #    [ 'euclidean', 'manhattan', 'chebyshev',
         #      'minkowski' ] ) if metric is None else metric,
         #p=hp.quniform(
         #    _name('p'),
@@ -426,50 +426,50 @@ def knn(name,
         )
     return rval
 
+
 # TODO: Pick reasonable default values
 def random_forest(name,
-    n_estimators=None,
-    criterion=None,
-    max_features=None,
-    max_depth=None,
-    min_samples_split=None,
-    min_samples_leaf=None,
-    bootstrap=None,
-    oob_score=None,
-    n_jobs=1,
-    verbose=False,
-    ):
+                  n_estimators=None,
+                  criterion=None,
+                  max_features=None,
+                  max_depth=None,
+                  min_samples_split=None,
+                  min_samples_leaf=None,
+                  bootstrap=None,
+                  oob_score=None,
+                  n_jobs=1,
+                  verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'random_forest', msg)
-    
+        return '%s.%s_%s' % (name, 'random_forest', msg)
+
     """
     Out of bag estimation only available if bootstrap=True
     """
 
-    bootstrap_oob = hp.choice( _name('bootstrap_oob'),
-                              [ ( True, True ),
-                                ( True, False ),
-                                ( False, False ) ] )
+    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
+                              [(True, True),
+                               (True, False),
+                               (False, False)])
 
     rval = scope.sklearn_RandomForestClassifier(
-        n_estimators=scope.int( hp.quniform(
+        n_estimators=scope.int(hp.quniform(
             _name('n_estimators'),
-            1, 50, 1 ) ) if n_estimators is None else n_estimators,
+            1, 50, 1)) if n_estimators is None else n_estimators,
         criterion=hp.choice(
             _name('criterion'),
-            [ 'gini', 'entropy' ] ) if criterion is None else criterion,
+            ['gini', 'entropy']) if criterion is None else criterion,
         max_features=hp.choice(
             _name('max_features'),
-            [ 'sqrt', 'log2', 
-              None ] ) if max_features is None else max_features,
+            ['sqrt', 'log2',
+             None]) if max_features is None else max_features,
         max_depth=max_depth,
         min_samples_split=hp.quniform(
             _name('min_samples_split'),
-            1, 10, 1 ) if min_samples_split is None else min_samples_split,
+            1, 10, 1) if min_samples_split is None else min_samples_split,
         min_samples_leaf=hp.quniform(
             _name('min_samples_leaf'),
-            1, 5, 1 ) if min_samples_leaf is None else min_samples_leaf,
+            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
         bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
         oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
         #bootstrap=hp.choice(
@@ -487,44 +487,43 @@ def random_forest(name,
 # TODO: Pick reasonable default values
 # TODO: the parameters are the same as RandomForest, stick em together somehow
 def extra_trees(name,
-    n_estimators=None,
-    criterion=None,
-    max_features=None,
-    max_depth=None,
-    min_samples_split=None,
-    min_samples_leaf=None,
-    bootstrap=None,
-    oob_score=None,
-    n_jobs=1,
-    verbose=False,
-    ):
+                n_estimators=None,
+                criterion=None,
+                max_features=None,
+                max_depth=None,
+                min_samples_split=None,
+                min_samples_leaf=None,
+                bootstrap=None,
+                oob_score=None,
+                n_jobs=1,
+                verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'extra_trees', msg)
-    
-    bootstrap_oob = hp.choice( _name('bootstrap_oob'),
-                              [ ( True, True ),
-                                ( True, False ),
-                                ( False, False ) ] )
+        return '%s.%s_%s' % (name, 'extra_trees', msg)
+
+    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
+                              [(True, True),
+                               (True, False),
+                               (False, False)])
 
     rval = scope.sklearn_ExtraTreesClassifier(
-        n_estimators=scope.int( hp.quniform(
+        n_estimators=scope.int(hp.quniform(
             _name('n_estimators'),
-            1, 50, 1 ) ) if n_estimators is None else n_estimators,
+            1, 50, 1)) if n_estimators is None else n_estimators,
         criterion=hp.choice(
             _name('criterion'),
-            [ 'gini', 'entropy' ] ) if criterion is None else criterion,
+            ['gini', 'entropy']) if criterion is None else criterion,
         max_features=hp.choice(
             _name('max_features'),
-            [ 'sqrt', 'log2', 
-              None ] ) if max_features is None else max_features,
+            ['sqrt', 'log2',
+             None]) if max_features is None else max_features,
         max_depth=max_depth,
         min_samples_split=hp.quniform(
             _name('min_samples_split'),
-            1, 10, 1 ) if min_samples_split is None else min_samples_split,
+            1, 10, 1) if min_samples_split is None else min_samples_split,
         min_samples_leaf=hp.quniform(
             _name('min_samples_leaf'),
-            1, 5, 1 ) if min_samples_leaf is None else min_samples_leaf,
+            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
         bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
         oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
         #bootstrap=hp.choice(
@@ -549,11 +548,7 @@ def any_classifier(name):
         ])
 
 
-def pca(name,
-    n_components=None,
-    whiten=None,
-    copy=True,
-    ):
+def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
         # -- qloguniform is missing a "scale" parameter so we
         #    lower the "high" parameter and multiply by 4 out front
@@ -571,10 +566,7 @@ def pca(name,
     return rval
 
 
-def standard_scaler(name,
-    with_mean=None,
-    with_std=None,
-    ):
+def standard_scaler(name, with_mean=None, with_std=None):
     rval = scope.sklearn_StandardScaler(
         with_mean=hp_bool(
             name + '.with_mean',
@@ -586,10 +578,7 @@ def standard_scaler(name,
     return rval
 
 
-def min_max_scaler(name,
-    feature_range=None,
-    copy=True,
-    ):
+def min_max_scaler(name, feature_range=None, copy=True):
     if feature_range is None:
         feature_range = (
             hp.choice(name + '.feature_min', [-1.0, 0.0]),
@@ -601,39 +590,37 @@ def min_max_scaler(name,
     return rval
 
 
-def normalizer(name,
-    norm=None,
-    ):
+def normalizer(name, norm=None):
     rval = scope.sklearn_Normalizer(
         norm=hp.choice(
             name + '.with_mean',
-            [ 'l1', 'l2' ],
+            ['l1', 'l2'],
             ) if norm is None else norm,
         )
     return rval
 
 
 def one_hot_encoder(name,
-    n_values=None,
-    categorical_features=None,
-    dtype=None,
-    ):
+                    n_values=None,
+                    categorical_features=None,
+                    dtype=None):
     rval = scope.sklearn_OneHotEncoder(
-        n_values = 'auto' if n_values is None else n_values,
-        categorical_features = 'all' if categorical_features is None else
-      categorical_features,
-        dtype = np.float if dtype is None else dtype,
+        n_values='auto' if n_values is None else n_values,
+        categorical_features=('all'
+                              if categorical_features is None
+                              else categorical_features),
+        dtype=np.float if dtype is None else dtype,
         )
     return rval
 
 
 def rbm(name,
-    n_components=None,
-    learning_rate=None,
-    batch_size=None,
-    n_iter=None,
-    verbose=False,
-    random_state=None):
+        n_components=None,
+        learning_rate=None,
+        batch_size=None,
+        n_iter=None,
+        verbose=False,
+        random_state=None):
     rval = scope.sklearn_BernoulliRBM(
         n_components=scope.int(
             hp.qloguniform(
@@ -667,16 +654,16 @@ def rbm(name,
 
 
 def colkmeans(name,
-    n_clusters=None,
-    init=None,
-    n_init=None,
-    max_iter=None,
-    tol=None,
-    precompute_distances=True,
-    verbose=0,
-    random_state=None,
-    copy_x=True,
-    n_jobs=1):
+              n_clusters=None,
+              init=None,
+              n_init=None,
+              max_iter=None,
+              tol=None,
+              precompute_distances=True,
+              verbose=0,
+              random_state=None,
+              copy_x=True,
+              n_jobs=1):
     rval = scope.sklearn_ColumnKMeans(
         n_clusters=scope.int(
             hp.qloguniform(
