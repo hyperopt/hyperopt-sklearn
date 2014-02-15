@@ -44,10 +44,15 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         classifier.fit(Xfit, yfit)
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
-        info('OK trial with accuracy %.1f' % (100 * (1.0 - loss)))
+        # -- squared standard error of mean
+        lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
+        info('OK trial with accuracy %.1f +- %.1f' % (
+            100 * (1.0 - loss),
+            100 * np.sqrt(lossvar)))
         t_done = time.time()
         rval = {
             'loss': loss,
+            'loss_variance': lossvar,
             'classifier': classifier,
             'preprocs': preprocessings,
             'status': hyperopt.STATUS_OK,
