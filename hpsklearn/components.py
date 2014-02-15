@@ -98,9 +98,11 @@ _svc_default_cache_size = 1000.0
 
 
 def _svc_gamma(name):
-    return hp.choice(name + '.gammanz', [
-        0.0,
-        hp.lognormal(name + '.gamma', np.log(0.01), 2.5)])
+    # -- making these non-conditional variables
+    #    probably helps the GP algorithm generalize
+    gammanz = hp.choice(name + '.gammanz', [0, 1])
+    gamma = hp.lognormal(name + '.gamma', np.log(0.01), 2.5)
+    return gammanz * gamma
 
 
 def _svc_max_iter(name):
@@ -123,6 +125,12 @@ def _svc_tol(name):
             np.log(1e-3),
             2.0))
 
+def _random_state(name, random_state):
+    if random_state is None:
+        return hp.randint(name, 5)
+    else:
+        return random_state
+
 
 def svc_linear(name,
                C=None,
@@ -130,6 +138,7 @@ def svc_linear(name,
                tol=None,
                max_iter=None,
                verbose=False,
+               random_state=None,
                cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -147,6 +156,7 @@ def svc_linear(name,
         tol=_svc_tol(name) if tol is None else tol,
         max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
         verbose=verbose,
+        random_state=_random_state(_name('.rstate'), random_state),
         cache_size=cache_size,
         )
     return rval
@@ -159,6 +169,7 @@ def svc_rbf(name,
             tol=None,
             max_iter=None,
             verbose=False,
+            random_state=None,
             cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -179,6 +190,7 @@ def svc_rbf(name,
                   if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
+        random_state=_random_state(_name('rstate'), random_state),
         )
     return rval
 
@@ -192,6 +204,7 @@ def svc_poly(name,
              tol=None,
              max_iter=None,
              verbose=False,
+             random_state=None,
              cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -202,9 +215,9 @@ def svc_poly(name,
         return '%s.%s_%s' % (name, 'poly', msg)
 
     # -- (K(x, y) + coef0)^d
-    poly_coef0 = hp.choice(_name('coef0nz'),
-                           [0.0,
-                            hp.uniform(_name('coef0'), 0.0, 1.0)])
+    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
+    coef0 = hp.uniform(_name('coef0'), 0.0, 1.0)
+    poly_coef0 = coef0nz * coef0
 
     rval = scope.sklearn_SVC(
         kernel='poly',
@@ -222,6 +235,7 @@ def svc_poly(name,
         max_iter=(_svc_max_iter(name + '.poly')
                   if max_iter is None else max_iter),
         verbose=verbose,
+        random_state=_random_state(_name('.rstate'), random_state),
         cache_size=cache_size,
         )
     return rval
@@ -235,6 +249,7 @@ def svc_sigmoid(name,
                 tol=None,
                 max_iter=None,
                 verbose=False,
+                random_state=None,
                 cache_size=_svc_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -245,9 +260,9 @@ def svc_sigmoid(name,
         return '%s.%s_%s' % (name, 'sigmoid', msg)
 
     # -- tanh(K(x, y) + coef0)
-    sigm_coef0 = hp.choice(_name('coef0nz'), [
-        0.0,
-        hp.normal(_name('coef0'), 0.0, 1.0)])
+    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
+    coef0 = hp.normal(_name('coef0'), 0.0, 1.0)
+    sigm_coef0 = coef0nz * coef0
 
     rval = scope.sklearn_SVC(
         kernel='sigmoid',
@@ -260,6 +275,7 @@ def svc_sigmoid(name,
         max_iter=(_svc_max_iter(name + '.sigmoid')
                   if max_iter is None else max_iter),
         verbose=verbose,
+        random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size)
     return rval
 
@@ -271,6 +287,7 @@ def svc(name,
         tol=None,
         max_iter=None,
         verbose=False,
+        random_state=None,
         cache_size=_svc_default_cache_size):
     svms = {
         'linear': svc_linear(
@@ -279,6 +296,7 @@ def svc(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
+            random_state=random_state,
             verbose=verbose),
         'rbf': svc_rbf(
             name,
@@ -286,6 +304,7 @@ def svc(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
+            random_state=random_state,
             verbose=verbose),
         'poly': svc_poly(
             name,
@@ -293,6 +312,7 @@ def svc(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
+            random_state=random_state,
             verbose=verbose),
         'sigmoid': svc_sigmoid(
             name,
@@ -300,6 +320,7 @@ def svc(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
+            random_state=random_state,
             verbose=verbose),
     }
     choices = [svms[kern] for kern in kernels]
@@ -321,6 +342,7 @@ def liblinear_svc(name,
                   fit_intercept=None,
                   intercept_scaling=None,
                   class_weight=None,
+                  random_state=None,
                   verbose=False):
 
     def _name(msg):
@@ -349,6 +371,7 @@ def liblinear_svc(name,
         fit_intercept=hp.choice(
             _name('fit_intercept'),
             [True, False]) if fit_intercept is None else fit_intercept,
+        random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
         )
     return rval
@@ -438,6 +461,7 @@ def random_forest(name,
                   bootstrap=None,
                   oob_score=None,
                   n_jobs=1,
+                  random_state=None,
                   verbose=False):
 
     def _name(msg):
@@ -479,6 +503,7 @@ def random_forest(name,
         #    _name('oob_score'),
         #    [ True, False ] ) if oob_score is None else oob_score,
         n_jobs=n_jobs,
+        random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
         )
     return rval
@@ -496,6 +521,7 @@ def extra_trees(name,
                 bootstrap=None,
                 oob_score=None,
                 n_jobs=1,
+                random_state=None,
                 verbose=False):
 
     def _name(msg):
@@ -533,6 +559,7 @@ def extra_trees(name,
         #    _name('oob_score'),
         #    [ True, False ] ) if oob_score is None else oob_score,
         n_jobs=n_jobs,
+        random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
         )
     return rval
@@ -648,7 +675,7 @@ def rbm(name,
                 q=1,
                 )) if n_iter is None else n_iter,
         verbose=verbose,
-        random_state=random_state,
+        random_state=_random_state(name + '.rstate', random_state),
         )
     return rval
 
