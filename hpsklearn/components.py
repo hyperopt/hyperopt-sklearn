@@ -7,6 +7,7 @@ import sklearn.preprocessing
 import sklearn.neural_network
 import sklearn.linear_model
 import sklearn.feature_extraction.text
+import sklearn.naive_bayes
 from hyperopt.pyll import scope
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
@@ -39,6 +40,11 @@ def sklearn_ExtraTreesClassifier(*args, **kwargs):
 @scope.define
 def sklearn_SGDClassifier(*args, **kwargs):
     return sklearn.linear_model.SGDClassifier(*args, **kwargs)
+
+
+@scope.define
+def sklearn_MultinomialNB(*args, **kwargs):
+    return sklearn.naive_bayes.MultinomialNB(*args, **kwargs)
 
 
 @scope.define
@@ -618,6 +624,25 @@ def sgd(name,
         )
     return rval
 
+def multinomial_nb(name,
+    alpha=None,
+    fit_prior=None,
+    ):
+
+    def _name(msg):
+      return '%s.%s_%s' % (name, 'multinomial_nb', msg)
+    
+
+    rval = scope.sklearn_MultinomialNB(
+        alpha=hp.quniform(
+            _name('alpha'),
+            0, 1, 0.001 ) if alpha is None else alpha,
+        fit_prior=hp.choice(
+            _name('fit_prior'),
+            [ True, False ] ) if fit_prior is None else fit_prior,
+        )
+    return rval
+
 def any_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
@@ -633,6 +658,7 @@ def any_sparse_classifier(name):
         svc(name + '.svc'),
         sgd(name + '.sgd'),
         knn(name + '.knn'),
+        multinomial_nb(name + '.multinomial_nb')
         #liblinear_svc(name + '.linear_svc'),
         ])
 
@@ -691,6 +717,39 @@ def tfidf(name,
     def _name(msg):
       return '%s.%s_%s' % (name, 'sgd', msg)
     
+    rval = scope.sklearn_Tfidf()
+    """
+    rval = scope.sklearn_Tfidf(
+        stop_words=hp.choice(
+            _name('stop_words'),
+            [ 'english', None ] ) if analyzer is None else analyzer,
+        lowercase=hp_bool(
+            _name('lowercase'),
+            ) if lowercase is None else lowercase,
+        max_df=hp.quniform(
+            _name('max_df'),
+            0.5, 1, 0.0001 ) if max_df is None else max_df,
+        min_df=hp.quniform(
+            _name('min_df'),
+            0, 0.5, 0.0001 ) if min_df is None else min_df,
+        binary=hp_bool(
+            _name('binary'),
+            ) if binary is None else binary,
+        norm=hp.choice(
+            _name('norm'),
+            [ 'l1', 'l2', None ] ) if norm is None else norm,
+        use_idf=hp_bool(
+            _name('use_idf'),
+            ) if use_idf is None else use_idf,
+        smooth_idf=hp_bool(
+            _name('smooth_idf'),
+            ) if smooth_idf is None else smooth_idf,
+        sublinear_tf=hp_bool(
+            _name('sublinear_tf'),
+            ) if sublinear_tf is None else sublinear_tf,
+        )
+    """
+    """
     rval = scope.sklearn_Tfidf(
         analyzer=hp.choice(
             _name('analyzer'),
@@ -724,6 +783,7 @@ def tfidf(name,
             _name('sublinear_tf'),
             ) if sublinear_tf is None else sublinear_tf,
         )
+    """
     return rval
 
 
