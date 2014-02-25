@@ -13,11 +13,13 @@ import sklearn.datasets.base
 
 from . import components
 
+TIMEOUT_TOLERANCE = 5
+
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout, _conn):
     try:
         t_start = time.time()
         classifier = argd['classifier']
@@ -39,8 +41,25 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
+        
+        if hasattr( classifier, "partial_fitzz" ):
+          # Split data into minibatches
+          num_splits = int(Xfit.shape[0] / 100)
+          #Xpartial = np.array_split(Xfit, num_splits)
+          #ypartial = np.array_split(yfit, num_splits)
 
-        classifier.fit(Xfit, yfit)
+          #FIXME: this will break if less than 100 points
+          #       a cleaner method should be used. Unfortunately a lot of clean
+          #       stuff doesn't work on sparse matrices
+          classifier.partial_fit( Xfit[0:100], yfit[0:100], classes=np.unique( yfit ) )
+          for i in range(1, num_splits-1):
+            classifier.partial_fit( Xfit[i*100:(i+1)*100],
+                                    yfit[i*100:(i+1)*100] )
+            if time.time() - t_start > timeout - TIMEOUT_TOLERANCE:
+              break
+          #FIXME: need to include the last bit of data here
+        else:
+          classifier.fit( Xfit, yfit )
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
         info('OK trial with accuracy %.1f' % (100 * (1.0 - loss)))
@@ -145,7 +164,7 @@ class hyperopt_estimator(object):
             fit()  Saves after every `fit_increment` trial evaluations.
         """
         self.max_evals = max_evals
-        self.verbose = verbose
+        self.verbose = 1 #verbose #TEMP
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
@@ -204,7 +223,8 @@ class hyperopt_estimator(object):
         fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
                 Xval=Xval, yval=yval,
-                info=self.info)
+                info=self.info,
+                timeout=self.trial_timeout)
         self._best_loss = float('inf')
 
         def fn_with_timeout(*args, **kwargs):

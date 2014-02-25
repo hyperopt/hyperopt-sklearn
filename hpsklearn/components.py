@@ -615,10 +615,9 @@ def sgd(name,
             _name('eta0'),
             np.log(1.001),
             np.log(10.0)) if eta0 is None else eta0,
-        power_t=hp.lognormal(
+        power_t=hp.normal(
             _name('power_t'),
-            np.log(1.5),
-            np.log(10.0)) if power_t is None else power_t,
+            0, 1) if power_t is None else power_t,
         n_jobs=n_jobs,
         verbose=verbose,
         )
