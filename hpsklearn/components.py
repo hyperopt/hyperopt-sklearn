@@ -12,6 +12,7 @@ from hyperopt.pyll import scope
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
 
+
 @scope.define
 def sklearn_SVC(*args, **kwargs):
     return sklearn.svm.SVC(*args, **kwargs)
@@ -572,50 +573,61 @@ def sgd(name,
     power_t=None,         #default - 0.5
     class_weight=None,
     warm_start=False,
-    verbose=True,
+    verbose=False,
     ):
 
     def _name(msg):
       return '%s.%s_%s' % (name, 'sgd', msg)
     
     rval = scope.sklearn_SGDClassifier(
-        loss=hp.choice(
+        loss=hp.pchoice(
             _name('loss'),
-            [ 'hinge', 'log', 'modified_huber', 'squared_hinge', 'perceptron',
-              'squared_loss', 'huber', 'epsilon_insensitive',
-              'squared_epsilon_insensitive' ] ) if loss is None else loss,
-        penalty=hp.choice(
+            [ (0.25, 'hinge'), 
+              (0.25, 'log'), 
+              (0.25, 'modified_huber'), 
+              (0.05, 'squared_hinge'), 
+              (0.05, 'perceptron'),
+              (0.05, 'squared_loss'), 
+              (0.05, 'huber'), 
+              (0.03, 'epsilon_insensitive'),
+              (0.02, 'squared_epsilon_insensitive') ] ) if loss is None else loss,
+        penalty=hp.pchoice(
             _name('penalty'),
-            [ 'l2', 'l1', 'elasticnet' ] ) if penalty is None else penalty,
-        alpha=hp.lognormal(
+            [ (0.40, 'l2'), 
+              (0.35, 'l1'),
+              (0.25, 'elasticnet') ] ) if penalty is None else penalty,
+        alpha=hp.loguniform(
             _name('alpha'),
-            np.log(1.0),
-            np.log(4.0)) if alpha is None else alpha,
-        l1_ratio=hp.quniform(
+            np.log(1e-7),
+            np.log(1)) if alpha is None else alpha,
+        l1_ratio=hp.uniform(
             _name('l1_ratio'),
-            0, 1, 0.0001 ) if l1_ratio is None else l1_ratio,
-        fit_intercept=hp.choice(
+            0, 1 ) if l1_ratio is None else l1_ratio,
+        fit_intercept=hp.pchoice(
             _name('fit_intercept'),
-            [ True, False ]) if fit_intercept is None else fit_intercept,
-        n_iter=scope.int( hp.quniform(
-            _name('n_iter'),
-            1, 10, 1 ) ) if n_iter is None else n_iter,
-        shuffle=hp.choice(
-            _name('shuffle'),
-            [ True, False ]) if shuffle is None else shuffle,
-        epsilon=hp.lognormal(
-            _name('epsilon'),
-            np.log(1.0),
-            np.log(2.0)) if epsilon is None else epsilon,
-        learning_rate=hp.choice(
-            _name('learning_rate'),
-            [ 'constant', 'optimal', 
-              'invscaling' ] ) if learning_rate is None else learning_rate,
-        eta0=hp.lognormal(
+            [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
+        #n_iter=scope.int( hp.quniform(
+        #    _name('n_iter'),
+        #    1, 10, 1 ) ) if n_iter is None else n_iter,
+        #shuffle=hp.pchoice(
+        #    _name('shuffle'),
+        #    [ (0.3, True), (0.7, False) ]) if shuffle is None else shuffle,
+        #epsilon=hp.lognormal(
+        #    _name('epsilon'),
+        #    np.log(1.0),
+        #    np.log(2.0)) if epsilon is None else epsilon,
+        #learning_rate=hp.choice(
+        #    _name('learning_rate'),
+        #    [ #'constant', # -- this is equivalent to power_t == 0
+        #     #'optimal', -- sklean's (1 / (alpha * t)) should have a guard for
+        #     #              low values of t, but currently does not.
+        #      'invscaling' ] ) if learning_rate is None else learning_rate,
+        learning_rate='invscaling' if learning_rate is None else learning_rate,
+        eta0=hp.loguniform(
             _name('eta0'),
-            np.log(1.001),
-            np.log(10.0)) if eta0 is None else eta0,
-        power_t=hp.normal(
+            np.log(1e-5),
+            np.log(1e-1)) if eta0 is None else eta0,
+        power_t=hp.uniform(
             _name('power_t'),
             0, 1) if power_t is None else power_t,
         n_jobs=n_jobs,

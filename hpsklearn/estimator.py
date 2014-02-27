@@ -1,6 +1,7 @@
 """
 """
 import cPickle
+import copy
 from functools import partial
 from multiprocessing import Process, Pipe
 import time
@@ -13,13 +14,16 @@ import sklearn.datasets.base
 
 from . import components
 
-TIMEOUT_TOLERANCE = 5
+TIMEOUT_TOLERANCE = 2
 
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout, _conn):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
+             _conn,
+             best_loss=None, # TODO: use this for stopping criterion
+             partial_timeout_tolerance=5.0): # -- seconds
     try:
         t_start = time.time()
         classifier = argd['classifier']
@@ -41,23 +45,67 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout, _conn):
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
-        
-        if hasattr( classifier, "partial_fitzz" ):
-          # Split data into minibatches
-          num_splits = int(Xfit.shape[0] / 100)
-          #Xpartial = np.array_split(Xfit, num_splits)
-          #ypartial = np.array_split(yfit, num_splits)
 
-          #FIXME: this will break if less than 100 points
-          #       a cleaner method should be used. Unfortunately a lot of clean
-          #       stuff doesn't work on sparse matrices
-          classifier.partial_fit( Xfit[0:100], yfit[0:100], classes=np.unique( yfit ) )
-          for i in range(1, num_splits-1):
-            classifier.partial_fit( Xfit[i*100:(i+1)*100],
-                                    yfit[i*100:(i+1)*100] )
-            if time.time() - t_start > timeout - TIMEOUT_TOLERANCE:
+        min_n_iters = 5
+        early_stopping_fraction = 0.2
+        tipping_pt_ratio = 0.6
+        rng = np.random.RandomState(6665)
+
+        def should_stop(scores):
+          if len(scores) < min_n_iters:
+            return False
+          tipping_pt = int(tipping_pt_ratio * len(scores))
+          early_scores = scores[:tipping_pt]
+          late_scores = scores[tipping_pt:]
+          if max(early_scores) >= max(late_scores):
+            return True
+          return False
+
+        info("about to check for partial fit")
+        
+        if hasattr( classifier, "partial_fit" ):
+          info("it has partial fit")
+          perm = rng.permutation(Xfit.shape[0])
+          n_valid = int(early_stopping_fraction * Xfit.shape[0])
+          valid_idxs = perm[:n_valid]
+          train_idxs = perm[n_valid:]
+          validation_scores = []
+          while time.time() - t_start < timeout - partial_timeout_tolerance:
+            rng.shuffle(train_idxs)
+            assert Xfit[train_idxs].shape[0] == len(train_idxs)
+            assert Xfit[train_idxs].shape[1] == Xfit.shape[1]
+            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+                                   classes=np.unique( yfit ))
+            validation_scores.append(
+              classifier.score(Xfit[valid_idxs], yfit[valid_idxs]))
+            if max(validation_scores) == validation_scores[-1]:
+              best_classifier = copy.deepcopy(classifier)
+              
+            if should_stop(validation_scores):
               break
-          #FIXME: need to include the last bit of data here
+            info('VSCORES', validation_scores)
+          classifier = best_classifier
+
+#          # Split data into minibatches
+#          #TODO: Shuffle the data - get a random index list of size num_splits
+#          num_splits = int(Xfit.shape[0] / 100)
+#          #Xpartial = np.array_split(Xfit, num_splits)
+#          #ypartial = np.array_split(yfit, num_splits)
+#
+#          #FIXME: this will break if less than 100 points
+#          #       a cleaner method should be used. Unfortunately a lot of clean
+#          #       stuff doesn't work on sparse matrices
+#          classifier.partial_fit( Xfit[0:100], yfit[0:100], classes=np.unique( yfit ) )
+#          for i in range(1, num_splits-1):
+#            classifier.partial_fit( Xfit[i*100:(i+1)*100],
+#                                    yfit[i*100:(i+1)*100] )
+#            if time.time() - t_start > timeout - TIMEOUT_TOLERANCE:
+#              break
+#            #TODO: do a predict and score here, and if it flattens out, break
+#          #TODO: include the last bit of data in a cleaner way here
+#          if time.time() - t_start < timeout - TIMEOUT_TOLERANCE:
+#            classifier.partial_fit( Xfit[num_splits*100:],
+#                                    yfit[num_splits*100:] )
         else:
           classifier.fit( Xfit, yfit )
         info('Scoring on Xval of shape', Xval.shape)
@@ -230,7 +278,8 @@ class hyperopt_estimator(object):
         def fn_with_timeout(*args, **kwargs):
             conn1, conn2 = Pipe()
             kwargs['_conn'] = conn2
-            th = Process(target=fn, args=args, kwargs=kwargs)
+            th = Process(target=partial(fn, best_loss=self._best_loss),
+                         args=args, kwargs=kwargs)
             th.start()
             if conn1.poll(self.trial_timeout):
                 fn_rval = conn1.recv()
@@ -246,7 +295,7 @@ class hyperopt_estimator(object):
 
             assert fn_rval[0] in ('raise', 'return')
             if fn_rval[0] == 'raise':
-                #raise fn_rval[1]
+                raise fn_rval[1]
                 #"""
                 fn_rval = 'raise', {
                     'status': hyperopt.STATUS_FAIL,
