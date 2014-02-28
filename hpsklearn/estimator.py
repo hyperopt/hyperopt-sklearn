@@ -46,12 +46,15 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
 
-        min_n_iters = 5
+        min_n_iters = 7#5
+        best_loss_cutoff_n_iters = 35
         early_stopping_fraction = 0.2
         tipping_pt_ratio = 0.6
         rng = np.random.RandomState(6665)
 
         def should_stop(scores):
+          #TODO: possibly extend min_n_iters based on how close the current
+          #      score is to the best score, up to some larger threshold
           if len(scores) < min_n_iters:
             return False
           tipping_pt = int(tipping_pt_ratio * len(scores))
@@ -59,16 +62,24 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
           late_scores = scores[tipping_pt:]
           if max(early_scores) >= max(late_scores):
             return True
+          #TODO: make this less confusing and possibly more accurate
+          if len(scores) > best_loss_cutoff_n_iters and \
+                 max(scores) < 1 - best_loss and \
+                 3 * ( max(late_scores) - max(early_scores) ) < \
+                 1 - best_loss - max(late_scores):
+            info("stopping early due to best_loss cutoff criterion")
+            return True
           return False
 
         info("about to check for partial fit")
         
         if hasattr( classifier, "partial_fit" ):
           info("it has partial fit")
-          perm = rng.permutation(Xfit.shape[0])
+          #perm = rng.permutation(Xfit.shape[0])
+          train_idxs = rng.permutation(Xfit.shape[0])
           n_valid = int(early_stopping_fraction * Xfit.shape[0])
-          valid_idxs = perm[:n_valid]
-          train_idxs = perm[n_valid:]
+          #valid_idxs = perm[:n_valid]
+          #train_idxs = perm[n_valid:]
           validation_scores = []
           while time.time() - t_start < timeout - partial_timeout_tolerance:
             rng.shuffle(train_idxs)
@@ -76,14 +87,15 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             assert Xfit[train_idxs].shape[1] == Xfit.shape[1]
             classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
                                    classes=np.unique( yfit ))
-            validation_scores.append(
-              classifier.score(Xfit[valid_idxs], yfit[valid_idxs]))
+            validation_scores.append(classifier.score(Xval, yval))
+              #classifier.score(Xfit[valid_idxs], yfit[valid_idxs]))
             if max(validation_scores) == validation_scores[-1]:
               best_classifier = copy.deepcopy(classifier)
               
             if should_stop(validation_scores):
               break
-            info('VSCORES', validation_scores)
+            #info('VSCORES', validation_scores)
+            info('VSCORE', validation_scores[-1])
           classifier = best_classifier
 
 #          # Split data into minibatches
