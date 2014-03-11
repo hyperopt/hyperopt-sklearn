@@ -94,69 +94,69 @@ any_sparse_classifier</p>
 
 <p>An example on the MNIST digit data</p>
 
-<pre><code>from hpsklearn import hyperopt_estimator, any_classifier
-from sklearn.datasets import fetch_mldata
-from sklearn import metrics
-from hyperopt import tpe
-import numpy as np
+<div class="highlight highlight-python"><pre>    <span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">any_classifier</span>
+    <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_mldata</span>
+    <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+    <span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">tpe</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-# Download the data and split into training and test sets
+    <span class="c"># Download the data and split into training and test sets</span>
 
-digits = fetch_mldata('MNIST original')
+    <span class="n">digits</span> <span class="o">=</span> <span class="n">fetch_mldata</span><span class="p">(</span><span class="s">'MNIST original'</span><span class="p">)</span>
 
-X = digits.data
-y = digits.target
+    <span class="n">X</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">target</span>
 
-test_size = int( 0.2 * len( y ) )
-np.random.seed( seed )
-indices = np.random.permutation(len(X))
-X_train = X[ indices[:-test_size]]
-y_train = y[ indices[:-test_size]]
-X_test = X[ indices[-test_size:]]
-y_test = y[ indices[-test_size:]]
+    <span class="n">test_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span> <span class="n">y</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span> <span class="n">seed</span> <span class="p">)</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+    <span class="n">X_train</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span> <span class="n">indices</span><span class="p">[:</span><span class="o">-</span><span class="n">test_size</span><span class="p">]]</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span> <span class="n">indices</span><span class="p">[:</span><span class="o">-</span><span class="n">test_size</span><span class="p">]]</span>
+    <span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span> <span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="n">test_size</span><span class="p">:]]</span>
+    <span class="n">y_test</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span> <span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="n">test_size</span><span class="p">:]]</span>
 
-estim = hyperopt_estimator( classifier=any_classifier('clf'),  
-            algo=tpe.suggest, trial_timeout=300)
+    <span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">any_classifier</span><span class="p">(</span><span class="s">'clf'</span><span class="p">),</span>  
+                <span class="n">algo</span><span class="o">=</span><span class="n">tpe</span><span class="o">.</span><span class="n">suggest</span><span class="p">,</span> <span class="n">trial_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 
-estim.fit( X_train, y_train )
+    <span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">)</span>
 
-pred = estim.predict( X_test )
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span> <span class="n">X_test</span> <span class="p">)</span>
 
-print( metrics.f1_score( pred, y_test ) )
-# &lt;&lt;show score here&gt;&gt;
-print( estim.best_model() )
-# &lt;&lt;show model here&gt;&gt;
-</code></pre>
+    <span class="k">print</span><span class="p">(</span> <span class="n">metrics</span><span class="o">.</span><span class="n">f1_score</span><span class="p">(</span> <span class="n">pred</span><span class="p">,</span> <span class="n">y_test</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="c"># &lt;&lt;show score here&gt;&gt;</span>
+    <span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span> <span class="p">)</span>
+    <span class="c"># &lt;&lt;show model here&gt;&gt;</span>
+</pre></div>
 
 <p>Not all classifiers within sklearn support sparse data. To make life easier, hpsklearn comes with an any_sparse_classifier which will only sample from the classifiers available which accept sparse data.</p>
 
-<pre><code>from hpsklearn import hyperopt_estimator, any_sparse_classifier, tfidf
-from sklearn.datasets import fetch_20newsgroups
-from sklearn import metrics
-from hyperopt import tpe
-import numpy as np
+<div class="highlight highlight-python"><pre>    <span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">any_sparse_classifier</span><span class="p">,</span> <span class="n">tfidf</span>
+    <span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_20newsgroups</span>
+    <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+    <span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">tpe</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-# Download the data and split into training and test sets
+    <span class="c"># Download the data and split into training and test sets</span>
 
-train = fetch_20newsgroups( subset='train' )
-test = fetch_20newsgroups( subset='test' )
- X_train = train.data
-y_train = train.target
-X_test = test.data
-y_test = test.target
+    <span class="n">train</span> <span class="o">=</span> <span class="n">fetch_20newsgroups</span><span class="p">(</span> <span class="n">subset</span><span class="o">=</span><span class="s">'train'</span> <span class="p">)</span>
+    <span class="n">test</span> <span class="o">=</span> <span class="n">fetch_20newsgroups</span><span class="p">(</span> <span class="n">subset</span><span class="o">=</span><span class="s">'test'</span> <span class="p">)</span>
+     <span class="n">X_train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">target</span>
+    <span class="n">X_test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">y_test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">target</span>
 
-estim = hyperopt_estimator( classifier=any_sparse_classifier('clf'),  preprocessing=[tfidf('tfidf')], 
-            algo=tpe.suggest, trial_timeout=300)
+    <span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">any_sparse_classifier</span><span class="p">(</span><span class="s">'clf'</span><span class="p">),</span>  <span class="n">preprocessing</span><span class="o">=</span><span class="p">[</span><span class="n">tfidf</span><span class="p">(</span><span class="s">'tfidf'</span><span class="p">)],</span> 
+                <span class="n">algo</span><span class="o">=</span><span class="n">tpe</span><span class="o">.</span><span class="n">suggest</span><span class="p">,</span> <span class="n">trial_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 
-estim.fit( X_train, y_train )
+    <span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">)</span>
 
-pred = estim.predict( X_test )
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span> <span class="n">X_test</span> <span class="p">)</span>
 
-print( metrics.f1_score( pred, y_test ) )
-# &lt;&lt;show score here&gt;&gt;
-print( estim.best_model() )
-# &lt;&lt;show model here&gt;&gt;
-</code></pre>
+    <span class="k">print</span><span class="p">(</span> <span class="n">metrics</span><span class="o">.</span><span class="n">f1_score</span><span class="p">(</span> <span class="n">pred</span><span class="p">,</span> <span class="n">y_test</span> <span class="p">)</span> <span class="p">)</span>
+    <span class="c"># &lt;&lt;show score here&gt;&gt;</span>
+    <span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span> <span class="p">)</span>
+    <span class="c"># &lt;&lt;show model here&gt;&gt;</span>
+</pre></div>
       </section>
       <footer>
         <p>Project maintained by <a href="https://github.com/bjkomer">bjkomer</a></p>
