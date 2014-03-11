@@ -115,7 +115,8 @@ y_train = y[ indices[:-test_size]]
 X_test = X[ indices[-test_size:]]
 y_test = y[ indices[-test_size:]]
 
-estim = hyperopt_estimator( classifier=any_classifier('clf'),  algo=tpe.suggest, trial_timeout=300)
+estim = hyperopt_estimator( classifier=any_classifier('clf'),  
+            algo=tpe.suggest, trial_timeout=300)
 
 estim.fit( X_train, y_train )
 
@@ -139,12 +140,13 @@ import numpy as np
 
 train = fetch_20newsgroups( subset='train' )
 test = fetch_20newsgroups( subset='test' )
-X_train = train.data
+ X_train = train.data
 y_train = train.target
 X_test = test.data
 y_test = test.target
 
-estim = hyperopt_estimator( classifier=any_sparse_classifier('clf'),  preprocessing=[tfidf('tfidf')], algo=tpe.suggest, trial_timeout=300)
+estim = hyperopt_estimator( classifier=any_sparse_classifier('clf'),  preprocessing=[tfidf('tfidf')], 
+            algo=tpe.suggest, trial_timeout=300)
 
 estim.fit( X_train, y_train )
 
