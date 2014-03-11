@@ -1,79 +1,167 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Hyperopt-sklearn : Hyper-parameter optimization for sklearn" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Hyperopt-sklearn by bjkomer</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Hyperopt-sklearn</title>
   </head>
-
   <body>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/bjkomer/hyperopt-sklearn">View on GitHub</a>
+      <header>
+        <h1>Hyperopt-sklearn</h1>
+        <p>Hyper-parameter optimization for sklearn</p>
+      </header>
 
-          <h1 id="project_title">Hyperopt-sklearn</h1>
-          <h2 id="project_tagline">Hyper-parameter optimization for sklearn</h2>
+      <div id="banner">
+        <span id="logo"></span>
 
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/bjkomer/hyperopt-sklearn/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/bjkomer/hyperopt-sklearn/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
+        <a href="https://github.com/bjkomer/hyperopt-sklearn" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/bjkomer/hyperopt-sklearn/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/bjkomer/hyperopt-sklearn/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
         <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a name="work-in-progress" class="anchor" href="#work-in-progress"><span class="octicon octicon-link"></span></a>Work In Progress...</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<h3>
+<a name="search-algorithms" class="anchor" href="#search-algorithms"><span class="octicon octicon-link"></span></a>Search Algorithms</h3>
+
+<h3>
+<a name="classifiers" class="anchor" href="#classifiers"><span class="octicon octicon-link"></span></a>Classifiers</h3>
+
+<p>Classifiers from sklearn that are built-in so far:</p>
+
+<p>SVC
+LinearSVC
+KNeightborsClassifier
+RandomForestClassifier
+ExtraTreesClassifier
+SGDClassifier
+MultinomialNB
+BernoulliRBM
+ColumnKMeans</p>
+
+<p>More to come!</p>
+
+<h3>
+<a name="preprocessing" class="anchor" href="#preprocessing"><span class="octicon octicon-link"></span></a>Preprocessing</h3>
+
+<p>Preprocessing steps from sklearn that are built-in so far:</p>
+
+<p>PCA
+TfidfVectorizer
+StandardScalar
+MinMaxScalar
+Normalizer
+OneHotEncoder</p>
+
+<p>More to come!</p>
+
+<h3>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h3>
+
+<h3>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h3>
+
+<h3>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h3>
+
+<p>put in examples with:
+any_classifier
+any_sparse_classifier</p>
+
+<p>An example on the MNIST digit data</p>
+
+<pre><code>from hpsklearn import hyperopt_estimator, any_classifier
+from sklearn.datasets import fetch_mldata
+from sklearn import metrics
+from hyperopt import tpe
+import numpy as np
+
+# Download the data and split into training and test sets
+
+digits = fetch_mldata('MNIST original')
+
+X = digits.data
+y = digits.target
+
+test_size = int( 0.2 * len( y ) )
+np.random.seed( seed )
+indices = np.random.permutation(len(X))
+X_train = X[ indices[:-test_size]]
+y_train = y[ indices[:-test_size]]
+X_test = X[ indices[-test_size:]]
+y_test = y[ indices[-test_size:]]
+
+estim = hyperopt_estimator( classifier=any_classifier('clf'),  algo=tpe.suggest, trial_timeout=300)
+
+estim.fit( X_train, y_train )
+
+pred = estim.predict( X_test )
+
+print( metrics.f1_score( pred, y_test ) )
+# &lt;&lt;show score here&gt;&gt;
+print( estim.best_model() )
+# &lt;&lt;show model here&gt;&gt;
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>Not all classifiers within sklearn support sparse data. To make life easier, hpsklearn comes with an any_sparse_classifier which will only sample from the classifiers available which accept sparse data.</p>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<pre><code>from hpsklearn import hyperopt_estimator, any_sparse_classifier, tfidf
+from sklearn.datasets import fetch_20newsgroups
+from sklearn import metrics
+from hyperopt import tpe
+import numpy as np
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+# Download the data and split into training and test sets
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+train = fetch_20newsgroups( subset='train' )
+test = fetch_20newsgroups( subset='test' )
+X_train = train.data
+y_train = train.target
+X_test = test.data
+y_test = test.target
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+estim = hyperopt_estimator( classifier=any_sparse_classifier('clf'),  preprocessing=[tfidf('tfidf')], algo=tpe.suggest, trial_timeout=300)
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+estim.fit( X_train, y_train )
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+pred = estim.predict( X_test )
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+print( metrics.f1_score( pred, y_test ) )
+# &lt;&lt;show score here&gt;&gt;
+print( estim.best_model() )
+# &lt;&lt;show model here&gt;&gt;
+</code></pre>
       </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Hyperopt-sklearn maintained by <a href="https://github.com/bjkomer">bjkomer</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/bjkomer">bjkomer</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
       </footer>
     </div>
-
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
     
-
   </body>
 </html>
