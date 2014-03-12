@@ -63,7 +63,7 @@
 <span class="c"># Report the accuracy of the classifier on a given set of data</span>
 <span class="n">score</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">score</span><span class="p">(</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">test_label</span> <span class="p">)</span>
 
-<span class="c"># Return instances of the classifier and preprocessing steps used in the optimized model</span>
+<span class="c"># Return instances of the classifier and preprocessing steps</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span>
 </pre></div>
 
@@ -103,9 +103,10 @@
 <div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">random_forest</span><span class="p">,</span> <span class="n">svc</span><span class="p">,</span> <span class="n">knn</span>
 <span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">hp</span>
 
-<span class="n">clf</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pchoice</span><span class="p">(</span> <span class="s">'my_name'</span><span class="p">,</span> <span class="p">[</span> <span class="p">(</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">random_forest</span><span class="p">(</span><span class="s">'my_name.random_forest'</span><span class="p">)</span> <span class="p">),</span>
-                              <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">svc</span><span class="p">(</span><span class="s">'my_name.svc'</span><span class="p">)</span> <span class="p">),</span>
-                              <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">knn</span><span class="p">(</span><span class="s">'my_name.knn'</span><span class="p">)</span> <span class="p">)</span> <span class="p">]</span>
+<span class="n">clf</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pchoice</span><span class="p">(</span> <span class="s">'my_name'</span><span class="p">,</span> 
+          <span class="p">[</span> <span class="p">(</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">random_forest</span><span class="p">(</span><span class="s">'my_name.random_forest'</span><span class="p">)</span> <span class="p">),</span>
+            <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">svc</span><span class="p">(</span><span class="s">'my_name.svc'</span><span class="p">)</span> <span class="p">),</span>
+            <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">knn</span><span class="p">(</span><span class="s">'my_name.knn'</span><span class="p">)</span> <span class="p">)</span> <span class="p">]</span>
 
 <span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">clf</span> <span class="p">)</span>
 </pre></div>
@@ -126,8 +127,6 @@
 
 <h3>
 <a name="preprocessing" class="anchor" href="#preprocessing"><span class="octicon octicon-link"></span></a>Preprocessing</h3>
-
-<p>&lt;&gt;</p>
 
 <p>You also have control over which preprocessing steps are applied to your data. These can be passed as a list to the hyperopt_estimator. A blank list indicates no preprocessing will be done.</p>
 
