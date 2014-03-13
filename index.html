@@ -39,13 +39,13 @@
         <ul></ul>
       </nav>
       <section>
-        <h3>
-<a name="what-is-hyperopt-sklearn" class="anchor" href="#what-is-hyperopt-sklearn"><span class="octicon octicon-link"></span></a>What is Hyperopt-sklearn?</h3>
+        <h2>
+<a name="what-is-hyperopt-sklearn" class="anchor" href="#what-is-hyperopt-sklearn"><span class="octicon octicon-link"></span></a>What is Hyperopt-sklearn?</h2>
 
 <p>Finding the right classifier to use for your data can be hard. Once you have chosen a classifier, tuning all of the parameters to get the best results is tedious and time consuming. Even after all of your hard work, you may have chosen the wrong classifier to begin with. Hyperopt-sklearn provides a solution to this problem.</p>
 
-<h3>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
 
 <div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span>
 
@@ -69,8 +69,8 @@
 <span class="n">model</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span>
 </pre></div>
 
-<h3>
-<a name="search-algorithms" class="anchor" href="#search-algorithms"><span class="octicon octicon-link"></span></a>Search Algorithms</h3>
+<h2>
+<a name="search-algorithms" class="anchor" href="#search-algorithms"><span class="octicon octicon-link"></span></a>Search Algorithms</h2>
 
 <p>Any search algorithm available in hyperopt can be used to drive the estimator. It is also possible to supply your own or use a mix of algorithms. The number of points to evaluate before returning, as well as an optional timeout (in seconds) can be used with any search algorithm. </p>
 
@@ -90,8 +90,8 @@
 <li>Annealing</li>
 <li>Tree</li>
 <li>Gaussian Process Tree</li>
-</ul><h3>
-<a name="classifiers" class="anchor" href="#classifiers"><span class="octicon octicon-link"></span></a>Classifiers</h3>
+</ul><h2>
+<a name="classifiers" class="anchor" href="#classifiers"><span class="octicon octicon-link"></span></a>Classifiers</h2>
 
 <p>If you know what type of classifier you wish to use on your dataset, you can let hpsklearn know and it will only search in the parameter space of the given classifier.</p>
 
@@ -123,12 +123,12 @@
 <li>ExtraTreesClassifier</li>
 <li>SGDClassifier</li>
 <li>MultinomialNB</li>
-<li>#BernoulliRBM</li>
-<li>#ColumnKMeans</li>
+<li>BernoulliRBM</li>
+<li>ColumnKMeans</li>
 </ul><p>More to come!</p>
 
-<h3>
-<a name="preprocessing" class="anchor" href="#preprocessing"><span class="octicon octicon-link"></span></a>Preprocessing</h3>
+<h2>
+<a name="preprocessing" class="anchor" href="#preprocessing"><span class="octicon octicon-link"></span></a>Preprocessing</h2>
 
 <p>You also have control over which preprocessing steps are applied to your data. These can be passed as a list to the hyperopt_estimator. A blank list indicates no preprocessing will be done.</p>
 
@@ -148,19 +148,26 @@
 <li>OneHotEncoder</li>
 </ul><p>More to come!</p>
 
-<h3>
-<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h3>
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
 
 <pre><code>git clone https://github.com/hyperopt/hyperopt-sklearn.git
 cd hyperopt
 pip install -e .
 </code></pre>
 
-<h3>
-<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h3>
+<h2>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
 
-<h3>
-<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h3>
+<p>Documentation coming soon. </p>
+
+<p>This project is built upon:</p>
+
+<ul>
+<li><a href="http://hyperopt.github.io/hyperopt/">hyperopt</a></li>
+<li><a href="http://scikit-learn.org/">scikit-learn</a></li>
+</ul><h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
 
 <p>An example on the MNIST digit data</p>
 
