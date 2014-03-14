@@ -230,6 +230,30 @@ pip install -e .
 <span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span> <span class="p">)</span>
 <span class="c"># &lt;&lt;show model here&gt;&gt;</span>
 </pre></div>
+
+<h2>
+<a name="empirical-results" class="anchor" href="#empirical-results"><span class="octicon octicon-link"></span></a>Empirical Results</h2>
+
+<h3>
+<a name="comparison-between-algorithms" class="anchor" href="#comparison-between-algorithms"><span class="octicon octicon-link"></span></a>Comparison Between Algorithms</h3>
+
+<p>Tests were run on the 20 newsgroups dataset with 300 evaluations for each algorithm. The set of classifiers available where a support vector machine (SVM), k nearest neighbors (KNeighborsClassifier), naive bayes (MultinomialNB), and stochastic gradient descent (SGDClassifier). TfidfVectorizer was used to perform the preprocessing in all cases.</p>
+
+<p>Each algorithm was run multiple times (between 6 to 9 times) with different random seeds and the results of the validation score after each evaluation was recorded. A linear trend-line was fit to the data in each case, and is overlayed on top of the data in red. The results for TPE and random search are shown below.</p>
+
+<p>[[TODO: plot of TPE goes here]]
+[[TODO: plot of Random goes here]]</p>
+
+<p>These are the trend-lines found for each algorithm</p>
+
+<p>[[TODO: plot of results goes here]]</p>
+
+<h3>
+<a name="comparison-to-default-parameters" class="anchor" href="#comparison-to-default-parameters"><span class="octicon octicon-link"></span></a>Comparison to Default Parameters</h3>
+
+<p>Examples of using hyperopt-sklearn to pick parameters contrasted with the default parameters chosen by scikit-learn. This demonstrates how much improvement can be obtained with roughly the same amount of code and without any expert domain knowledge required.</p>
+
+<p>[[TODO: example code and table of results goes here]]</p>
       </section>
       <footer>
         <p>Project maintained by <a href="https://github.com/bjkomer">bjkomer</a></p>
