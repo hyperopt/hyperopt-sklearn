@@ -239,14 +239,13 @@ pip install -e .
 
 <p>Tests were run on the 20 newsgroups dataset with 300 evaluations for each algorithm. The set of classifiers available where a support vector machine (SVM), k nearest neighbors (KNeighborsClassifier), naive bayes (MultinomialNB), and stochastic gradient descent (SGDClassifier). TfidfVectorizer was used to perform the preprocessing in all cases.</p>
 
-<p>Each algorithm was run multiple times (between 6 to 9 times) with different random seeds and the results of the validation score after each evaluation was recorded. A linear trend-line was fit to the data in each case, and is overlayed on top of the data in red. The results for TPE and random search are shown below.</p>
+<p>Each algorithm was run multiple times (between 6 to 9 times) with different random seeds and the results of the validation score after each evaluation was recorded. The results are very noisy as this is a difficult space to search. A linear trend-line was fit to the data in each case, and is overlayed on top of the data in red. The results for TPE and random search are shown below.</p>
 
-<p>[[TODO: plot of TPE goes here]]
-[[TODO: plot of Random goes here]]</p>
+<img src="images/tpe_vs_rand.png" alt="Validation averaged over multiple trials">
 
-<p>These are the trend-lines found for each algorithm</p>
+<p>These are the linear trend-lines found for each algorithm. They roughly represent how much each algorithm improves after each evaluation with the type of points found. Random has no improvement, while the others tend to look in more promising areas of the search space as they gain more information.</p>
 
-<p>[[TODO: plot of results goes here]]</p>
+<img src="images/newsgroups_validation_loss.png" alt="Trend of validation loss for each algorithm">
 
 <h3>
 <a name="comparison-to-default-parameters" class="anchor" href="#comparison-to-default-parameters"><span class="octicon octicon-link"></span></a>Comparison to Default Parameters</h3>
