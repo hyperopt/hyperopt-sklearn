@@ -252,7 +252,34 @@ pip install -e .
 
 <p>Examples of using hyperopt-sklearn to pick parameters contrasted with the default parameters chosen by scikit-learn. This demonstrates how much improvement can be obtained with roughly the same amount of code and without any expert domain knowledge required.</p>
 
-<p>[[TODO: example code and table of results goes here]]</p>
+<p>The table below shows the F1 scores obtained by classifiers run with scikit-learn's default parameters and with hyperopt-sklearn's optimized parameters on the 20 newsgroups dataset. The results from hyperopt-sklearn were obtained from a single run with 25 evaluations.</p>
+<table >
+	<tr>
+		<td><b>Classifier</b></td>
+		<td><b>Default Parameters</b></td>
+		<td><b>Optimized Parameters</b></td>
+	</tr>
+	<tr>
+		<td>SVM</td>
+		<td>0.0053</td>
+		<td>0.8252</td>
+	</tr>
+	<tr>
+		<td>SGD</td>
+		<td>0.8498</td>
+		<td>0.8538</td>
+	</tr>
+	<tr>
+		<td>KNN</td>
+		<td>0.6597</td>
+		<td>0.6741</td>
+	</tr>
+	<tr>
+		<td>MultinomialNB</td>
+		<td>0.7684</td>
+		<td>0.8344</td>
+	</tr>
+</table>
 <div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">svc</span>
 <span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">svm</span>
 
