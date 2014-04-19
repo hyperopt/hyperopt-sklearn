@@ -657,7 +657,7 @@ def multinomial_nb(name,
 def any_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
-        liblinear_svc(name + '.linear_svc'),
+        #liblinear_svc(name + '.linear_svc'),
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
@@ -726,7 +726,7 @@ def tfidf(name,
     ):
     
     def _name(msg):
-      return '%s.%s_%s' % (name, 'sgd', msg)
+      return '%s.%s_%s' % (name, 'tfidf', msg)
     
     rval = scope.sklearn_Tfidf()
     """
@@ -746,18 +746,18 @@ def tfidf(name,
         binary=hp_bool(
             _name('binary'),
             ) if binary is None else binary,
-        norm=hp.choice(
-            _name('norm'),
-            [ 'l1', 'l2', None ] ) if norm is None else norm,
-        use_idf=hp_bool(
-            _name('use_idf'),
-            ) if use_idf is None else use_idf,
-        smooth_idf=hp_bool(
-            _name('smooth_idf'),
-            ) if smooth_idf is None else smooth_idf,
-        sublinear_tf=hp_bool(
-            _name('sublinear_tf'),
-            ) if sublinear_tf is None else sublinear_tf,
+        #norm=hp.choice(
+        #    _name('norm'),
+        #    [ 'l1', 'l2', None ] ) if norm is None else norm,
+        #use_idf=hp_bool(
+        #    _name('use_idf'),
+        #    ) if use_idf is None else use_idf,
+        #smooth_idf=hp_bool(
+        #    _name('smooth_idf'),
+        #    ) if smooth_idf is None else smooth_idf,
+        #sublinear_tf=hp_bool(
+        #    _name('sublinear_tf'),
+        #    ) if sublinear_tf is None else sublinear_tf,
         )
     """
     """
@@ -936,6 +936,7 @@ def any_preprocessing(name):
         [standard_scaler(name + '.standard_scaler')],
         [min_max_scaler(name + '.min_max_scaler')],
         [normalizer(name + '.normalizer')],
+        [],
         #[tfidf(name + '.tfidf')],
         # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
