@@ -23,7 +23,7 @@ class NonFiniteFeature(Exception):
 def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
              _conn,
              best_loss=None, # TODO: use this for stopping criterion
-             partial_timeout_tolerance=8.0): # -- seconds
+             partial_timeout_tolerance=10.0): # -- seconds
     try:
         t_start = time.time()
         classifier = argd['classifier']
@@ -79,8 +79,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
           while time.time() - t_start < timeout - partial_timeout_tolerance:
             n_iters += 1
             rng.shuffle(train_idxs)
-            assert Xfit[train_idxs].shape[0] == len(train_idxs)
-            assert Xfit[train_idxs].shape[1] == Xfit.shape[1]
             classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
                                    classes=np.unique( yfit ))
             validation_scores.append(classifier.score(Xval, yval))
