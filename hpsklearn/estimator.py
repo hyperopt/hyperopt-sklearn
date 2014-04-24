@@ -23,7 +23,7 @@ class NonFiniteFeature(Exception):
 def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
              _conn,
              best_loss=None, # TODO: use this for stopping criterion
-             partial_timeout_tolerance=5.0): # -- seconds
+             partial_timeout_tolerance=8.0): # -- seconds
     try:
         t_start = time.time()
         classifier = argd['classifier']

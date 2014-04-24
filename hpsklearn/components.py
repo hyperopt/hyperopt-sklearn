@@ -728,7 +728,11 @@ def tfidf(name,
     def _name(msg):
       return '%s.%s_%s' % (name, 'tfidf', msg)
     
-    rval = scope.sklearn_Tfidf()
+    max_ngram=scope.int( hp.quniform(
+        _name('max_ngram'),
+        1, 4, 1 ) )
+
+    rval = scope.sklearn_Tfidf( ngram_range=(1,max_ngram) )
     """
     rval = scope.sklearn_Tfidf(
         stop_words=hp.choice(
