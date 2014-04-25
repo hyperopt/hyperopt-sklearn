@@ -62,53 +62,59 @@
 \maketitle
 
 \begin{abstract}
-    TODO
+    Hyperopt-sklearn is a new software project that provides automatic algorithm configuration of the Scikit-learn machine learning library.
+    Following Auto-Weka, we take the view that the choice of classifier and even the choice of pre-processing module can be taken together to represent a {\em single large hyperparameter optimization problem}.
+    We use Hyperopt to define a search space that encompasses many standard components (e.g. SVM, RF, KNN, PCA, TFIDF) and common patterns of composing them together.
+    We demonstrate, using search algorithms in Hyperopt and standard benchmarking data sets (MNIST, 20-Newsgroups, Convex Images), that searching this space is practical and effective.
+    In particular, we improve on best-known scores for the model space for both MNIST and Convex Images.
 \end{abstract}
-\begin{keywords}
-Bayesian Optimization, Model Selection, Hyperparameter Optimization, Scikit-learn
-\end{keywords}
+%\begin{keywords}
+%Bayesian Optimization, Model Selection, Hyperparameter Optimization, Scikit-learn
+%\end{keywords}
 
 \section{Introduction}
-Machine learning has become increasingly popular in both academic and
-industrial circles over the last two decades as both the size of data sets and
-the speed of computers have increased to the point where it is often easier to
-fit complex functions to data using statistical estimation techniques than it
-is to design them by hand.
+\label{sec:intro}
 
-Unfortunately, the fitting of such functions (training machine learning
-algorithms) remains a relatively arcane art, typically requiring a graduate
-degree and years of experience.
-
-Recently, it has been shown that techniques for automatic algorithm configuration based on
+The size of data sets and the speed of computers have increased to the point where it is often easier to fit complex functions to data using statistical estimation techniques than it is to design them by hand.
+The fitting of such functions (training machine learning algorithms) remains a relatively arcane art, typically mastered in the course of a graduate degree and years of experience.
+Recently however, techniques for automatic algorithm configuration based on
 Regression Trees~\citep{hutter+hoos+leyton-brown:2011},
-Gaussian Processes~\citep{Mockus78,snoek+larochelle+adams:2012nips},
-and density-estimation techniques~\citep{bergstra+bardenet+bengio+kegl:2011} can be viable alternatives to the
-employment of a domain specialist for the fitting of statistical models.
-Algorithm configuration approaches use function optimization and graph search techniques
-to search more-or-less-efficiently through a large space of possible algorithm
-configurations.
+Gaussian Processes~\citep{MoTiZi78,snoek+larochelle+adams:2012nips},
+and density-estimation techniques~\citep{bergstra+bardenet+bengio+kegl:2011}
+have emerged as viable alternatives to hand-tuning by domain specialists.
 
-This paper introduces Hyperopt-sklearn, a software package that makes this
-approach available to Python users by combining the Hyperopt algorithm
-configuration package with the Scikit-learn machine learning package.
-Hyperopt-sklearn provides a wrapper around Scikit-learn that describes how the
-various estimators and preprocessing components can be created and chained
-together.
+Hyperparameter optimization in machine learning systems was first applied to neural networks and convnets, where the number of parameters can be overwhelming:
+for example \citet{bergstra+bardenet+bengio+kegl:2011} tuned Deep Belief Networks with up to 32 hyperparameters,
+and \citet{bergstra+yamins+cox:2013} showed that similar methods could be useful even in a convnet model with 238 hyperparameters.
+Relative to DBNs and convnets, algorithms such as RBF-SVMs and Random Forests (RFs) have a small-enough number of hyperparameters that manual tuning and grid or random search provides satisfactory results.
 
-Conceptually, Hyperopt-sklearn provides a single very high-level
-estimator (HyperoptAutoEstimator??) whose "fit" method searches through *all*
-of Scikit-learn's classifiers to find the one that gets the best score on the
-given data. In actual fact, we have chosen a good palette of algorithms
-that tends to work well for a range of classification problems for text and
-small images (XXX).
+Taking a step back though, there is often no particular reason to use either an RBF-SVM or an RF when they are both computationally viable.
+A model-agnostic practitioner may simply prefer to go with the one that provides greater accuracy.
+In this light, {\em the choice of classifier can be seen as hyperparameter} alongside the $C$-value in the SVM and the max-tree-depth of the RF.
+Indeed the choice and configuration of {\em pre-processing} components may likewise be seen as part of the model selection / hyperparameter optimization problem.
+The Auto-Weka project \citep{thornton+hutter+hoos+leyton-brown:2012} was the first to show that an entire library of machine learning approaches (Weka~\citep{hall2009weka}) can be searched within the scope of a single run of hyperparameter tuning.
+However, Weka is a GPL-licensed Java library, and was not written with scalability in mind. These factors limit the utility of Auto-Weka.
+Scikit-learn~\citep{sklearn} is another library of machine learning algorithms that is written in Python with many modules in C for greater speed, and is BSD-licensed.
+Scikit-learn is widely used in the scientific Python community and supports many machine learning application areas.
+
+Our goal in this paper is to introduce Hyperopt-Sklearn -- a project that brings the benefits of automatic algorithm configuration to users of Python and scikit-learn.
+Hyperopt-Sklearn uses Hyperopt~\citep{hyperopt} to describe a search space over possible configurations of Scikit-Learn components, including pre-processing and classification modules.
+Section 2 describes our configuration space of 7 classifiers and 4 preprocessing modules that encompasses a strong set of classification systems for dense and sparse feature classification (of images and text).
+Section 3 presents experimental evidence that search over this space is viable, meaningful, and effective.
+Section 4 presents a discussion of the results, and directions for future work.
+
 
 \section{Searching Scikit-learn with Hyperopt}
 
 What is it, what algorithms and pre-processors are we going to be talking about?
+
 A bunch of machine learning tools in one place -> emphasis on easy to use
+
 Currently using SVC, LinearSVC, KNN, RandomForest, ExtraTrees, SGD, Multinomial Naive Bayes
 Preprocessing: PCA, TFIDF, StandardScalar, MinMaxScalar, Normalizer
+
 Scikit-learn is a popular python package that contains a wide variety of machine learning tools. It emphasizes simplicity, accessibility, and reusability. All of the classification algorithms and preprocessing steps it contains expose a similar interface, making it highly extensible. 
+
 [[put something here about them all using the fit method?]]
 [[put something here about them all having unique parameters in the constructor?]]
 
@@ -176,13 +182,17 @@ Random Forest and Extra Trees don’t work on sparse data
     \caption{
         Best values (mean and standard error) based on 10 random repetitions.
         The top rows correspond to algorithms described in this work and computed by the authors.
-        SMAC, Spearmint, and TPE (*) are reproduced for from \citet{eggensperger+etal:2013}.
-        Bold scores are within a 95\% interval of the best.
     }
     \label{tbl:acc}
     \centering
     \small
-    \include{acc_table} % regen: shovel hpolib.latex_rows > papers/icml_automl/acc_table.tex
+    \begin{tabular}{l|cr}
+        \hline
+        Header & col1 & col2 \\
+        \hline
+        a & b & c \\
+        d & e & f
+    \end{tabular}
 \end{table}
 
 
@@ -205,3 +215,16 @@ Input domains: Including more pre-processing to handle different kinds of data
 \end{document}
 
 
+
+Our contribution with this paper is to present Hyperopt-Sklearn, a wrapper around the popular Scikit-Learn machine learning library for Python that brings Automatic algorithm configuration to Scikit-Learn.
+
+
+This paper introduces Hyperopt-sklearn, a software package that makes this approach available to Python users by combining the Hyperopt algorithm configuration package with the Scikit-learn machine learning package.
+Hyperopt-sklearn provides a wrapper around Scikit-learn that describes how the various estimators and preprocessing components can be created and chained together.
+
+Conceptually, Hyperopt-sklearn provides a single very high-level
+estimator (HyperoptAutoEstimator??) whose "fit" method searches through *all*
+of Scikit-learn's classifiers to find the one that gets the best score on the
+given data. In actual fact, we have chosen a good palette of algorithms
+that tends to work well for a range of classification problems for text and
+small images (XXX).
