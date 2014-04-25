@@ -1,0 +1,207 @@
+ %\documentclass[wcp,gray]{jmlr} % test grayscale version
+\documentclass[wcp]{jmlr}
+
+ % The following packages will be automatically loaded:
+ % amsmath, amssymb, natbib, graphicx, url, algorithm2e
+
+ %\usepackage{rotating}% for sideways figures and tables
+\usepackage{longtable}% for long tables
+
+ % The booktabs package is used by this sample document
+ % (it provides \toprule, \midrule and \bottomrule).
+ % Remove the next line if you don't require it.
+\usepackage{booktabs}
+ % The siunitx package is used by this sample document
+ % to align numbers in a column by their decimal point.
+ % Remove the next line if you don't require it.
+%\usepackage[load-configurations=version-1]{siunitx} % newer version
+%\usepackage{siunitx}
+
+ % change the arguments, as appropriate, in the following:
+\jmlrvolume{1}
+\jmlryear{2014}
+\jmlrworkshop{ICML 2014 AutoML Workshop}
+
+\title[Hyperopt-Sklearn]{Hyperopt-Sklearn: Subtitle?}
+
+ % Use \Name{Author Name} to specify the name.
+ % If the surname contains spaces, enclose the surname
+ % in braces, e.g. \Name{John {Smith Jones}} similarly
+ % if the name has a "von" part, e.g \Name{Jane {de Winter}}.
+ % If the first letter in the forenames is a diacritic
+ % enclose the diacritic in braces, e.g. \Name{{\'E}louise Smith}
+%\nametag{\thanks{Affiliation: D\'epartement d'Informatique et Recherche Op\'erationel, Universit\'e de Montr\'eal}}
+% \nametag{\thanks{Corresponding author}}
+ % Two authors with the same address
+  \author{
+      \\
+      \Name{Brent Komer} \Email{brent.komer@uwaterloo.ca}\\
+      \Name{James Bergstra} \Email{james.bergstra@uwaterloo.ca}\\
+      \Name{Chris Eliasmith} \Email{celiasmith@uwaterloo.ca}\\
+      \addr Centre for Theoretical Neuroscience\\University of Waterloo\\
+  }
+
+
+%\editor{Editor's name XXX}
+ % \editors{List of editors' names}
+
+\iffalse   % UNCOMMENT THIS STUFF TO BE MORE SPACE EFFICIENT
+\renewcommand\floatpagefraction{.9}
+\renewcommand\dblfloatpagefraction{.9} % for two column documents
+\renewcommand\topfraction{.9}
+\renewcommand\dbltopfraction{.9} % for two column documents
+\renewcommand\bottomfraction{.9}
+\renewcommand\textfraction{.1}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+\fi
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    TODO
+\end{abstract}
+\begin{keywords}
+Bayesian Optimization, Model Selection, Hyperparameter Optimization, Scikit-learn
+\end{keywords}
+
+\section{Introduction}
+Machine learning has become increasingly popular in both academic and
+industrial circles over the last two decades as both the size of data sets and
+the speed of computers have increased to the point where it is often easier to
+fit complex functions to data using statistical estimation techniques than it
+is to design them by hand.
+
+Unfortunately, the fitting of such functions (training machine learning
+algorithms) remains a relatively arcane art, typically requiring a graduate
+degree and years of experience.
+
+Recently, it has been shown that techniques for automatic algorithm configuration based on
+Regression Trees~\citep{hutter+hoos+leyton-brown:2011},
+Gaussian Processes~\citep{Mockus78,snoek+larochelle+adams:2012nips},
+and density-estimation techniques~\citep{bergstra+bardenet+bengio+kegl:2011} can be viable alternatives to the
+employment of a domain specialist for the fitting of statistical models.
+Algorithm configuration approaches use function optimization and graph search techniques
+to search more-or-less-efficiently through a large space of possible algorithm
+configurations.
+
+This paper introduces Hyperopt-sklearn, a software package that makes this
+approach available to Python users by combining the Hyperopt algorithm
+configuration package with the Scikit-learn machine learning package.
+Hyperopt-sklearn provides a wrapper around Scikit-learn that describes how the
+various estimators and preprocessing components can be created and chained
+together.
+
+Conceptually, Hyperopt-sklearn provides a single very high-level
+estimator (HyperoptAutoEstimator??) whose "fit" method searches through *all*
+of Scikit-learn's classifiers to find the one that gets the best score on the
+given data. In actual fact, we have chosen a good palette of algorithms
+that tends to work well for a range of classification problems for text and
+small images (XXX).
+
+\section{Searching Scikit-learn with Hyperopt}
+
+What is it, what algorithms and pre-processors are we going to be talking about?
+A bunch of machine learning tools in one place -> emphasis on easy to use
+Currently using SVC, LinearSVC, KNN, RandomForest, ExtraTrees, SGD, Multinomial Naive Bayes
+Preprocessing: PCA, TFIDF, StandardScalar, MinMaxScalar, Normalizer
+Scikit-learn is a popular python package that contains a wide variety of machine learning tools. It emphasizes simplicity, accessibility, and reusability. All of the classification algorithms and preprocessing steps it contains expose a similar interface, making it highly extensible. 
+[[put something here about them all using the fit method?]]
+[[put something here about them all having unique parameters in the constructor?]]
+
+Brief review of Hyperopt, mainly citing [Hyperopt-scipy2013]. Reminder how do you describe search spaces in general?
+Main content: how did we set up the search spaces around specific Sklearn classifiers? Pick a couple of representative ones, no need to go through them all.
+Search spaces were set up around specific Scikit-learn classifiers by defining spaces for each of their hyperparameters. The full space contains every possible permutation of those parameters, which is quite large (and in the case of continuous valued parameters, infinite). In order to make the search problem tractable for practical applications, a smaller subspace is defined for each continuous valued parameter as a default.[[how are they chosen? empirical evidence/educated guesses?]] These defaults can be overridden and customized by the user. 
+Set up specific search spaces using pyll [throw some examples in]]
+SVM is a good example -> shows the conditional parameters
+Talk about combinations of classifiers and preprocessing
+How many configuration parameters are there? What does the search tree look like? Consider emphasizing the huge number of conditional parameters.
+[put picture of the search tree here?]
+Make sure to mention that more will be added later, the numbers here are just what has been used so far. Possible search space will continue to get larger
+
+Params:
+SVC:
+Linear: 4
+RBF: 5
+Poly: 7
+Sigmoid: 6
+LinearSVC: 4
+KNN: 4 (+5)
+RandomForest: 8
+ExtraTrees: 8
+SGD: 8 (+4)
+MultinomialNB: 2
+Total for classifiers: 56 (+9)
+PCA: 2
+TFIDF: 0 (+9)
+StandardScaler: 2
+MinMaxScaler: 1
+Normalizer: 1
+Total for preprocessing: 6 (+9)
+[[in brackets are parameters which exist, but were not used for most tests]]
+
+conditional parameter example:
+SVC has conditional parameters based on what kernel is chosen
+KNN has conditional parameters based on what distance metric is chosen
+dependent parameter example:
+for liblinear SVC, loss and penalty cannot both be ‘l1’
+There are 8 possible combinations of the three binary parameters ‘loss’, ‘penalty’ and ‘dual’, but only 4 of the combinations are possible, the other 4 result in an error. The search space needs to be set up to account for that to avoid unnecessary runs.
+Certain preprocessing doesn’t work with particular classifiers:
+PCA and MinMaxScaler can’t be used with MultinomialNB
+TFIDF vectorizer should only be used for text data
+Random Forest and Extra Trees don’t work on sparse data
+
+
+\section{Experiments}
+
+\begin{figure}
+    \centering
+    %\includegraphics[width=2.90in]{lda_boxplots}
+    %\includegraphics[width=2.90in]{svm_boxplots}\\
+    %\includegraphics[width=2.90in]{branin_boxplots}
+    %\includegraphics[width=2.90in]{har6_boxplots}
+    \caption{
+        Each boxplot shows the distribution of minimum values found by each algorithm on 10 randomized runs. (Lower is better)
+    }
+    \label{fig:boxplots}
+%\vspace{-3em}
+\end{figure}
+
+
+
+\begin{table}
+    \caption{
+        Best values (mean and standard error) based on 10 random repetitions.
+        The top rows correspond to algorithms described in this work and computed by the authors.
+        SMAC, Spearmint, and TPE (*) are reproduced for from \citet{eggensperger+etal:2013}.
+        Bold scores are within a 95\% interval of the best.
+    }
+    \label{tbl:acc}
+    \centering
+    \small
+    \include{acc_table} % regen: shovel hpolib.latex_rows > papers/icml_automl/acc_table.tex
+\end{table}
+
+
+
+\section{Discussion and Future Work}
+Future Work
+Lots of areas for future work:
+Speed: Aborting points early when using K-fold validation
+Applications: Extending search space for e.g. regression problems
+Input domains: Including more pre-processing to handle different kinds of data
+
+
+\section{Conclusions}
+
+
+\subsection{Acknowledgements*}
+
+\bibliography{bib}
+
+\end{document}
+
+
