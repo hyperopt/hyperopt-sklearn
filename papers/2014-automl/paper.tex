@@ -23,7 +23,7 @@
 \jmlryear{2014}
 \jmlrworkshop{ICML 2014 AutoML Workshop}
 
-\title[Hyperopt-Sklearn]{Hyperopt-Sklearn: Subtitle?}
+\title[Hyperopt-Sklearn]{Hyperopt-Sklearn: Automatic Hyperparameter Configuration for Scikit-Learn}
 
  % Use \Name{Author Name} to specify the name.
  % If the surname contains spaces, enclose the surname
@@ -194,7 +194,7 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 \begin{figure}
     \centering
-    \includegraphics[width=5.00in]{graphics/AverageTestScoresClassifiersTPE}
+    \includegraphics[width=4.50in]{graphics/AverageTestScoresClassifiersTPE}
     \caption{
         For each data set, searching the full configuration space (``Any Classifier'') delivered performance approximately on par with a search that was restricted to the best classifier type.
         (Best viewed in color.)
@@ -219,13 +219,6 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 \begin{figure}
     \centering
-    \caption{
-    }
-    \label{fig:errtpe}
-\end{figure}
-
-\begin{figure}
-    \centering
     \includegraphics[width=\textwidth]{graphics/pie}
     \caption{Looking at the best models from all optimization runs performed on the full search space (using different initial conditions, and different optimization algorithms)
              we see that different data sets are handled best by different classifiers.
@@ -242,7 +235,7 @@ Certainly, there are more classifiers and preprocessing modules that could be in
 and there are more ways to combine even the existing components.
 In expanding the search space, care must be taken to ensure that the benefits of new models outweigh the greater difficulty of searching a larger space.
 
-We have shown here that Hyperopt's random search, annealing search, and TPE algorithms make Hyperopt-sklearn viable, but the slow convergence in e.g. Figure~\ref{fig:errtpe} suggests
+We have shown here that Hyperopt's random search, annealing search, and TPE algorithms make Hyperopt-sklearn viable, but the slow convergence in e.g. Figure~\ref{fig:per_clf} suggests
 that other optimization algorithms might be more call-efficient.
 The development of Bayesian optimization algorithms is an active research area, and  we look forward to looking at how other search algorithms interact with hyperopt-sklearn's search spaces.
 
@@ -256,6 +249,13 @@ and other types of input modalities (e.g. large images, sound, timeseries, prefe
 
 
 \section{Conclusions}
+
+We have introduced Hyperopt-sklearn, a Python package for automatic algorithm configuration of standard machine learning algorithms provided by Scikit-Learn.
+Hyperopt-sklearn provides a unified view of 6 possible preprocessing modules and 6 possible classifiers, yet with the help of Hyperopt's optimization functions
+it is able to both rival and surpass human experts in algorithm configuration.
+We hope that it provides practitioners with a useful tool for the development of machine learning systems,
+and automatic machine learning researchers with benchmarks for future work in algorithm configuration.
+
 
 
 %\subsection*{Acknowledgements}
