@@ -129,8 +129,8 @@ The \texttt{TF-IDF} pre-processing module performed feature extraction from text
 The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{KNN}(4+5), \texttt{RandomForest}(8), \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
 The \texttt{SVC} module is a fork of LibSVM, and our wrapper has 23 hyperparameters because we treated each possible kernel as a different classifier, with its own set of hyperparameters: Linear(4), RBF(5), Polynomial(7), and Sigmoid(6).
 
-In total, our parameterization had 65 hyperparameters: 6 for preprocessing and 53 for classification.
-The search space includes 15 boolean variables, 14 categorical, 17 discrete, and 19 real-valued variables.
+In total, our parameterization had 59 hyperparameters: 6 for preprocessing and 53 for classification.
+The search space includes 13 boolean variables, 11 categorical, 17 discrete, and 18 real-valued variables.
 Although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
 would have only 12 active hyperparameters (1 for the choice of preprocessing, 2 internal to PCA, 1 for the choice of classifier and 8 internal to the RF).
 Hyperopt description language allows us to differentiate between {\em conditional} hyperparameters (which must always be assigned) and {\em non-conditional} hyperparameters (which may remain unassigned when they would be unused).
