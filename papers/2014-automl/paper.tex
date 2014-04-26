@@ -45,7 +45,7 @@
 %\editor{Editor's name XXX}
  % \editors{List of editors' names}
 
-\iffalse   % UNCOMMENT THIS STUFF TO BE MORE SPACE EFFICIENT
+\iftrue   % UNCOMMENT THIS STUFF TO BE MORE SPACE EFFICIENT
 \renewcommand\floatpagefraction{.9}
 \renewcommand\dblfloatpagefraction{.9} % for two column documents
 \renewcommand\topfraction{.9}
@@ -106,17 +106,29 @@ Section 4 presents a discussion of the results, and directions for future work.
 
 \section{Searching Scikit-learn with Hyperopt}
 
-The configuration space we experiment on below includes five preprocessing algorithms and seven classification algorithms.
-The full search space is illustrated in Figure~\ref{fig:searchspace}.
-The preprocessing algorithms were (by class name, followed by n. hyperparameters + n. unused hyperparameters): \texttt{PCA}(2), \texttt{StandardScaler}(2), \texttt{MinMaxScaler}(1), \texttt{Normalizer}(1), and \texttt{TF-IDF}(0+9).
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{graphics/sklearn_space_all_together}
+    \caption{
+        Hyeropt-sklearn's full search space (``Any Classifier'') consists of a (preprocessing, classsifier) pair.
+        There are 6 possible preprocessing modules and 6 possible classifiers.
+        Choosing a model within this configuration space means choosing paths in an ancestral sampling process.
+        The highlighted green edges and nodes represent a (PCA, K-Nearest Neighbor) model.
+        The number of active hyperparameters in a model is the sum of parenthetical numbers in the selected boxes. For the PCA+KNN combination, 7 hyperparameters are activated.
+    }
+    \label{fig:space}
+\end{figure}
+The configuration space we experiment on below includes six preprocessing algorithms and seven classification algorithms.
+The full search space is illustrated in Figure~\ref{fig:space}.
+The preprocessing algorithms were (by class name, followed by n. hyperparameters + n. unused hyperparameters): \texttt{PCA}(2), \texttt{StandardScaler}(2), \texttt{MinMaxScaler}(1), \texttt{Normalizer}(1), \texttt{None}, and \texttt{TF-IDF}(0+9).
 The first four preprocessing algorithms were for dense features.
 PCA performed whitening or non-whitening principle components analysis.
 The \texttt{StandardScaler}, \texttt{MinMaxScaler}, and \texttt{Normalizer} did various feature-wise affine transforms to map numeric input features onto values near 0 and with roughly unit variance.
 The \texttt{TF-IDF} pre-processing module performed feature extraction from text data.
-The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{LinearSVC}(6), \texttt{KNN}(4+5), \texttt{RandomForest}(8), \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
+The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{KNN}(4+5), \texttt{RandomForest}(8), \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
 The \texttt{SVC} module is a fork of LibSVM, and our wrapper has 23 hyperparameters because we treated each possible kernel as a different classifier, with its own set of hyperparameters: Linear(4), RBF(5), Polynomial(7), and Sigmoid(6).
 
-In total, our parameterization had 65 hyperparameters: 6 for preprocessing and 59 for classification.
+In total, our parameterization had 65 hyperparameters: 6 for preprocessing and 53 for classification.
 The search space includes 15 boolean variables, 14 categorical, 17 discrete, and 19 real-valued variables.
 Although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
 would have only 12 active hyperparameters (1 for the choice of preprocessing, 2 internal to PCA, 1 for the choice of classifier and 8 internal to the RF).
@@ -172,19 +184,6 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
     \end{tabular}
 \end{table}
 
-%To support the hypothesis that the search carried out by hyperopt-sklearn is necessary for good performance on a range of data sets, we present three pieces of evidence.
-%First, looking again at Figure~\ref{fig:avg_test_scores}, note that 
-%Figure~\ref{fig:pies} shows that 
-%different data sets lead hyperopt-sklearn to select
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\textwidth]{graphics/sklearn_space_all_together}
-    \caption{
-	    XXX
-    }
-    \label{fig:space}
-\end{figure}
 \begin{figure}
     \centering
     \includegraphics[width=5.00in]{graphics/AverageTestScoresClassifiersTPE}
