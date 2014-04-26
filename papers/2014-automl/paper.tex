@@ -205,22 +205,21 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 \begin{figure}
     \centering
-    \includegraphics[width=4.5in]{graphics/scores_by_classifier}
+    \includegraphics[width=3.0in]{graphics/scores_by_classifier}
+    \includegraphics[width=2.8in]{graphics/AvgMinValidErrorTPE}
     %\includegraphics[width=2.9in]{graphics/scores_per_eval}
     \caption{
-	    Using Hyperopt's Anneal search algorithm, increasing the number of function evaluations from 150 to 2400 lead to a modest improvement in accuracy on 20 Newsgroups and MNIST,
+	    Left: Using Hyperopt's Anneal search algorithm, increasing the number of function evaluations from 150 to 2400 lead to a modest improvement in accuracy on 20 Newsgroups and MNIST,
         and a more dramatic improvement on Convex Shapes.
         We capped evaluations to 5 minutes each so 300 evaluations took between 12 and 24 hours of wall time.
+        Right: TPE makes gradual progress on 20 Newsgroups over 300 iterations and gives no indication of convergence.
     }
     \label{fig:per_clf}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=3in]{graphics/AvgMinValidErrorTPE}
     \caption{
-        Hyperopt's TPE algorithm makes gradual progress on 20 Newsgroups over 300 iterations and gives no indication of convergence.
-        We look forward to investigating alternative optimization algorithms in future work.
     }
     \label{fig:errtpe}
 \end{figure}
