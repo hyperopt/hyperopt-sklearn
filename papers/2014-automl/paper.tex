@@ -205,10 +205,12 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 \begin{figure}
     \centering
-    \includegraphics[width=2.9in]{graphics/scores_by_classifier}
-    \includegraphics[width=2.9in]{graphics/scores_per_eval}
+    \includegraphics[width=4.5in]{graphics/scores_by_classifier}
+    %\includegraphics[width=2.9in]{graphics/scores_per_eval}
     \caption{
-	    XXX
+	    Using Hyperopt's Anneal search algorithm, increasing the number of function evaluations from 150 to 2400 lead to a modest improvement in accuracy on 20 Newsgroups and MNIST,
+        and a more dramatic improvement on Convex Shapes.
+        We capped evaluations to 5 minutes each so 300 evaluations took between 12 and 24 hours of wall time.
     }
     \label{fig:per_clf}
 \end{figure}
@@ -217,7 +219,8 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
     \centering
     \includegraphics[width=3in]{graphics/AvgMinValidErrorTPE}
     \caption{
-	    XXX
+        Hyperopt's TPE algorithm makes gradual progress on 20 Newsgroups over 300 iterations and gives no indication of convergence.
+        We look forward to investigating alternative optimization algorithms in future work.
     }
     \label{fig:errtpe}
 \end{figure}
@@ -235,11 +238,22 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 
 \section{Discussion and Future Work}
-Future Work
-Lots of areas for future work:
-Speed: Aborting points early when using K-fold validation
-Applications: Extending search space for e.g. regression problems
-Input domains: Including more pre-processing to handle different kinds of data
+Hyperopt-sklearn provides many opportunities for future work.
+Certainly, there are more classifiers and preprocessing modules that could be included in the search space,
+and there are more ways to combine even the existing components.
+In expanding the search space, care must be taken to ensure that the benefits of new models outweigh the greater difficulty of searching a larger space.
+
+We have shown here that Hyperopt's random search, annealing search, and TPE algorithms make Hyperopt-sklearn viable, but the slow convergence in e.g. Figure~\ref{fig:errtpe} suggests
+that other optimization algorithms might be more call-efficient.
+The development of Bayesian optimization algorithms is an active research area, and  we look forward to looking at how other search algorithms interact with hyperopt-sklearn's search spaces.
+
+Computational wall time spent on search is of great practical importance, and hyperopt-sklearn currently spends a significant amount of time evaluating points that are un-promising.
+Techniques for recognizing bad performers early could speed up search enormously.
+Relatedly, hyperopt-sklearn currently lacks support for K-fold cross-validation. In that setting, it will be crucial to follow SMAC in the use of racing algorithms to skip un-necessary folds.
+
+Another direction for future work is the extention of the techniques presented here in terms of classification to other types of machine learning problems (e.g. regression, density estimation, and ranking),
+and other types of input modalities (e.g. large images, sound, timeseries, preferences).
+
 
 
 \section{Conclusions}
