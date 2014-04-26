@@ -63,7 +63,7 @@
 \maketitle
 
 \begin{abstract}
-    Hyperopt-sklearn is a new software project that provides automatic algorithm configuration of the Scikit-learn machine learning library.
+    Hyperopt-sklearn\footnote{Hyperopt-Sklearn home: http://github.com/hyperopt/hyperopt-sklearn} is a new software project that provides automatic algorithm configuration of the Scikit-learn machine learning library.
     Following Auto-Weka, we take the view that the choice of classifier and even the choice of pre-processing module can be taken together to represent a {\em single large hyperparameter optimization problem}.
     We use Hyperopt to define a search space that encompasses many standard components (e.g. SVM, RF, KNN, PCA, TFIDF) and common patterns of composing them together.
     We demonstrate, using search algorithms in Hyperopt and standard benchmarking data sets (MNIST, 20-Newsgroups, Convex Shapes), that searching this space is practical and effective.
@@ -244,6 +244,10 @@ Input domains: Including more pre-processing to handle different kinds of data
 
 \section{Conclusions}
 
+We have introduced Hyperopt-sklearn, a Python package for automatic algorithm configuration of standard machine learning algorithms provided by Scikit-Learn.
+Hyperopt-sklearn provides a unified view of 6 possible preprocessing modules and 6 possible classifiers, yet with the help of Hyperopt's optimization functions
+it is able to both rival and surpass human experts in algorithm configuration.
+
 
 %\subsection*{Acknowledgements}
 
@@ -251,6 +255,11 @@ Input domains: Including more pre-processing to handle different kinds of data
 
 \end{document}
 
+%%
+%%
+%%
+%%
+%%
 
 
 \begin{table}
