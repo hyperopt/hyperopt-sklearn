@@ -39,40 +39,266 @@
         <ul></ul>
       </nav>
       <section>
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+        <h2>
+<a name="what-is-hyperopt-sklearn" class="anchor" href="#what-is-hyperopt-sklearn"><span class="octicon octicon-link"></span></a>What is Hyperopt-sklearn?</h2>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Finding the right classifier to use for your data can be hard. Once you have chosen a classifier, tuning all of the parameters to get the best results is tedious and time consuming. Even after all of your hard work, you may have chosen the wrong classifier to begin with. Hyperopt-sklearn provides a solution to this problem.</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span>
+
+<span class="c"># Load Data</span>
+<span class="c"># ...</span>
+
+<span class="c"># Create the estimator object</span>
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">()</span>
+
+<span class="c"># Search the space of classifiers and preprocessing steps and their</span>
+<span class="c"># respective hyperparameters in sklearn to fit a model to the data</span>
+<span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">train_label</span> <span class="p">)</span>
+
+<span class="c"># Make a prediction using the optimized model</span>
+<span class="n">prediction</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span> <span class="n">unknown_data</span> <span class="p">)</span>
+
+<span class="c"># Report the accuracy of the classifier on a given set of data</span>
+<span class="n">score</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">score</span><span class="p">(</span> <span class="n">test_data</span><span class="p">,</span> <span class="n">test_label</span> <span class="p">)</span>
+
+<span class="c"># Return instances of the classifier and preprocessing steps</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span>
+</pre></div>
+
+<h2>
+<a name="search-algorithms" class="anchor" href="#search-algorithms"><span class="octicon octicon-link"></span></a>Search Algorithms</h2>
+
+<p>Any search algorithm available in hyperopt can be used to drive the estimator. It is also possible to supply your own or use a mix of algorithms. The number of points to evaluate before returning, as well as an optional timeout (in seconds) can be used with any search algorithm. </p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span>
+<span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">tpe</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">algo</span><span class="o">=</span><span class="n">tpe</span><span class="o">.</span><span class="n">suggest</span><span class="p">,</span> 
+                            <span class="n">max_evals</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> 
+                            <span class="n">trial_timeout</span><span class="o">=</span><span class="mi">60</span> <span class="p">)</span>
+</pre></div>
+
+<p>Search algorithms available so far:</p>
+
+<ul>
+<li>Random Search</li>
+<li>Tree of Parzen Estimators (TPE)</li>
+<li>Annealing</li>
+<li>Tree</li>
+<li>Gaussian Process Tree</li>
+</ul><h2>
+<a name="classifiers" class="anchor" href="#classifiers"><span class="octicon octicon-link"></span></a>Classifiers</h2>
+
+<p>If you know what type of classifier you wish to use on your dataset, you can let hpsklearn know and it will only search in the parameter space of the given classifier.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">svc</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">svc</span><span class="p">(</span><span class="s">'mySVC'</span><span class="p">)</span> <span class="p">)</span>
+</pre></div>
+
+<p>You can also provide sets of classifiers, and optionally choose the probability of the estimator picking each one.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">random_forest</span><span class="p">,</span> <span class="n">svc</span><span class="p">,</span> <span class="n">knn</span>
+<span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">hp</span>
+
+<span class="n">clf</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">pchoice</span><span class="p">(</span> <span class="s">'my_name'</span><span class="p">,</span> 
+          <span class="p">[</span> <span class="p">(</span> <span class="mf">0.4</span><span class="p">,</span> <span class="n">random_forest</span><span class="p">(</span><span class="s">'my_name.random_forest'</span><span class="p">)</span> <span class="p">),</span>
+            <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">svc</span><span class="p">(</span><span class="s">'my_name.svc'</span><span class="p">)</span> <span class="p">),</span>
+            <span class="p">(</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">knn</span><span class="p">(</span><span class="s">'my_name.knn'</span><span class="p">)</span> <span class="p">)</span> <span class="p">]</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">clf</span> <span class="p">)</span>
+</pre></div>
+
+<p>Classifiers from sklearn that are built-in so far:</p>
+
+<ul>
+<li>SVC</li>
+<li>LinearSVC</li>
+<li>KNeightborsClassifier</li>
+<li>RandomForestClassifier</li>
+<li>ExtraTreesClassifier</li>
+<li>SGDClassifier</li>
+<li>MultinomialNB</li>
+<li>BernoulliRBM</li>
+<li>ColumnKMeans</li>
+</ul><p>More to come!</p>
+
+<h2>
+<a name="preprocessing" class="anchor" href="#preprocessing"><span class="octicon octicon-link"></span></a>Preprocessing</h2>
+
+<p>You also have control over which preprocessing steps are applied to your data. These can be passed as a list to the hyperopt_estimator. A blank list indicates no preprocessing will be done.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">pca</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">preprocessing</span><span class="o">=</span><span class="p">[</span> <span class="n">pca</span><span class="p">(</span><span class="s">'my_pca'</span><span class="p">)</span> <span class="p">]</span> <span class="p">)</span>
+</pre></div>
+
+<p>Preprocessing steps from sklearn that are built-in so far:</p>
+
+<ul>
+<li>PCA</li>
+<li>TfidfVectorizer</li>
+<li>StandardScalar</li>
+<li>MinMaxScalar</li>
+<li>Normalizer</li>
+<li>OneHotEncoder</li>
+</ul><p>More to come!</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<pre><code>git clone https://github.com/hyperopt/hyperopt-sklearn.git
+cd hyperopt
+pip install -e .
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<h2>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h2>
+
+<p>This project is currently undergoing active development, formal documentation coming soon. For now feel free to look at some of the examples below, or browse the <a href="https://github.com/hyperopt/hyperopt-sklearn">source code</a></p>
+
+<p>This project is built upon:</p>
+
+<ul>
+<li><a href="http://hyperopt.github.io/hyperopt/">hyperopt</a></li>
+<li><a href="http://scikit-learn.org/">scikit-learn</a></li>
+</ul><h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<p>An example on the MNIST digit data</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">any_classifier</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_mldata</span>
+<span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">tpe</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c"># Download the data and split into training and test sets</span>
+
+<span class="n">digits</span> <span class="o">=</span> <span class="n">fetch_mldata</span><span class="p">(</span><span class="s">'MNIST original'</span><span class="p">)</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">data</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">target</span>
+
+<span class="n">test_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span> <span class="n">y</span> <span class="p">)</span> <span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span> <span class="n">seed</span> <span class="p">)</span>
+<span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span> <span class="n">indices</span><span class="p">[:</span><span class="o">-</span><span class="n">test_size</span><span class="p">]]</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span> <span class="n">indices</span><span class="p">[:</span><span class="o">-</span><span class="n">test_size</span><span class="p">]]</span>
+<span class="n">X_test</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span> <span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="n">test_size</span><span class="p">:]]</span>
+<span class="n">y_test</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span> <span class="n">indices</span><span class="p">[</span><span class="o">-</span><span class="n">test_size</span><span class="p">:]]</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">any_classifier</span><span class="p">(</span><span class="s">'clf'</span><span class="p">),</span>  
+                            <span class="n">algo</span><span class="o">=</span><span class="n">tpe</span><span class="o">.</span><span class="n">suggest</span><span class="p">,</span> <span class="n">trial_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+<span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">score</span><span class="p">(</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="p">)</span> <span class="p">)</span>
+<span class="c"># &lt;&lt;show score here&gt;&gt;</span>
+<span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span> <span class="p">)</span>
+<span class="c"># &lt;&lt;show model here&gt;&gt;</span>
+</pre></div>
+
+<p>Not all classifiers within sklearn support sparse data. To make life easier, hpsklearn comes with an any_sparse_classifier which will only sample from the classifiers available which accept sparse data.</p>
+
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">any_sparse_classifier</span><span class="p">,</span> <span class="n">tfidf</span>
+<span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="kn">import</span> <span class="n">fetch_20newsgroups</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="kn">from</span> <span class="nn">hyperopt</span> <span class="kn">import</span> <span class="n">tpe</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c"># Download the data and split into training and test sets</span>
+
+<span class="n">train</span> <span class="o">=</span> <span class="n">fetch_20newsgroups</span><span class="p">(</span> <span class="n">subset</span><span class="o">=</span><span class="s">'train'</span> <span class="p">)</span>
+<span class="n">test</span> <span class="o">=</span> <span class="n">fetch_20newsgroups</span><span class="p">(</span> <span class="n">subset</span><span class="o">=</span><span class="s">'test'</span> <span class="p">)</span>
+<span class="n">X_train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">data</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">target</span>
+<span class="n">X_test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">data</span>
+<span class="n">y_test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">target</span>
+
+<span class="n">estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">any_sparse_classifier</span><span class="p">(</span><span class="s">'clf'</span><span class="p">),</span> 
+                            <span class="n">preprocessing</span><span class="o">=</span><span class="p">[</span><span class="n">tfidf</span><span class="p">(</span><span class="s">'tfidf'</span><span class="p">)],</span>
+                            <span class="n">algo</span><span class="o">=</span><span class="n">tpe</span><span class="o">.</span><span class="n">suggest</span><span class="p">,</span> <span class="n">trial_timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+<span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">score</span><span class="p">(</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="p">)</span> <span class="p">)</span>
+<span class="c"># &lt;&lt;show score here&gt;&gt;</span>
+<span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">best_model</span><span class="p">()</span> <span class="p">)</span>
+<span class="c"># &lt;&lt;show model here&gt;&gt;</span>
+</pre></div>
+
+<h2>
+<a name="empirical-results" class="anchor" href="#empirical-results"><span class="octicon octicon-link"></span></a>Empirical Results</h2>
 
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="comparison-between-algorithms" class="anchor" href="#comparison-between-algorithms"><span class="octicon octicon-link"></span></a>Comparison Between Algorithms</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>Tests were run on the 20 newsgroups dataset with 300 evaluations for each algorithm. The set of classifiers available where a support vector machine (SVM), k nearest neighbors (KNeighborsClassifier), naive bayes (MultinomialNB), and stochastic gradient descent (SGDClassifier). TfidfVectorizer was used to perform the preprocessing in all cases.</p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<p>Each algorithm was run multiple times (between 6 to 9 times) with different random seeds and the results of the validation score after each evaluation was recorded. The results are very noisy as this is a difficult space to search. A linear trend-line was fit to the data in each case, and is overlayed on top of the data in red. The results for TPE and random search are shown below.</p>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<img src="images/tpe_vs_rand.png" alt="Validation averaged over multiple trials">
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<p>These are the linear trend-lines found for each algorithm. They roughly represent how much each algorithm improves after each evaluation with the type of points found. Random has no improvement, while the others tend to look in more promising areas of the search space as they gain more information.</p>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<img src="images/newsgroups_validation_loss.png" alt="Trend of validation loss for each algorithm">
 
 <h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<a name="comparison-to-default-parameters" class="anchor" href="#comparison-to-default-parameters"><span class="octicon octicon-link"></span></a>Comparison to Default Parameters</h3>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>Examples of using hyperopt-sklearn to pick parameters contrasted with the default parameters chosen by scikit-learn. This demonstrates how much improvement can be obtained with roughly the same amount of code and without any expert domain knowledge required.</p>
+
+<p>The table below shows the F1 scores obtained by classifiers run with scikit-learn's default parameters and with hyperopt-sklearn's optimized parameters on the 20 newsgroups dataset. The results from hyperopt-sklearn were obtained from a single run with 25 evaluations.</p>
+<table >
+	<tr>
+		<td><b>Classifier</b></td>
+		<td><b>Default Parameters</b></td>
+		<td><b>Optimized Parameters</b></td>
+	</tr>
+	<tr>
+		<td>SVM</td>
+		<td>0.0053</td>
+		<td>0.8369</td>
+	</tr>
+	<tr>
+		<td>SGD</td>
+		<td>0.8498</td>
+		<td>0.8538</td>
+	</tr>
+	<tr>
+		<td>KNN</td>
+		<td>0.6597</td>
+		<td>0.6741</td>
+	</tr>
+	<tr>
+		<td>MultinomialNB</td>
+		<td>0.7684</td>
+		<td>0.8344</td>
+	</tr>
+</table>
+<div class="highlight highlight-python"><pre><span class="kn">from</span> <span class="nn">hpsklearn</span> <span class="kn">import</span> <span class="n">hyperopt_estimator</span><span class="p">,</span> <span class="n">svc</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">svm</span>
+
+<span class="c"># Load Data</span>
+<span class="c"># ...</span>
+
+<span class="k">if</span> use_hpsklearn:
+<span class="n">    estim</span> <span class="o">=</span> <span class="n">hyperopt_estimator</span><span class="p">(</span> <span class="n">classifier</span><span class="o">=</span><span class="n">svc</span><span class="p">(</span><span class="s">'mySVC'</span><span class="p">)</span> <span class="p">)</span>
+<span class="k">else</span>:
+<span class="n">    estim</span> <span class="o">=</span> <span class="n">svm.SVC</span><span class="p">(</span> <span class="p">)</span>
+
+<span class="n">estim</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span> <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span> <span class="n">estim</span><span class="o">.</span><span class="n">score</span><span class="p">(</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span> <span class="p">)</span> <span class="p">)</span>
+<span class="c"># &lt;&lt;show score here&gt;&gt;</span>
+</pre></div>
       </section>
       <footer>
-        <p>Project maintained by <a href="https://github.com/hyperopt">hyperopt</a></p>
+        <p>Project maintained by <a href="https://github.com/bjkomer">bjkomer</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
       </footer>
     </div>
