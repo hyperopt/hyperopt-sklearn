@@ -26,10 +26,15 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
              partial_timeout_tolerance=10.0): # -- seconds
     try:
         t_start = time.time()
-        classifier = argd['classifier']
+        if 'classifier' in argd:
+            classifier = argd['classifier']
+            preprocessings = argd['preprocessing']
+        else:
+            classifier = argd['model']['classifier']
+            preprocessings = argd['model']['preprocessing']
         untrained_classifier = copy.deepcopy( classifier )
         # -- N.B. modify argd['preprocessing'] in-place
-        for pp_algo in argd['preprocessing']:
+        for pp_algo in preprocessings:
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
             pp_algo.fit(Xfit)
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
@@ -95,13 +100,17 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
 
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
-        info('OK trial with accuracy %.1f' % (100 * (1.0 - loss)))
+        # -- squared standard error of mean
+        lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
+        info('OK trial with accuracy %.1f +- %.1f' % (
+            100 * (1.0 - loss),
+            100 * np.sqrt(lossvar)))
         t_done = time.time()
         rval = {
             'loss': loss,
-            #'classifier': classifier,
+            'loss_variance': lossvar,
             'classifier': untrained_classifier,
-            'preprocs': argd['preprocessing'],
+            'preprocs': preprocessings,
             'status': hyperopt.STATUS_OK,
             'duration': t_done - t_start,
             'iterations': n_iters,
@@ -163,6 +172,7 @@ class hyperopt_estimator(object):
     def __init__(self,
                  preprocessing=None,
                  classifier=None,
+                 space=None,
                  algo=None,
                  max_evals=100,
                  verbose=0,
@@ -207,24 +217,24 @@ class hyperopt_estimator(object):
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
+        if space is None:
+            if classifier is None:
+                classifier = components.any_classifier('classifier')
+            if preprocessing is None:
+                preprocessing = components.any_preprocessing('preprocessing')
+            self.space = hyperopt.pyll.as_apply({
+                'classifier': classifier,
+                'preprocessing': preprocessing,
+            })
+        else:
+            assert classifier is None
+            assert preprocessing is None
+            self.space = hyperopt.pyll.as_apply(space)
+
         if algo is None:
             self.algo=hyperopt.rand.suggest
         else:
             self.algo = algo
-        if classifier is None:
-            classifier = components.any_classifier('classifier')
-
-        self.classifier = classifier
-
-        if preprocessing is None:
-            preprocessing = components.any_preprocessing('preprocessing')
-
-        self.preprocessing = preprocessing
-
-        self.space = hyperopt.pyll.as_apply({
-            'classifier': self.classifier,
-            'preprocessing': self.preprocessing,
-        })
 
         if seed is not None:
             self.rstate = np.random.RandomState(seed)
@@ -259,6 +269,7 @@ class hyperopt_estimator(object):
         Xval = X[p[n_fit:]]
         yval = y[p[n_fit:]]
         self.trials = hyperopt.Trials()
+        self._best_loss = float('inf')
         fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
                 Xval=Xval, yval=yval,
@@ -345,6 +356,7 @@ class hyperopt_estimator(object):
                 with open(filename, 'wb') as dump_file:
                     self.info('---> dumping trials to', filename)
                     cPickle.dump(self.trials, dump_file)
+        
         # retrain the best model on the full data
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
@@ -365,8 +377,6 @@ class hyperopt_estimator(object):
         """
         Use the best model found by previous fit() to make a prediction.
         """
-        classifier = self._best_classif
-        preprocs = self._best_preprocs
 
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
@@ -375,32 +385,31 @@ class hyperopt_estimator(object):
         else:
           X = np.array(X)
 
-        for pp in preprocs:
+        for pp in self._best_preprocs:
+            self.info("Transforming X of shape", X.shape)
             X = pp.transform(X)
-        return classifier.predict(X)
+        self.info("Predicting X of shape", X.shape)
+        return self._best_classif.predict(X)
 
     def score( self, X, y ):
         """
         Return the accuracy of the classifier on a given set of data
         """
-        classifier = self._best_classif
-        preprocs = self._best_preprocs
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
         X = np.array(X)
-        for pp in preprocs:
+        for pp in self._best_preprocs:
+            self.info("Transforming X of shape", X.shape)
             X = pp.transform(X)
-        return classifier.score(X, y)
+        self.info("Classifying X of shape", X.shape)
+        return self._best_classif.score(X, y)
     
     def best_model( self ):
         """
         Returns the best model found by the previous fit()
         """
-        #best_trial = self.trials.best_trial
-        #return { 'classifier' : best_trial['result']['classifier'],
-        #         'preprocs' : best_trial['result']['preprocs'] }
-        return { 'classifier' : self._best_classif,
-                 'preprocs' : self._best_preprocs }
+        return {'classifier': self._best_classif,
+                'preprocs': self._best_preprocs}
 
 
 
