@@ -6,6 +6,7 @@
 
  %\usepackage{rotating}% for sideways figures and tables
 \usepackage{longtable}% for long tables
+\usepackage{threeparttable}% for long tables
 
  % The booktabs package is used by this sample document
  % (it provides \toprule, \midrule and \bottomrule).
@@ -163,10 +164,11 @@ Table~\ref{tbl:acc} lists the test set scores of the best models found by cross-
 Hyperopt-sklearn's scores are relatively good on each data set, indicating that with hyperopt-sklearn's parameterization, Hyperopt's optimization algorithms are competitive with human experts.
 
 \begin{table}
+  \begin{threeparttable}
     \caption{
         Hyperopt-sklearn scores relative to selections from literature on the three data sets used in our experiments.
         On MNIST, hyperopt-sklearn is one of the best-scoring methods that does not use image-specific domain knowledge (these scores and others may be found at http://yann.lecun.com/exdb/mnist/).
-        On 20 Newsgroups, XXX.
+	On 20 Newsgroups, hyperopt-sklearn is competitive with similar approaches from the literature (scores taken from~\citet{guan2009class}).
         On Convex Shapes, hyperopt-sklearn outperforms previous automatic algorithm configuration approaches~\citep{eggensperger+etal:2013} and manual tuning~\citep{larochelle+etal:2007}.
     }
     \label{tbl:acc}
@@ -182,6 +184,12 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
         libSVM grid search & 98.6\%                   & SVMTorch & .848 & dbn-3 & 81.4\%\\
         Boosted trees & 98.5\%                        & LibSVM & .843 &  &  \\
     \end{tabular}
+    \begin{tablenotes}
+      \footnotesize
+      \item
+	      \textit{In the 20 Newsgroups dataset, the score reported for hyperopt-sklearn is the weighted-average F1 score provided by sklearn. The other approaches shown here use the macro-average F1 score.} 
+    \end{tablenotes}
+  \end{threeparttable}
 \end{table}
 
 \begin{figure}
