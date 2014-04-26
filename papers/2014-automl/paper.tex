@@ -106,59 +106,35 @@ Section 4 presents a discussion of the results, and directions for future work.
 
 \section{Searching Scikit-learn with Hyperopt}
 
-What is it, what algorithms and pre-processors are we going to be talking about?
+The configuration space we experiment on below includes five preprocessing algorithms and seven classification algorithms.
+The full search space is illustrated in Figure~\ref{fig:searchspace}.
+The preprocessing algorithms were (by class name, followed by n. hyperparameters + n. unused hyperparameters): \texttt{PCA}(2), \texttt{StandardScaler}(2), \texttt{MinMaxScaler}(1), \texttt{Normalizer}(1), and \texttt{TF-IDF}(0+9).
+The first four preprocessing algorithms were for dense features.
+PCA performed whitening or non-whitening principle components analysis.
+The \texttt{StandardScaler}, \texttt{MinMaxScaler}, and \texttt{Normalizer} did various feature-wise affine transforms to map numeric input features onto values near 0 and with roughly unit variance.
+The \texttt{TF-IDF} pre-processing module performed feature extraction from text data.
+The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{LinearSVC}, \texttt{KNN}(4+5), \texttt{RandomForest}(8, \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
+The \texttt{SVC} module is a fork of LibSVM, and our wrapper has 23 hyperparameters because we treated each possible kernel as a different classifier, with its own set of hyperparameters: Linear(4), RBF(5), Polynomial(7), and Sigmoid(6).
 
-A bunch of machine learning tools in one place -> emphasis on easy to use
+In total, our parameterization had 62 hyperparameters: 6 for preprocessing and 56 for classification.
+How many boolean: XXX
+How many categorical: XXX
+How many discrete: XXX
+How many real-valued: XXX
+It is important to note that although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
+would have only 12 active hyperparameters (1 for the choice of preprocessing, 2 internal to PCA, 1 for the choice of classifier and 8 internal to the RF).
+Hyperopt description language allows us to differentiate between {\em conditional} hyperparameters (which must always be assigned) and {\em non-conditional} hyperparameters (which may remain unassigned when they would be unused).
+We make use of this mechanism extensively so that Hyperopt's search algorithms do not waste time learning by trial and error that e.g. RF hyperparameters have no effect on SVM performance.
+Even within a single classifier, there were instances of conditional parameters: \texttt{KNN} has conditional parameters depending on the distance metric,
+and \texttt{LinearSVC} has 3 binary parameters (``loss'', ``penalty'', and ``dual'') that admit only 4 valid joint assignments.
+We also included a blacklist of (preprocessing, classifier) pairs that did not work together, e.g. PCA and MinMaxScaler were incompatible with MultinomialNB, TF-IDF could only be used for text data, and the tree-based classifiers were not
+compatible with the sparse features produced by the TF-IDF preprocessor.
 
-Currently using SVC, LinearSVC, KNN, RandomForest, ExtraTrees, SGD, Multinomial Naive Bayes
-Preprocessing: PCA, TFIDF, StandardScalar, MinMaxScalar, Normalizer
+/ classifier
+There are also bl
+Allowing for a 10-way discretization of real-valued hyperparameters, and taking these conditional hyperparameters into account, a grid search of our search space would require an infeasible number of evalutions (on the order of $10^{12}$).
 
-Scikit-learn is a popular python package that contains a wide variety of machine learning tools. It emphasizes simplicity, accessibility, and reusability. All of the classification algorithms and preprocessing steps it contains expose a similar interface, making it highly extensible. 
-
-[[put something here about them all using the fit method?]]
-[[put something here about them all having unique parameters in the constructor?]]
-
-Brief review of Hyperopt, mainly citing [Hyperopt-scipy2013]. Reminder how do you describe search spaces in general?
-Main content: how did we set up the search spaces around specific Sklearn classifiers? Pick a couple of representative ones, no need to go through them all.
-Search spaces were set up around specific Scikit-learn classifiers by defining spaces for each of their hyperparameters. The full space contains every possible permutation of those parameters, which is quite large (and in the case of continuous valued parameters, infinite). In order to make the search problem tractable for practical applications, a smaller subspace is defined for each continuous valued parameter as a default.[[how are they chosen? empirical evidence/educated guesses?]] These defaults can be overridden and customized by the user. 
-Set up specific search spaces using pyll [throw some examples in]]
-SVM is a good example -> shows the conditional parameters
-Talk about combinations of classifiers and preprocessing
-How many configuration parameters are there? What does the search tree look like? Consider emphasizing the huge number of conditional parameters.
-[put picture of the search tree here?]
-Make sure to mention that more will be added later, the numbers here are just what has been used so far. Possible search space will continue to get larger
-
-Params:
-SVC:
-Linear: 4
-RBF: 5
-Poly: 7
-Sigmoid: 6
-LinearSVC: 4
-KNN: 4 (+5)
-RandomForest: 8
-ExtraTrees: 8
-SGD: 8 (+4)
-MultinomialNB: 2
-Total for classifiers: 56 (+9)
-PCA: 2
-TFIDF: 0 (+9)
-StandardScaler: 2
-MinMaxScaler: 1
-Normalizer: 1
-Total for preprocessing: 6 (+9)
-[[in brackets are parameters which exist, but were not used for most tests]]
-
-conditional parameter example:
-SVC has conditional parameters based on what kernel is chosen
-KNN has conditional parameters based on what distance metric is chosen
-dependent parameter example:
-for liblinear SVC, loss and penalty cannot both be ‘l1’
-There are 8 possible combinations of the three binary parameters ‘loss’, ‘penalty’ and ‘dual’, but only 4 of the combinations are possible, the other 4 result in an error. The search space needs to be set up to account for that to avoid unnecessary runs.
-Certain preprocessing doesn’t work with particular classifiers:
-PCA and MinMaxScaler can’t be used with MultinomialNB
-TFIDF vectorizer should only be used for text data
-Random Forest and Extra Trees don’t work on sparse data
+% TALK ABOUT THE FIT/PREDICT API AND OUR FIT DOES SEARCH?
 
 
 \section{Experiments}
@@ -228,3 +204,35 @@ of Scikit-learn's classifiers to find the one that gets the best score on the
 given data. In actual fact, we have chosen a good palette of algorithms
 that tends to work well for a range of classification problems for text and
 small images (XXX).
+
+Scikit-learn provides a very simple API around its various top-level
+Hyperopt-sklearn provides a
+
+
+Scikit-learn is a popular python package that contains a wide variety of machine learning tools. It emphasizes simplicity, accessibility, and reusability. All of the classification algorithms and preprocessing steps it contains expose a similar interface, making it highly extensible. 
+
+[[put something here about them all using the fit method?]]
+[[put something here about them all having unique parameters in the constructor?]]
+
+Brief review of Hyperopt, mainly citing [Hyperopt-scipy2013]. Reminder how do you describe search spaces in general?
+Main content: how did we set up the search spaces around specific Sklearn classifiers? Pick a couple of representative ones, no need to go through them all.
+Search spaces were set up around specific Scikit-learn classifiers by defining spaces for each of their hyperparameters. The full space contains every possible permutation of those parameters, which is quite large (and in the case of continuous valued parameters, infinite). In order to make the search problem tractable for practical applications, a smaller subspace is defined for each continuous valued parameter as a default.[[how are they chosen? empirical evidence/educated guesses?]] These defaults can be overridden and customized by the user. 
+Set up specific search spaces using pyll [throw some examples in]]
+SVM is a good example -> shows the conditional parameters
+Talk about combinations of classifiers and preprocessing
+How many configuration parameters are there? What does the search tree look like? Consider emphasizing the huge number of conditional parameters.
+[put picture of the search tree here?]
+Make sure to mention that more will be added later, the numbers here are just what has been used so far. Possible search space will continue to get larger
+
+
+conditional parameter example:
+
+SVC has conditional parameters based on what kernel is chosen
+KNN has conditional parameters based on what distance metric is chosen
+dependent parameter example:
+for liblinear SVC, loss and penalty cannot both be ‘l1’
+There are 8 possible combinations of the three binary parameters ‘loss’, ‘penalty’ and ‘dual’, but only 4 of the combinations are possible, the other 4 result in an error. The search space needs to be set up to account for that to avoid unnecessary runs.
+Certain preprocessing doesn’t work with particular classifiers:
+PCA and MinMaxScaler can’t be used with MultinomialNB
+TFIDF vectorizer should only be used for text data
+Random Forest and Extra Trees don’t work on sparse data
