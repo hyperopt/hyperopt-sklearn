@@ -65,8 +65,8 @@
     Hyperopt-sklearn is a new software project that provides automatic algorithm configuration of the Scikit-learn machine learning library.
     Following Auto-Weka, we take the view that the choice of classifier and even the choice of pre-processing module can be taken together to represent a {\em single large hyperparameter optimization problem}.
     We use Hyperopt to define a search space that encompasses many standard components (e.g. SVM, RF, KNN, PCA, TFIDF) and common patterns of composing them together.
-    We demonstrate, using search algorithms in Hyperopt and standard benchmarking data sets (MNIST, 20-Newsgroups, Convex Images), that searching this space is practical and effective.
-    In particular, we improve on best-known scores for the model space for both MNIST and Convex Images.
+    We demonstrate, using search algorithms in Hyperopt and standard benchmarking data sets (MNIST, 20-Newsgroups, Convex Shapes), that searching this space is practical and effective.
+    In particular, we improve on best-known scores for the model space for both MNIST and Convex Shapes.
 \end{abstract}
 %\begin{keywords}
 %Bayesian Optimization, Model Selection, Hyperparameter Optimization, Scikit-learn
@@ -97,7 +97,7 @@ However, Weka is a GPL-licensed Java library, and was not written with scalabili
 Scikit-learn~\citep{sklearn} is another library of machine learning algorithms that is written in Python with many modules in C for greater speed, and is BSD-licensed.
 Scikit-learn is widely used in the scientific Python community and supports many machine learning application areas.
 
-Our goal in this paper is to introduce Hyperopt-Sklearn -- a project that brings the benefits of automatic algorithm configuration to users of Python and scikit-learn.
+With this paper we introduce Hyperopt-Sklearn -- a project that brings the benefits of automatic algorithm configuration to users of Python and scikit-learn.
 Hyperopt-Sklearn uses Hyperopt~\citep{hyperopt} to describe a search space over possible configurations of Scikit-Learn components, including pre-processing and classification modules.
 Section 2 describes our configuration space of 7 classifiers and 4 preprocessing modules that encompasses a strong set of classification systems for dense and sparse feature classification (of images and text).
 Section 3 presents experimental evidence that search over this space is viable, meaningful, and effective.
@@ -117,15 +117,12 @@ The classification algorithms were (by class name (used + unused hyperparameters
 The \texttt{SVC} module is a fork of LibSVM, and our wrapper has 23 hyperparameters because we treated each possible kernel as a different classifier, with its own set of hyperparameters: Linear(4), RBF(5), Polynomial(7), and Sigmoid(6).
 
 In total, our parameterization had 65 hyperparameters: 6 for preprocessing and 59 for classification.
-How many boolean: 15
-How many categorical: 14
-How many discrete: 17
-How many real-valued: 19
-It is important to note that although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
+The search space includes 15 boolean variables, 14 categorical, 17 discrete, and 19 real-valued variables.
+Although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
 would have only 12 active hyperparameters (1 for the choice of preprocessing, 2 internal to PCA, 1 for the choice of classifier and 8 internal to the RF).
 Hyperopt description language allows us to differentiate between {\em conditional} hyperparameters (which must always be assigned) and {\em non-conditional} hyperparameters (which may remain unassigned when they would be unused).
 We make use of this mechanism extensively so that Hyperopt's search algorithms do not waste time learning by trial and error that e.g. RF hyperparameters have no effect on SVM performance.
-Even within a single classifier, there were instances of conditional parameters: \texttt{KNN} has conditional parameters depending on the distance metric,
+Even internally within classifiers, there are instances of conditional parameters: \texttt{KNN} has conditional parameters depending on the distance metric,
 and \texttt{LinearSVC} has 3 binary parameters (``loss'', ``penalty'', and ``dual'') that admit only 4 valid joint assignments.
 We also included a blacklist of (preprocessing, classifier) pairs that did not work together, e.g. PCA and MinMaxScaler were incompatible with MultinomialNB, TF-IDF could only be used for text data, and the tree-based classifiers were not
 compatible with the sparse features produced by the TF-IDF preprocessor.
@@ -139,14 +136,11 @@ At the end of search, the best configuration is retrained on the whole data set 
 
 
 \section{Experiments}
-We conducted experiments on three data sets to establish that hyperopt-sklearn can find accurate models on a range of data sets
-hyperopt-sklearn finds accurate models,
-%(b) different data sets lead hyperopt-sklearn to select different models, and
-(c) search can be carried out in a reasonable amount of time.
-Results were collected on three data sets: MNIST, 20-Newsgroups, and Convex Images.
-MNIST~\citep{lecun+bottou+bengio+haffner:1998} is a well-known data set of 70K $28\times 28$ greyscale images of hand-drawn digits.
-20-Newsgroups is a 20-way classification data set of 20000 newsgroup messages (\citet{20newsgroups}, we did not remove the headers for our experiments).
-Convex Images~\citep{larochelle+etal:2007} is a binary classification task of distinguishing pictures of convex white-colored regions in small ($32\times 32$) black-and-white images.
+We conducted experiments on three data sets to establish that hyperopt-sklearn can find accurate models on a range of data sets in a reasonable amount of time.
+Results were collected on three data sets: MNIST, 20-Newsgroups, and Convex Shapes.
+MNIST is a well-known data set of 70K $28\times 28$ greyscale images of hand-drawn digits~\citep{lecun+bottou+bengio+haffner:1998}.
+20-Newsgroups is a 20-way classification data set of 20K newsgroup messages (\citet{20newsgroups}, we did not remove the headers for our experiments).
+Convex Shapes is a binary classification task of distinguishing pictures of convex white-colored regions in small ($32\times 32$) black-and-white images~\citep{larochelle+etal:2007}.
 
 To establish that searching the full space is effective,
 we performed optimization runs of up to 300 function evaluations searching either the entire space, or else subspaces that corresponded to specific classifier types.
@@ -155,22 +149,20 @@ Figure~\ref{fig:avg_test_scores} shows that the performance of the model found f
 there was no penalty for keeping all options open during search.
 Table~\ref{tbl:acc} lists the test set scores of the best models found by cross-validation, as well as some points of reference from previous work.
 Hyperopt-sklearn's scores are relatively good on each data set, indicating that with hyperopt-sklearn's parameterization, Hyperopt's optimization algorithms are competitive with human experts.
-\citep{eggensperger+etal:2013}
-\citep{scipy}.
 
 \begin{table}
     \caption{
         Hyperopt-sklearn scores relative to selections from literature on the three data sets used in our experiments.
         On MNIST, hyperopt-sklearn is one of the best-scoring methods that does not use image-specific domain knowledge (these scores and others may be found at http://yann.lecun.com/exdb/mnist/).
         On 20 Newsgroups, XXX.
-        On Convex Images, hyperopt-sklearn outperforms previous automatic algorithm configuration approaches~\citep{eggensperger+etal:2013} and manual tuning~\citep{larochelle+etal:2007}.
+        On Convex Shapes, hyperopt-sklearn outperforms previous automatic algorithm configuration approaches~\citep{eggensperger+etal:2013} and manual tuning~\citep{larochelle+etal:2007}.
     }
     \label{tbl:acc}
     \centering
     \small
     \begin{tabular}{llllll}
         \hline
-        \multicolumn{2}{c}{\textbf{MNIST}} & \multicolumn{2}{c}{\textbf{20 Newsgroups}} & \multicolumn{2}{c}{\textbf{Convex Images}}  \\
+        \multicolumn{2}{c}{\textbf{MNIST}} & \multicolumn{2}{c}{\textbf{20 Newsgroups}} & \multicolumn{2}{c}{\textbf{Convex Shapes}}  \\
         Approach & Accuracy  & Approach & F-Score & Approach & Accuracy\\
         \hline
         Committee of convnets & 99.8\%                & CFC & .928 & \textbf{hyperopt-sklearn} & 88.7\%\\
@@ -195,7 +187,7 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 \end{figure}
 \begin{figure}
     \centering
-    \includegraphics[width=2.90in]{graphics/AverageTestScoresClassifiersTPE}
+    \includegraphics[width=5.00in]{graphics/AverageTestScoresClassifiersTPE}
     \caption{
         For each data set, searching the full configuration space (``Any Classifier'') delivered performance approximately on par with a search that was restricted to the best classifier type.
         (Best viewed in color.)
@@ -206,17 +198,17 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{graphics/scores_by_classifier}
+    \includegraphics[width=2.9in]{graphics/scores_by_classifier}
+    \includegraphics[width=2.9in]{graphics/scores_per_eval}
     \caption{
 	    XXX
     }
     \label{fig:per_clf}
 \end{figure}
 
-
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{graphics/AvgMinValidErrorTPE}
+    \includegraphics[width=3in]{graphics/AvgMinValidErrorTPE}
     \caption{
 	    XXX
     }
@@ -226,9 +218,10 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 \begin{figure}
     \centering
     \includegraphics[width=\textwidth]{graphics/pie}
-    \caption{
-	    XXX
-    }
+    \caption{Looking at the best models from all optimization runs performed on the full search space (using different initial conditions, and different optimization algorithms)
+             we see that different data sets are handled best by different classifiers.
+             SVC was the only classifier ever chosen as the best model for Convex Shapes, and was often found to be best on MNIST and 20 Newsgroups.
+         }
     \label{fig:npie}
 \end{figure}
 
