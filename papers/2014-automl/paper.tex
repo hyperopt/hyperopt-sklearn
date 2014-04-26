@@ -145,7 +145,7 @@ hyperopt-sklearn finds accurate models,
 (c) search can be carried out in a reasonable amount of time.
 Results were collected on three data sets: MNIST, 20-Newsgroups, and Convex Images.
 MNIST~\citep{lecun+bottou+bengio+haffner:1998} is a well-known data set of 70K $28\times 28$ greyscale images of hand-drawn digits.
-20-Newsgroups is a 20-way classification data set of 20000 newsgroup messages (we did not remove the headers for our experiments)~\citep{20newsgroups}.
+20-Newsgroups is a 20-way classification data set of 20000 newsgroup messages (\citet{20newsgroups}, we did not remove the headers for our experiments).
 Convex Images~\citep{larochelle+etal:2007} is a binary classification task of distinguishing pictures of convex white-colored regions in small ($32\times 32$) black-and-white images.
 
 To establish that searching the full space is effective,
@@ -153,24 +153,30 @@ we performed optimization runs of up to 300 function evaluations searching eithe
 We used three optimization algorithms in Hyperopt: random search, annealing, and TPE.
 Figure~\ref{fig:avg_test_scores} shows that the performance of the model found from throughout the entire search space was not statistically inferior to the best model pulled from each classifier subspace;
 there was no penalty for keeping all options open during search.
-Table~\ref{tbl:opt_scores} lists the test set scores of the best models found by cross-validation, as well as some points of reference from previous work.
+Table~\ref{tbl:acc} lists the test set scores of the best models found by cross-validation, as well as some points of reference from previous work.
 Hyperopt-sklearn's scores are relatively good on each data set, indicating that with hyperopt-sklearn's parameterization, Hyperopt's optimization algorithms are competitive with human experts.
-
+\citep{eggensperger+etal:2013}
+\citep{scipy}.
 
 \begin{table}
     \caption{
-        Best values (mean and standard error) based on 10 random repetitions.
-        The top rows correspond to algorithms described in this work and computed by the authors.
+        Hyperopt-sklearn scores relative to selections from literature on the three data sets used in our experiments.
+        On MNIST, hyperopt-sklearn is one of the best-scoring methods that does not use image-specific domain knowledge (these scores and others may be found at http://yann.lecun.com/exdb/mnist/).
+        On 20 Newsgroups, XXX.
+        On Convex Images, hyperopt-sklearn outperforms previous automatic algorithm configuration approaches~\citep{eggensperger+etal:2013} and manual tuning~\citep{larochelle+etal:2007}.
     }
     \label{tbl:acc}
     \centering
     \small
-    \begin{tabular}{l|cr}
+    \begin{tabular}{llllll}
         \hline
-        Header & col1 & col2 \\
+        \multicolumn{2}{c}{\textbf{MNIST}} & \multicolumn{2}{c}{\textbf{20 Newsgroups}} & \multicolumn{2}{c}{\textbf{Convex Images}}  \\
+        Approach & Accuracy  & Approach & Accuracy & Approach & Accuracy\\
         \hline
-        a & b & c \\
-        d & e & f
+        Committee of convnets & 99.8\%                & thing & 85\%  & \textbf{hyperopt-sklearn} & 88.9\%\\
+        \textbf{hyperopt-sklearn} & \textbf{98.7}\%   & thing & 85\%  & hp-dbnet & 84.6\% \\
+        libSVM grid search & 98.6\%                   & thing & 85\% & dbn-3 & 81.4\%\\
+        Boosted trees & 98.5\%                        & thing & 85\%  &  &  \\
     \end{tabular}
 \end{table}
 
