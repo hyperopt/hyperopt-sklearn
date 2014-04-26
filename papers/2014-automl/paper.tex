@@ -171,12 +171,12 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
     \begin{tabular}{llllll}
         \hline
         \multicolumn{2}{c}{\textbf{MNIST}} & \multicolumn{2}{c}{\textbf{20 Newsgroups}} & \multicolumn{2}{c}{\textbf{Convex Images}}  \\
-        Approach & Accuracy  & Approach & Accuracy & Approach & Accuracy\\
+        Approach & Accuracy  & Approach & F-Score & Approach & Accuracy\\
         \hline
-        Committee of convnets & 99.8\%                & thing & 85\%  & \textbf{hyperopt-sklearn} & 88.9\%\\
-        \textbf{hyperopt-sklearn} & \textbf{98.7}\%   & thing & 85\%  & hp-dbnet & 84.6\% \\
-        libSVM grid search & 98.6\%                   & thing & 85\% & dbn-3 & 81.4\%\\
-        Boosted trees & 98.5\%                        & thing & 85\%  &  &  \\
+        Committee of convnets & 99.8\%                & CFC & .928 & \textbf{hyperopt-sklearn} & 88.7\%\\
+	\textbf{hyperopt-sklearn} & \textbf{98.7}\%   & hyperopt-sklearn & \textbf{.856} & hp-dbnet & 84.6\% \\
+        libSVM grid search & 98.6\%                   & SVMTorch & .848 & dbn-3 & 81.4\%\\
+        Boosted trees & 98.5\%                        & LibSVM & .843 &  &  \\
     \end{tabular}
 \end{table}
 
@@ -185,6 +185,14 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 %Figure~\ref{fig:pies} shows that 
 %different data sets lead hyperopt-sklearn to select
 
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{graphics/sklearn_space_all_together}
+    \caption{
+	    XXX
+    }
+    \label{fig:space}
+\end{figure}
 \begin{figure}
     \centering
     \includegraphics[width=2.90in]{graphics/AverageTestScoresClassifiersTPE}
