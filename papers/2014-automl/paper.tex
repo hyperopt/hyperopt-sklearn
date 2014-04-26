@@ -113,14 +113,14 @@ The first four preprocessing algorithms were for dense features.
 PCA performed whitening or non-whitening principle components analysis.
 The \texttt{StandardScaler}, \texttt{MinMaxScaler}, and \texttt{Normalizer} did various feature-wise affine transforms to map numeric input features onto values near 0 and with roughly unit variance.
 The \texttt{TF-IDF} pre-processing module performed feature extraction from text data.
-The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{LinearSVC}, \texttt{KNN}(4+5), \texttt{RandomForest}(8, \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
+The classification algorithms were (by class name (used + unused hyperparameters)): \texttt{SVC}(23), \texttt{LinearSVC}(6), \texttt{KNN}(4+5), \texttt{RandomForest}(8), \texttt{ExtraTrees}(8), \texttt{SGD}(8+4), and \texttt{MultinomialNB}(2).
 The \texttt{SVC} module is a fork of LibSVM, and our wrapper has 23 hyperparameters because we treated each possible kernel as a different classifier, with its own set of hyperparameters: Linear(4), RBF(5), Polynomial(7), and Sigmoid(6).
 
-In total, our parameterization had 62 hyperparameters: 6 for preprocessing and 56 for classification.
-How many boolean: XXX
-How many categorical: XXX
-How many discrete: XXX
-How many real-valued: XXX
+In total, our parameterization had 65 hyperparameters: 6 for preprocessing and 59 for classification.
+How many boolean: 15
+How many categorical: 14
+How many discrete: 17
+How many real-valued: 19
 It is important to note that although the total number of hyperparameters is large, the number of {\em active} hyperparameters describing any one model is much smaller: a model consisting of \texttt{PCA} and a \texttt{RandomForest} for example,
 would have only 12 active hyperparameters (1 for the choice of preprocessing, 2 internal to PCA, 1 for the choice of classifier and 8 internal to the RF).
 Hyperopt description language allows us to differentiate between {\em conditional} hyperparameters (which must always be assigned) and {\em non-conditional} hyperparameters (which may remain unassigned when they would be unused).
@@ -129,23 +129,46 @@ Even within a single classifier, there were instances of conditional parameters:
 and \texttt{LinearSVC} has 3 binary parameters (``loss'', ``penalty'', and ``dual'') that admit only 4 valid joint assignments.
 We also included a blacklist of (preprocessing, classifier) pairs that did not work together, e.g. PCA and MinMaxScaler were incompatible with MultinomialNB, TF-IDF could only be used for text data, and the tree-based classifiers were not
 compatible with the sparse features produced by the TF-IDF preprocessor.
+Allowing for a 10-way discretization of real-valued hyperparameters, and taking these conditional hyperparameters into account, a grid search of our search space would still require an infeasible number of evalutions (on the order of $10^{12}$).
 
-/ classifier
-There are also bl
-Allowing for a 10-way discretization of real-valued hyperparameters, and taking these conditional hyperparameters into account, a grid search of our search space would require an infeasible number of evalutions (on the order of $10^{12}$).
-
-% TALK ABOUT THE FIT/PREDICT API AND OUR FIT DOES SEARCH?
+Following Scikit-learn's convention, hyperopt-sklearn provides an \texttt{Estimator} class with a \texttt{fit} method and a \texttt{predict} method.
+The \texttt{fit} method of this class performs hyperparameter optimization, and after it has completed, the \texttt{predict} method applies the best model to test data.
+Hyperopt makes it possible to parallelize the model search over a cluster, with communication handled via a MongoDB instance.
+Each evaluation during optimization performs training on a large fraction of the training set, estimates test set accuracy on a validation set, and returns that validation set score to the optimizer.
+At the end of search, the best configuration is retrained on the whole data set to produce the classifier that handles subsequent \texttt{predict} calls.
 
 
 \section{Experiments}
+We conducted experiments on three data sets to establish that hyperopt-sklearn can find accurate models on a range of data sets
+hyperopt-sklearn finds accurate models,
+%(b) different data sets lead hyperopt-sklearn to select different models, and
+(c) search can be carried out in a reasonable amount of time.
+Results were collected on three data sets: MNIST, 20-Newsgroups, and Convex Images.
+MNIST~\citep{lecun+bottou+bengio+haffner:1998} is a well-known data set of 70K $28\times 28$ greyscale images of hand-drawn digits.
+20-Newsgroups is a 20-way classification data set of 20000 newsgroup messages (we did not remove the headers for our experiments)~\citep{20newsgroups}.
+Convex Images~\citep{larochelle+etal:2007} is a binary classification task of distinguishing pictures of convex white-colored regions in small ($32\times 32$) black-and-white images.
+
+To establish that searching the full space is effective,
+we performed optimization runs of up to 300 function evaluations searching either the entire space, or else subspaces that corresponded to specific classifier types.
+We used three optimization algorithms in Hyperopt: random search, annealing, and TPE.
+Figure~\ref{fig:avg_test_scores} shows that the performance of the model found from throughout the entire search space was not statistically inferior to the best model pulled from each classifier subspace;
+there was no penalty for keeping all options open during search.
+Table~\ref{tbl:opt_scores} lists the test set scores of the best models found by cross-validation, as well as some points of reference from previous work.
+Hyperopt-sklearn's scores are relatively good on each data set, indicating that with hyperopt-sklearn's parameterization, Hyperopt's optimization algorithms are competitive with human experts.
+
+%To support the hypothesis that the search carried out by hyperopt-sklearn is necessary for good performance on a range of data sets, we present three pieces of evidence.
+%First, looking again at Figure~\ref{fig:avg_test_scores}, note that 
+%Figure~\ref{fig:pies} shows that 
+%different data sets lead hyperopt-sklearn to select
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{graphics/sklearn_space_all_together}
+    \includegraphics[width=2.90in]{graphics/AverageTestScoresClassifiersTPE}
     \caption{
-	    XXX
+        For each data set, searching the full configuration space (``Any Classifier'') delivered performance approximately on par with a search that was restricted to the best classifier type.
+        (Best viewed in color.)
     }
-    \label{fig:boxplots}
+    \label{fig:avg_test_scores}
 %\vspace{-3em}
 \end{figure}
 
@@ -201,6 +224,27 @@ Allowing for a 10-way discretization of real-valued hyperparameters, and taking 
     \label{fig:cpie}
 \end{figure}
 
+
+
+\section{Discussion and Future Work}
+Future Work
+Lots of areas for future work:
+Speed: Aborting points early when using K-fold validation
+Applications: Extending search space for e.g. regression problems
+Input domains: Including more pre-processing to handle different kinds of data
+
+
+\section{Conclusions}
+
+
+%\subsection*{Acknowledgements}
+
+\bibliography{bib}
+
+\end{document}
+
+
+
 \begin{table}
     \caption{
         Best values (mean and standard error) based on 10 random repetitions.
@@ -217,25 +261,6 @@ Allowing for a 10-way discretization of real-valued hyperparameters, and taking 
         d & e & f
     \end{tabular}
 \end{table}
-
-
-
-\section{Discussion and Future Work}
-Future Work
-Lots of areas for future work:
-Speed: Aborting points early when using K-fold validation
-Applications: Extending search space for e.g. regression problems
-Input domains: Including more pre-processing to handle different kinds of data
-
-
-\section{Conclusions}
-
-
-\subsection{Acknowledgements*}
-
-\bibliography{bib}
-
-\end{document}
 
 
 
