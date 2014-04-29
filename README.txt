@@ -10,9 +10,16 @@ This project builds primarily on:
     sklearn: http://scikit-learn.org/
 
 
-This project exists to use hyperopt [1] to optimize various sklearn algorithms
-[2], and even groups of algorithms. It is very much an experiment, and a work
-in progress. There is currently no documentation, and it is not yet ready for
-end-users.
+This project exists to use hyperopt [1] to optimize machine learning algorithms
+and pipelines [2].
+
+
+Installation
+------------
+
+Installation from a git checkout is supported.
+
+    git checkout git@github.com:hyperopt/hyperopt-sklearn.git
+    (cd hyperopt-sklearn && pip install -e .)
 
 
