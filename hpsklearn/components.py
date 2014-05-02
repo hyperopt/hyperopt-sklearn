@@ -25,6 +25,8 @@ def sklearn_LinearSVC(*args, **kwargs):
 
 @scope.define
 def sklearn_KNeighborsClassifier(*args, **kwargs):
+    star_star_kwargs = kwargs.pop('starstar_kwargs')
+    kwargs.update(star_star_kwargs)
     return sklearn.neighbors.KNeighborsClassifier(*args, **kwargs)
 
 
@@ -408,34 +410,16 @@ def knn(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'knn', msg)
 
-    """
-    metric_arg = hp.choice( _name('metric'), [
-      ('euclidean', None, None, None ),
-      ('manhattan', None, None, None ),
-      ('chebyshev', None, None, None ),
-      ('minkowski', hp.quniform(_name('minkowski_p'), 1, 5, 1 ), None, None),
-      ('wminkowski', hp.quniform(_name('wminkowski_p'), 1, 5, 1 ),
-                      hp.uniform(_name('wminkowski_w'), 0, 100 ), None ),
-      ('seuclidean', None, None, hp.uniform(_name('seuclidean_V'), 0, 100)),
-      ('mahalanobis', None, None, hp.uniform(_name('mahalanobis_V'), 0, 100)),
-    ])
-    """
-    """
-    metric_args = hp.choice(_name('metric'), [
-      { 'metric':'euclidean' },
-      { 'metric':'manhattan' },
-      { 'metric':'chebyshev' },
-      { 'metric':'minkowski',
-        'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))},
-      { 'metric':'wminkowski',
+    metric_args = hp.pchoice(_name('metric'), [
+      (0.65, { 'metric':'euclidean' }),
+      (0.10, { 'metric':'manhattan' }),
+      (0.10, { 'metric':'chebyshev' }),
+      (0.10, { 'metric':'minkowski',
+        'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
+      (0.05, { 'metric':'wminkowski',
         'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
-        'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) },
-      { 'metric':'seuclidean',
-        'V':hp.uniform( _name('seuclidean_V'), 0, 100 ) },
-      { 'metric':'mahalanobis',
-        'V':hp.uniform( _name('mahalanobis_V'), 0, 100 ) },
+        'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
     ] )
-    """
 
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
@@ -451,22 +435,9 @@ def knn(name,
         leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
             0.51, 100, 1)) if leaf_size is None else leaf_size,
-        #TODO: more metrics available
-        ###metric_args,
-        ##metric=metric_arg[0] if metric is None else metric,
-        ##p=metric_arg[1],
-        ##w=metric_arg[2],
-        ##V=metric_arg[3],
-        #metric=hp.choice(
-        #    _name('metric'),
-        #    [ 'euclidean', 'manhattan', 'chebyshev',
-        #      'minkowski' ] ) if metric is None else metric,
-        #p=hp.quniform(
-        #    _name('p'),
-        #    1, 5, 1 ) if p is None else p,
+        starstar_kwargs=metric_args
         )
     return rval
-
 
 # TODO: Pick reasonable default values
 def random_forest(name,
@@ -514,12 +485,6 @@ def random_forest(name,
             1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
         bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
         oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
-        #bootstrap=hp.choice(
-        #    _name('bootstrap'),
-        #    [ True, False ] ) if bootstrap is None else bootstrap,
-        #oob_score=hp.choice(
-        #    _name('oob_score'),
-        #    [ True, False ] ) if oob_score is None else oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
@@ -570,12 +535,6 @@ def extra_trees(name,
             1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
         bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
         oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
-        #bootstrap=hp.choice(
-        #    _name('bootstrap'),
-        #    [ True, False ] ) if bootstrap is None else bootstrap,
-        #oob_score=hp.choice(
-        #    _name('oob_score'),
-        #    [ True, False ] ) if oob_score is None else oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
@@ -631,22 +590,6 @@ def sgd(name,
         fit_intercept=hp.pchoice(
             _name('fit_intercept'),
             [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
-        #n_iter=scope.int( hp.quniform(
-        #    _name('n_iter'),
-        #    1, 10, 1 ) ) if n_iter is None else n_iter,
-        #shuffle=hp.pchoice(
-        #    _name('shuffle'),
-        #    [ (0.3, True), (0.7, False) ]) if shuffle is None else shuffle,
-        #epsilon=hp.lognormal(
-        #    _name('epsilon'),
-        #    np.log(1.0),
-        #    np.log(2.0)) if epsilon is None else epsilon,
-        #learning_rate=hp.choice(
-        #    _name('learning_rate'),
-        #    [ #'constant', # -- this is equivalent to power_t == 0
-        #     #'optimal', -- sklean's (1 / (alpha * t)) should have a guard for
-        #     #              low values of t, but currently does not.
-        #      'invscaling' ] ) if learning_rate is None else learning_rate,
         learning_rate='invscaling' if learning_rate is None else learning_rate,
         eta0=hp.loguniform(
             _name('eta0'),
@@ -682,7 +625,6 @@ def multinomial_nb(name,
 def any_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
-        #liblinear_svc(name + '.linear_svc'),
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
@@ -695,9 +637,7 @@ def any_sparse_classifier(name):
         sgd(name + '.sgd'),
         knn(name + '.knn'),
         multinomial_nb(name + '.multinomial_nb')
-        #liblinear_svc(name + '.linear_svc'),
         ])
-
 
 def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
@@ -750,8 +690,6 @@ def tfidf(name,
         _name('max_ngram'),
         1, 4, 1 ) )
 
-    rval = scope.sklearn_Tfidf( ngram_range=(1,max_ngram) )
-    """
     rval = scope.sklearn_Tfidf(
         stop_words=hp.choice(
             _name('stop_words'),
@@ -768,6 +706,7 @@ def tfidf(name,
         binary=hp_bool(
             _name('binary'),
             ) if binary is None else binary,
+        ngram_range=(1,max_ngram) if ngram_range is None else ngram_range,
         #norm=hp.choice(
         #    _name('norm'),
         #    [ 'l1', 'l2', None ] ) if norm is None else norm,
@@ -781,44 +720,7 @@ def tfidf(name,
         #    _name('sublinear_tf'),
         #    ) if sublinear_tf is None else sublinear_tf,
         )
-    """
-    """
-    rval = scope.sklearn_Tfidf(
-        analyzer=hp.choice(
-            _name('analyzer'),
-            [ 'word', 'char' ] ) if analyzer is None else analyzer,
-        #ngram_range=
-        stop_words=hp.choice(
-            _name('stop_words'),
-            [ 'english', None ] ) if analyzer is None else analyzer,
-        lowercase=hp_bool(
-            _name('lowercase'),
-            ) if lowercase is None else lowercase,
-        max_df=hp.quniform(
-            _name('max_df'),
-            0.5, 1, 0.0001 ) if max_df is None else max_df,
-        min_df=hp.quniform(
-            _name('min_df'),
-            0, 0.5, 0.0001 ) if min_df is None else min_df,
-        binary=hp_bool(
-            _name('binary'),
-            ) if binary is None else binary,
-        norm=hp.choice(
-            _name('norm'),
-            [ 'l1', 'l2', None ] ) if norm is None else norm,
-        use_idf=hp_bool(
-            _name('use_idf'),
-            ) if use_idf is None else use_idf,
-        smooth_idf=hp_bool(
-            _name('smooth_idf'),
-            ) if smooth_idf is None else smooth_idf,
-        sublinear_tf=hp_bool(
-            _name('sublinear_tf'),
-            ) if sublinear_tf is None else sublinear_tf,
-        )
-    """
     return rval
-
 
 def min_max_scaler(name, feature_range=None, copy=True):
     if feature_range is None:
@@ -954,7 +856,6 @@ def any_preprocessing(name):
         [min_max_scaler(name + '.min_max_scaler')],
         [normalizer(name + '.normalizer')],
         [],
-        #[tfidf(name + '.tfidf')],
         # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
     ])

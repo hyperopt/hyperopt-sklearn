@@ -298,13 +298,6 @@ class hyperopt_estimator(object):
             assert fn_rval[0] in ('raise', 'return')
             if fn_rval[0] == 'raise':
                 raise fn_rval[1]
-                #"""
-                fn_rval = 'raise', {
-                    'status': hyperopt.STATUS_FAIL,
-                    'failure': fn_rval[1]
-                }
-                return fn_rval[1]
-                #"""
 
             # -- remove potentially large objects from the rval
             #    so that the Trials() object below stays small
