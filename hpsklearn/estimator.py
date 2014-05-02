@@ -14,16 +14,34 @@ import sklearn.datasets.base
 
 from . import components
 
-TIMEOUT_TOLERANCE = 2
+# Constants for partial_fit
+
+# The partial_fit method will not be run if there is less than timeout_tolerance
+# number of seconds left before timeout
+timeout_tolerance = 6
+
+# The minimum number of iterations of the partial_fit method that must be run 
+# before early stopping can kick in is min_n_iters
+min_n_iters = 7
+
+# After best_loss_cutoff_n_iters iterations have occured, the training can be
+# stopped early if the validation scores are far from the best scores
+best_loss_cutoff_n_iters = 35
+
+# Early stopping can occur when the best validation score of the earlier runs is
+# greater than that of the later runs, tipping_pt_ratio determines the split
+tipping_pt_ratio = 0.6
+
+# Retraining will be done with all training data for retrain_fraction
+# multiplied by the number of iterations used to train the original classifier
+retrain_fraction = 1.2
 
 class NonFiniteFeature(Exception):
     """
     """
 
 def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
-             _conn,
-             best_loss=None, # TODO: use this for stopping criterion
-             partial_timeout_tolerance=10.0): # -- seconds
+             _conn, best_loss=None):
     try:
         t_start = time.time()
         if 'classifier' in argd:
@@ -52,9 +70,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
 
-        min_n_iters = 7#5
-        best_loss_cutoff_n_iters = 35
-        tipping_pt_ratio = 0.6
 
         def should_stop(scores):
           #TODO: possibly extend min_n_iters based on how close the current
@@ -81,7 +96,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
           train_idxs = rng.permutation(Xfit.shape[0])
           validation_scores = []
           #TODO: handle the case where no timeout is set
-          while time.time() - t_start < timeout - partial_timeout_tolerance:
+          while time.time() - t_start < timeout - timeout_tolerance:
             n_iters += 1
             rng.shuffle(train_idxs)
             classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
@@ -118,7 +133,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
         rtype = 'return'
         
     except (NonFiniteFeature,), exc:
-        raise
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
         rval = {
@@ -129,7 +143,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
         rtype = 'return'
 
     except (ValueError,), exc:
-        raise
         if ('k must be less than or equal'
             ' to the number of training points') in str(exc):
             t_done = time.time()
@@ -144,7 +157,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             rtype = 'raise'
 
     except (AttributeError,), exc:
-        raise
         print 'Failing due to k_means_ weirdness'
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
@@ -160,7 +172,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             rtype = 'raise'
 
     except Exception, exc:
-        raise
         rval = exc
         rtype = 'raise'
 
@@ -213,7 +224,7 @@ class hyperopt_estimator(object):
             fit()  Saves after every `fit_increment` trial evaluations.
         """
         self.max_evals = max_evals
-        self.verbose = 1 #verbose #TEMP
+        self.verbose = verbose
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
@@ -358,8 +369,7 @@ class hyperopt_estimator(object):
         if hasattr(self._best_classif, 'partial_fit'):
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(X.shape[0])
-          # re-train with 1.2 * self._best_iters iterations with all data
-          for i in xrange(int(self._best_iters * 1.2)):
+          for i in xrange(int(self._best_iters * retrain_fraction)):
             rng.shuffle(train_idxs)
             self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
                                            classes=np.unique( y ))
