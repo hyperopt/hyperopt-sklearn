@@ -1,6 +1,7 @@
 """
 """
 import cPickle
+import copy
 from functools import partial
 from multiprocessing import Process, Pipe
 import time
@@ -8,15 +9,39 @@ import time
 import numpy as np
 
 import hyperopt
+import scipy.sparse
+import sklearn.datasets.base
 
 from . import components
 
+# Constants for partial_fit
+
+# The partial_fit method will not be run if there is less than
+# timeout * timeout_buffer number of seconds left before timeout
+timeout_buffer = 0.05
+
+# The minimum number of iterations of the partial_fit method that must be run 
+# before early stopping can kick in is min_n_iters
+min_n_iters = 7
+
+# After best_loss_cutoff_n_iters iterations have occured, the training can be
+# stopped early if the validation scores are far from the best scores
+best_loss_cutoff_n_iters = 35
+
+# Early stopping can occur when the best validation score of the earlier runs is
+# greater than that of the later runs, tipping_pt_ratio determines the split
+tipping_pt_ratio = 0.6
+
+# Retraining will be done with all training data for retrain_fraction
+# multiplied by the number of iterations used to train the original classifier
+retrain_fraction = 1.2
 
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
+             _conn, best_loss=None):
     try:
         t_start = time.time()
         if 'classifier' in argd:
@@ -25,6 +50,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         else:
             classifier = argd['model']['classifier']
             preprocessings = argd['model']['preprocessing']
+        untrained_classifier = copy.deepcopy( classifier )
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in preprocessings:
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
@@ -32,16 +58,64 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
-            if not (
-                np.all(np.isfinite(Xfit))
-                and np.all(np.isfinite(Xval))):
-                # -- jump to NonFiniteFeature handler below
-                raise NonFiniteFeature(pp_algo)
+            
+            # np.isfinite() does not work on sparse matrices
+            if not scipy.sparse.issparse(Xfit) and not scipy.sparse.issparse(Xval):
+              if not (
+                  np.all(np.isfinite(Xfit))
+                  and np.all(np.isfinite(Xval))):
+                  # -- jump to NonFiniteFeature handler below
+                  raise NonFiniteFeature(pp_algo)
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
-        # -- N.B. modify argd['classifier'] in-place
-        classifier.fit(Xfit, yfit)
+
+
+        def should_stop(scores):
+          #TODO: possibly extend min_n_iters based on how close the current
+          #      score is to the best score, up to some larger threshold
+          if len(scores) < min_n_iters:
+            return False
+          tipping_pt = int(tipping_pt_ratio * len(scores))
+          early_scores = scores[:tipping_pt]
+          late_scores = scores[tipping_pt:]
+          if max(early_scores) >= max(late_scores):
+            return True
+          #TODO: make this less confusing and possibly more accurate
+          if len(scores) > best_loss_cutoff_n_iters and \
+                 max(scores) < 1 - best_loss and \
+                 3 * ( max(late_scores) - max(early_scores) ) < \
+                 1 - best_loss - max(late_scores):
+            info("stopping early due to best_loss cutoff criterion")
+            return True
+          return False
+
+        n_iters = 0 # Keep track of the number of training iterations
+        if hasattr( classifier, "partial_fit" ):
+          if timeout is not None:
+            timeout_tolerance = timeout * timeout_buffer
+          rng = np.random.RandomState(6665)
+          train_idxs = rng.permutation(Xfit.shape[0])
+          validation_scores = []
+          
+          while timeout is not None and \
+                time.time() - t_start < timeout - timeout_tolerance:
+            n_iters += 1
+            rng.shuffle(train_idxs)
+            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+                                   classes=np.unique( yfit ))
+            validation_scores.append(classifier.score(Xval, yval))
+            if max(validation_scores) == validation_scores[-1]:
+              best_classifier = copy.deepcopy(classifier)
+              
+            if should_stop(validation_scores):
+              break
+            info('VSCORE', validation_scores[-1])
+          classifier = best_classifier
+
+        else:
+          classifier.fit( Xfit, yfit )
+
         info('Scoring on Xval of shape', Xval.shape)
         loss = 1.0 - classifier.score(Xval, yval)
         # -- squared standard error of mean
@@ -53,13 +127,14 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
         rval = {
             'loss': loss,
             'loss_variance': lossvar,
-            'classifier': classifier,
+            'classifier': untrained_classifier,
             'preprocs': preprocessings,
             'status': hyperopt.STATUS_OK,
             'duration': t_done - t_start,
+            'iterations': n_iters,
             }
         rtype = 'return'
-
+        
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
@@ -105,7 +180,6 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, _conn):
 
     # -- return the result to calling process
     _conn.send((rtype, rval))
-
 
 
 class hyperopt_estimator(object):
@@ -191,8 +265,19 @@ class hyperopt_estimator(object):
         assert weights is None
         increment = self.fit_increment if increment is None else increment
 
-        p = np.random.RandomState(123).permutation(len(X))
-        n_fit = int(.8 * len(X))
+        # len does not work on sparse matrices, so using shape[0] instead
+        # shape[0] does not work on lists, so using len() for those
+        if scipy.sparse.issparse(X):
+          data_length = X.shape[0]
+        else:
+          data_length = len(X)
+        if type(X) is list:
+          X = np.array(X)
+        if type(y) is list:
+          y = np.array(y)
+        
+        p = np.random.RandomState(123).permutation( data_length )
+        n_fit = int(.8 * data_length)
         Xfit = X[p[:n_fit]]
         yfit = y[p[:n_fit]]
         Xval = X[p[n_fit:]]
@@ -202,13 +287,15 @@ class hyperopt_estimator(object):
         fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
                 Xval=Xval, yval=yval,
-                info=self.info)
+                info=self.info,
+                timeout=self.trial_timeout)
         self._best_loss = float('inf')
 
         def fn_with_timeout(*args, **kwargs):
             conn1, conn2 = Pipe()
             kwargs['_conn'] = conn2
-            th = Process(target=fn, args=args, kwargs=kwargs)
+            th = Process(target=partial(fn, best_loss=self._best_loss),
+                         args=args, kwargs=kwargs)
             th.start()
             if conn1.poll(self.trial_timeout):
                 fn_rval = conn1.recv()
@@ -234,10 +321,12 @@ class hyperopt_estimator(object):
                 fn_loss = float(fn_rval[1].get('loss'))
                 fn_preprocs = fn_rval[1].pop('preprocs')
                 fn_classif = fn_rval[1].pop('classifier')
+                fn_iters = fn_rval[1].pop('iterations')
                 if fn_loss < self._best_loss:
                     self._best_preprocs = fn_preprocs
                     self._best_classif = fn_classif
                     self._best_loss = fn_loss
+                    self._best_iters = fn_iters
             return fn_rval[1]
 
         while True:
@@ -274,17 +363,34 @@ class hyperopt_estimator(object):
                 with open(filename, 'wb') as dump_file:
                     self.info('---> dumping trials to', filename)
                     cPickle.dump(self.trials, dump_file)
-
-        # -- XXX: retrain best model on full data
-        #print argmin
+        
+        # retrain the best model on the full data
+        for pp_algo in self._best_preprocs:
+            pp_algo.fit(X)
+            X = pp_algo.transform(X)
+            
+        if hasattr(self._best_classif, 'partial_fit'):
+          rng = np.random.RandomState(6665)
+          train_idxs = rng.permutation(X.shape[0])
+          for i in xrange(int(self._best_iters * retrain_fraction)):
+            rng.shuffle(train_idxs)
+            self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
+                                           classes=np.unique( y ))
+        else:
+          self._best_classif.fit(X,y)
 
     def predict(self, X):
         """
         Use the best model found by previous fit() to make a prediction.
         """
+
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
-        X = np.array(X)
+        if scipy.sparse.issparse(X):
+          X = scipy.sparse.csr_matrix(X)
+        else:
+          X = np.array(X)
+
         for pp in self._best_preprocs:
             self.info("Transforming X of shape", X.shape)
             X = pp.transform(X)
