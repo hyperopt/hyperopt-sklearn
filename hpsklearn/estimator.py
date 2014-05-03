@@ -16,9 +16,9 @@ from . import components
 
 # Constants for partial_fit
 
-# The partial_fit method will not be run if there is less than timeout_tolerance
-# number of seconds left before timeout
-timeout_tolerance = 6
+# The partial_fit method will not be run if there is less than
+# timeout * timeout_buffer number of seconds left before timeout
+timeout_buffer = 0.05
 
 # The minimum number of iterations of the partial_fit method that must be run 
 # before early stopping can kick in is min_n_iters
@@ -92,11 +92,14 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
 
         n_iters = 0 # Keep track of the number of training iterations
         if hasattr( classifier, "partial_fit" ):
+          if timeout is not None:
+            timeout_tolerance = timeout * timeout_buffer
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(Xfit.shape[0])
           validation_scores = []
-          #TODO: handle the case where no timeout is set
-          while time.time() - t_start < timeout - timeout_tolerance:
+          
+          while timeout is not None and \
+                time.time() - t_start < timeout - timeout_tolerance:
             n_iters += 1
             rng.shuffle(train_idxs)
             classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
