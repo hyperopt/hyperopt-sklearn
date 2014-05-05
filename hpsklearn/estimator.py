@@ -342,6 +342,7 @@ class hyperopt_estimator(object):
                           # -- let exceptions crash the program,
                           #    so we notice them.
                           catch_eval_exceptions=False,
+                          return_argmin=False, # -- in case no success so far
                          )
 
 
@@ -367,8 +368,7 @@ class hyperopt_estimator(object):
         # retrain the best model on the full data
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
-            X = pp_algo.transform(X)
-            
+            X = pp_algo.transform(X * 1) # -- * 1 avoids read-only copy bug
         if hasattr(self._best_classif, 'partial_fit'):
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(X.shape[0])
