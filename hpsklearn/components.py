@@ -401,7 +401,6 @@ def liblinear_svc(name,
 def knn(name,
         n_neighbors=None,
         weights=None,
-        algorithm=None,
         leaf_size=None,
         metric=None,
         p=None,
@@ -428,10 +427,6 @@ def knn(name,
         weights=hp.choice(
             _name('weights'),
             ['uniform', 'distance']) if weights is None else weights,
-        algorithm=hp.choice(
-            _name('algorithm'),
-            ['ball_tree', 'kd_tree',
-             'brute', 'auto']) if algorithm is None else algorithm,
         leaf_size=scope.int(hp.quniform(
             _name('leaf_size'),
             0.51, 100, 1)) if leaf_size is None else leaf_size,
