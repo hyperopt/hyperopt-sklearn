@@ -301,7 +301,7 @@ class hyperopt_estimator(object):
                 fn_rval = conn1.recv()
                 th.join()
             else:
-                print 'TERMINATING DUE TO TIMEOUT'
+                self.info('TERMINATING DUE TO TIMEOUT')
                 th.terminate()
                 th.join()
                 fn_rval = 'return', {
