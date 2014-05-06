@@ -7,5 +7,6 @@ if OMP_NUM_THREADS != '1':
            ' or risk subprocess calls hanging indefinitely')
 
 from estimator import hyperopt_estimator as HyperoptEstimator
+from components import *
 
 # -- flake8
