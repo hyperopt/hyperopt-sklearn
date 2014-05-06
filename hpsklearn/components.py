@@ -399,6 +399,7 @@ def liblinear_svc(name,
 
 # TODO: Pick reasonable default values
 def knn(name,
+        sparse_data=False,
         n_neighbors=None,
         weights=None,
         leaf_size=None,
@@ -409,16 +410,19 @@ def knn(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'knn', msg)
 
-    metric_args = hp.pchoice(_name('metric'), [
-      (0.65, { 'metric':'euclidean' }),
-      (0.10, { 'metric':'manhattan' }),
-      (0.10, { 'metric':'chebyshev' }),
-      (0.15, { 'metric':'minkowski',
-        'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
-      #(0.05, { 'metric':'wminkowski',
-      #  'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
-      #  'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
-    ] )
+    if sparse_data:
+      metric_args = { 'metric':'euclidean' }
+    else:
+      metric_args = hp.pchoice(_name('metric'), [
+        (0.65, { 'metric':'euclidean' }),
+        (0.10, { 'metric':'manhattan' }),
+        (0.10, { 'metric':'chebyshev' }),
+        (0.10, { 'metric':'minkowski',
+          'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
+        (0.05, { 'metric':'wminkowski',
+          'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
+          'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
+      ] )
 
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
@@ -630,7 +634,7 @@ def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
         sgd(name + '.sgd'),
-        knn(name + '.knn'),
+        knn(name + '.knn', sparse_data=True),
         multinomial_nb(name + '.multinomial_nb')
         ])
 
@@ -668,14 +672,14 @@ def tfidf(name,
     ngram_range=None,
     stop_words=None,
     lowercase=None,
-    max_df=None,
-    min_df=None,
+    max_df=1.0,
+    min_df=1,
     max_features=None,
     binary=None,
     norm=None,
-    use_idf=None,
-    smooth_idf=None,
-    sublinear_tf=None,
+    use_idf=False,
+    smooth_idf=False,
+    sublinear_tf=False,
     ):
     
     def _name(msg):
@@ -692,28 +696,16 @@ def tfidf(name,
         lowercase=hp_bool(
             _name('lowercase'),
             ) if lowercase is None else lowercase,
-        max_df=hp.quniform(
-            _name('max_df'),
-            0.5, 1, 0.0001 ) if max_df is None else max_df,
-        min_df=hp.quniform(
-            _name('min_df'),
-            0, 0.5, 0.0001 ) if min_df is None else min_df,
+        max_df=max_df,
+        min_df=min_df,
         binary=hp_bool(
             _name('binary'),
             ) if binary is None else binary,
         ngram_range=(1,max_ngram) if ngram_range is None else ngram_range,
-        #norm=hp.choice(
-        #    _name('norm'),
-        #    [ 'l1', 'l2', None ] ) if norm is None else norm,
-        #use_idf=hp_bool(
-        #    _name('use_idf'),
-        #    ) if use_idf is None else use_idf,
-        #smooth_idf=hp_bool(
-        #    _name('smooth_idf'),
-        #    ) if smooth_idf is None else smooth_idf,
-        #sublinear_tf=hp_bool(
-        #    _name('sublinear_tf'),
-        #    ) if sublinear_tf is None else sublinear_tf,
+        norm=norm,
+        use_idf=use_idf,
+        smooth_idf=smooth_idf,
+        sublinear_tf=sublinear_tf,
         )
     return rval
 
