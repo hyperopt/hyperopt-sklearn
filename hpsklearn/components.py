@@ -414,11 +414,11 @@ def knn(name,
       (0.65, { 'metric':'euclidean' }),
       (0.10, { 'metric':'manhattan' }),
       (0.10, { 'metric':'chebyshev' }),
-      (0.10, { 'metric':'minkowski',
+      (0.15, { 'metric':'minkowski',
         'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
-      (0.05, { 'metric':'wminkowski',
-        'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
-        'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
+      #(0.05, { 'metric':'wminkowski',
+      #  'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
+      #  'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
     ] )
 
     rval = scope.sklearn_KNeighborsClassifier(
