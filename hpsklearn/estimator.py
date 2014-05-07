@@ -90,6 +90,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
           return False
 
         n_iters = 0 # Keep track of the number of training iterations
+        best_classifier = None
         if hasattr( classifier, "partial_fit" ):
           if timeout is not None:
             timeout_tolerance = timeout * timeout_buffer
@@ -111,28 +112,37 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
               break
             info('VSCORE', validation_scores[-1])
           classifier = best_classifier
-
         else:
           classifier.fit( Xfit, yfit )
 
-        info('Scoring on Xval of shape', Xval.shape)
-        loss = 1.0 - classifier.score(Xval, yval)
-        # -- squared standard error of mean
-        lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
-        info('OK trial with accuracy %.1f +- %.1f' % (
-            100 * (1.0 - loss),
-            100 * np.sqrt(lossvar)))
-        t_done = time.time()
-        rval = {
-            'loss': loss,
-            'loss_variance': lossvar,
-            'classifier': untrained_classifier,
-            'preprocs': preprocessings,
-            'status': hyperopt.STATUS_OK,
-            'duration': t_done - t_start,
-            'iterations': n_iters,
-            }
-        rtype = 'return'
+        if classifier is None:
+            t_done = time.time()
+            rval = {
+                'status': hyperopt.STATUS_FAIL,
+                'failure': 'Not enough time to train anything',
+                'duration': t_done - t_start,
+                }
+            rtype = 'return'
+        else:
+            info('Scoring on Xval of shape', Xval.shape)
+            loss = 1.0 - classifier.score(np.asarray(Xval),
+                                          np.asarray(yval))
+            # -- squared standard error of mean
+            lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
+            info('OK trial with accuracy %.1f +- %.1f' % (
+                100 * (1.0 - loss),
+                100 * np.sqrt(lossvar)))
+            t_done = time.time()
+            rval = {
+                'loss': loss,
+                'loss_variance': lossvar,
+                'classifier': untrained_classifier,
+                'preprocs': preprocessings,
+                'status': hyperopt.STATUS_OK,
+                'duration': t_done - t_start,
+                'iterations': n_iters,
+                }
+            rtype = 'return'
         
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
