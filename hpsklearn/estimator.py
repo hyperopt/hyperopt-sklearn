@@ -10,7 +10,6 @@ import numpy as np
 
 import hyperopt
 import scipy.sparse
-import sklearn.datasets.base
 
 from . import components
 
@@ -60,7 +59,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             Xval = pp_algo.transform(Xval)
             
             # np.isfinite() does not work on sparse matrices
-            if not scipy.sparse.issparse(Xfit) and not scipy.sparse.issparse(Xval):
+            if not (scipy.sparse.issparse(Xfit) or scipy.sparse.issparse(Xval)):
               if not (
                   np.all(np.isfinite(Xfit))
                   and np.all(np.isfinite(Xval))):
