@@ -21,7 +21,6 @@ from hpsklearn import components as hpc
 
 import skdata.iris.view
 from skdata.base import SklearnClassifier
-#from hpsklearn.perceptron import AutoPerceptron
 from hpsklearn.estimator import hyperopt_estimator
 
 
