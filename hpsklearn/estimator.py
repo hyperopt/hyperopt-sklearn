@@ -354,7 +354,7 @@ class hyperopt_estimator(object):
                           return_argmin=False, # -- in case no success so far
                          )
 
-    def retrain_best_model_on_full_data(self, X, y, weights):
+    def retrain_best_model_on_full_data(self, X, y, weights=None):
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
             X = pp_algo.transform(X * 1) # -- * 1 avoids read-only copy bug
