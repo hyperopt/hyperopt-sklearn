@@ -13,19 +13,32 @@ def scatter_error_vs_time(estimator, ax):
 
 def plot_minvalid_vs_time(estimator, ax, ylim=None):
     losses = estimator.trials.losses()
-    mins = [np.min(losses[:ii]) for ii in range(1, len(losses))]
+    ts = range(1, len(losses))
+    mins = [np.min(losses[:ii]) for ii in ts]
     ax.set_ylabel('min(Validation error rate to-date)')
     ax.set_xlabel('Iteration')
     if ylim:
-        plt.ylim(*ylim)
-    plt.plot(mins)
+        ax.set_ylim(*ylim)
+    ax.plot(ts, mins)
 
 
-def iris_plot_per_iter(estimator):
-    display.clear_output()
-    fig, axs = plt.subplots(1, 2)
-    scatter_error_vs_time(estimator, axs[0])
-    plot_minvalid_vs_time(estimator, axs[1], ylim=(-.01, .05))
-    display.display(fig)
-    time.sleep(0.5)
+class PlotHelper(object):
+    def __init__(self, estimator, mintodate_ylim):
+        self.estimator = estimator
+        self.fig, self.axs = plt.subplots(1, 2)
+        self.post_iter_wait = .5
+        self.mintodate_ylim = mintodate_ylim
+
+    def post_iter(self):
+        self.axs[0].clear()
+        self.axs[1].clear()
+        scatter_error_vs_time(self.estimator, self.axs[0])
+        plot_minvalid_vs_time(self.estimator, self.axs[1],
+                              ylim=self.mintodate_ylim)
+        display.clear_output()
+        display.display(self.fig)
+        time.sleep(self.post_iter_wait)
+
+    def post_loop(self):
+        display.clear_output()
 
