@@ -17,13 +17,13 @@ def plot_minvalid_vs_time(estimator, ax, ylim=None):
     mins = [np.min(losses[:ii]) for ii in ts]
     ax.set_ylabel('min(Validation error rate to-date)')
     ax.set_xlabel('Iteration')
-    if ylim:
+    if ylim is not None:
         ax.set_ylim(*ylim)
     ax.plot(ts, mins)
 
 
 class PlotHelper(object):
-    def __init__(self, estimator, mintodate_ylim):
+    def __init__(self, estimator, mintodate_ylim=None):
         self.estimator = estimator
         self.fig, self.axs = plt.subplots(1, 2)
         self.post_iter_wait = .5
