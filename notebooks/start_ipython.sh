@@ -1,2 +1,2 @@
 #!/bin/bash
-ipython notebook --pylab=inline
+OMP_NUM_THREADS=1 ipython notebook --pylab=inline
