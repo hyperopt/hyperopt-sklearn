@@ -125,8 +125,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             rtype = 'return'
         else:
             info('Scoring on Xval of shape', Xval.shape)
-            loss = 1.0 - classifier.score(np.asarray(Xval),
-                                          np.asarray(yval))
+            loss = 1.0 - classifier.score(Xval,yval)
             # -- squared standard error of mean
             lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
             info('OK trial with accuracy %.1f +- %.1f' % (
