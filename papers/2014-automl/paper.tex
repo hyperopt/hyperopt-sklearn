@@ -93,12 +93,12 @@ Taking a step back though, there is often no particular reason to use either an 
 A model-agnostic practitioner may simply prefer to go with the one that provides greater accuracy.
 In this light, {\em the choice of classifier can be seen as hyperparameter} alongside the $C$-value in the SVM and the max-tree-depth of the RF.
 Indeed the choice and configuration of {\em pre-processing} components may likewise be seen as part of the model selection / hyperparameter optimization problem.
-The Auto-Weka project \citep{thornton+hutter+hoos+leyton-brown:2012} was the first to show that an entire library of machine learning approaches (Weka~\citep{hall2009weka}) can be searched within the scope of a single run of hyperparameter tuning.
+The Auto-Weka project \citep{thornton+hutter+hoos+leyton-brown:2013} was the first to show that an entire library of machine learning approaches (Weka~\citep{hall2009weka}) can be searched within the scope of a single run of hyperparameter tuning.
 However, Weka is a GPL-licensed Java library, and was not written with scalability in mind. These factors limit the utility of Auto-Weka.
 Scikit-learn~\citep{sklearn} is another library of machine learning algorithms that is written in Python with many modules in C for greater speed, and is BSD-licensed.
 Scikit-learn is widely used in the scientific Python community and supports many machine learning application areas.
 
-With this paper we introduce Hyperopt-Sklearn -- a project that brings the benefits of automatic algorithm configuration to users of Python and scikit-learn.
+With this paper we introduce Hyperopt-Sklearn -- a project that brings the benefits of automatic algorithm configuration to users of Python and scikit-learn.\footnote{Project hosted at http://hyperopt.github.com/hyperopt-sklearn}
 Hyperopt-Sklearn uses Hyperopt~\citep{hyperopt} to describe a search space over possible configurations of Scikit-Learn components, including pre-processing and classification modules.
 Section 2 describes our configuration space of 7 classifiers and 4 preprocessing modules that encompasses a strong set of classification systems for dense and sparse feature classification (of images and text).
 Section 3 presents experimental evidence that search over this space is viable, meaningful, and effective.
@@ -166,7 +166,7 @@ Hyperopt-sklearn's scores are relatively good on each data set, indicating that 
 \begin{table}
   \begin{threeparttable}
     \caption{
-        Hyperopt-sklearn scores relative to selections from literature on the three data sets used in our experiments.
+        Hyperopt-sklearn scores (bold) relative to selections from literature on the three data sets used in our experiments.
         On MNIST, hyperopt-sklearn is one of the best-scoring methods that does not use image-specific domain knowledge (these scores and others may be found at http://yann.lecun.com/exdb/mnist/).
 	On 20 Newsgroups, hyperopt-sklearn is competitive with similar approaches from the literature (scores taken from~\citet{guan2009class}).
         On Convex Shapes, hyperopt-sklearn outperforms previous automatic algorithm configuration approaches~\citep{eggensperger+etal:2013} and manual tuning~\citep{larochelle+etal:2007}.
@@ -255,6 +255,11 @@ Hyperopt-sklearn provides a unified view of 6 possible preprocessing modules and
 it is able to both rival and surpass human experts in algorithm configuration.
 We hope that it provides practitioners with a useful tool for the development of machine learning systems,
 and automatic machine learning researchers with benchmarks for future work in algorithm configuration.
+
+\vspace{2em}
+\noindent
+{\bf Acknowledgements} \\
+This research was supported by the NSERC Banting Fellowship program, the NSERC Engage program and by D-Wave Systems.
 
 
 

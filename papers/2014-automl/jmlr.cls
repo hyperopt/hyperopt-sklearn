@@ -38,8 +38,6 @@
 %%   Right bracket \]     Circumflex    \^     Underscore    \_
 %%   Grave accent  \`     Left brace    \{     Vertical bar  \|
 %%   Right brace   \}     Tilde         \~}
-%% First editor:
-%% Second editor:
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesClass{jmlr}[2011/03/24 v1.11 (NLCT) Journal of Machine Learning Research]
 \RequirePackage{xkeyval}
@@ -86,7 +84,7 @@
   \jmlrproceedings{JMLR}{Journal of Machine Learning Research}%
 }
 \newcommand*{\jmlrwcp}{%
-  \jmlrproceedings{JMLR W\&CP}{JMLR: Workshop and Conference Proceedings}%
+  \jmlrproceedings{JMLR W\&CP}{}%
 }
 \DeclareOptionX{nowcp}{\jmlrnowcp}
 \DeclareOptionX{wcp}{\jmlrwcp}
@@ -284,8 +282,6 @@ Keywords:} \ignorespaces}%
 \fi
 \def\@startauthor{\noindent \normalsize\bfseries}
 \def\@endauthor{}
-\def\@starteditor{\noindent \small {\bfseries \@edname:~}}
-\def\@endeditor{\normalsize}
 \def\jmlrpretitle{\vskip\beforetitskip\begin{center}\Large\bfseries}
 \def\jmlrposttitle{\par\end{center}\vskip\aftertitskip}
 \newcommand*{\nametag}[1]{}
@@ -387,10 +383,6 @@ Keywords:} \ignorespaces}%
   \par
   \vskip \aftermaketitskip
   \noindent
-  \ifx\@editor\@empty
-  \else
-    \@starteditor \@editor \@endeditor
-  \fi
   \vskip \aftermaketitskip
 }
 \def\@jmlrmaketitle{\vbox{\hsize\textwidth
@@ -400,18 +392,7 @@ Keywords:} \ignorespaces}%
 }}
 \newcommand*\kernelmachines{(for
   {\textsc{http://www.kernel-machines.org}})}
-\newcommand*{\editorname}{Editor}
-\newcommand*{\editorsname}{Editors}
-\let\@edname\editorname
-\def\@editor{}
-\def\editor#1{%
-  \global\let\@edname\editorname
-  \gdef\@editor{#1}%
-}
-\def\editors#1{%
-  \global\let\@edname\editorsname
-  \gdef\@editor{#1}%
-}
+
 \def\firstpageno#1{\setcounter{page}{#1}}
 \@ifundefined{startpage}{}{\firstpageno{\startpage}}
 \newcommand*{\@jmlrenddoc}{%
@@ -430,23 +411,25 @@ Keywords:} \ignorespaces}%
 \newcommand\ps@jmlrtps{%
   \let\@mkboth\@gobbletwo
   \def\@oddhead{\scriptsize \@jmlrproceedings
-    \ifx\@jmlrvolume\@empty\else\space\@jmlrvolume\fi
-    \ifx\@jmlryear\@empty\else\space(\@jmlryear)\fi
-    \ifx\@jmlrpages\@empty\else\space\@jmlrpages\fi
+    %\ifx\@jmlrvolume\@empty\else\space\@jmlrvolume\fi
+    %\ifx\@jmlryear\@empty\else\space(\@jmlryear)\fi
+    %\ifx\@jmlrpages\@empty\else\space\@jmlrpages\fi
     \hfill
-    \ifx\@jmlrworkshop\@empty
-      \ifx\@jmlrsubmitted\@empty
-      \else
-        Submitted \@jmlrsubmitted
-        \ifx\@jmlrpublished\@empty\else;\fi
-      \fi
-      \ifx\@jmlrpublished\@empty
-      \else
-        \space Published \@jmlrpublished
-      \fi
-    \else
-      \space\@jmlrworkshop
-    \fi
+    %
+    ICML 2014 AutoML Workshop
+    %\ifx\@jmlrworkshop\@empty
+    %  \ifx\@jmlrsubmitted\@empty
+    %  \else
+    %    Submitted \@jmlrsubmitted
+    %    \ifx\@jmlrpublished\@empty\else;\fi
+    %  \fi
+    %  \ifx\@jmlrpublished\@empty
+    %  \else
+    %    \space Published \@jmlrpublished
+    %  \fi
+    %\else
+    %  \space\@jmlrworkshop
+    %\fi
   }%
   \let\@evenhead\@oddhead
   \def\@oddfoot{\@titlefoot}%
