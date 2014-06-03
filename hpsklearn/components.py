@@ -13,6 +13,13 @@ from hyperopt import hp
 from .vkmeans import ColumnKMeans
 
 
+OPTIMIZE_RSTATE = True
+RANDOM_RSTATE = np.random.RandomState(1)
+# True: globally configure search spaces to return a categorical
+#       variable for the random state
+# False: all rstates are set to a constant, drawn from RANDOM_RSTATE
+
+
 @scope.define
 def sklearn_SVC(*args, **kwargs):
     return sklearn.svm.SVC(*args, **kwargs)
@@ -147,7 +154,10 @@ def _svc_tol(name):
 
 def _random_state(name, random_state):
     if random_state is None:
-        return hp.randint(name, 5)
+        if OPTIMIZE_RSTATE:
+            return hp.randint(name, 5)
+        else:
+            return RANDOM_RSTATE.randint(2 ** 30)
     else:
         return random_state
 
