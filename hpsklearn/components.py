@@ -437,7 +437,7 @@ def knn(name,
     rval = scope.sklearn_KNeighborsClassifier(
         n_neighbors=scope.int(hp.quniform(
             _name('n_neighbors'),
-            0.5, 50, 1)) if n_neighbors is None else n_neighbors,
+            0.51, 50, 1)) if n_neighbors is None else n_neighbors,
         weights=hp.choice(
             _name('weights'),
             ['uniform', 'distance']) if weights is None else weights,
