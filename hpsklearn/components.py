@@ -212,7 +212,7 @@ def svc_rbf(name,
     rval = scope.sklearn_SVC(
         kernel='rbf',
         C=_svc_C(name + '.rbf') if C is None else C,
-        gamma=_svc_gamma(name) if gamma is None else gamma,
+        gamma=_svc_gamma(name + '.rbf') if gamma is None else gamma,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
         tol=_svc_tol(name + '.rbf') if tol is None else tol,
