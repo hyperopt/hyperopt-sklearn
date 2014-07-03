@@ -128,7 +128,7 @@ setuptools.setup(
     author = 'James Bergstra',
     author_email = 'anon@anon.com',
     description = 'Hyperparameter Optimization for sklearn',
-    long_description = open('README.txt').read(),
+    long_description = open('README.md').read(),
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Education',
