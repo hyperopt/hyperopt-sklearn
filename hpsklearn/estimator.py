@@ -10,6 +10,8 @@ import numpy as np
 
 import hyperopt
 import scipy.sparse
+from searchspaces import as_partialplus
+from searchspaces.export.pyll import as_pyll
 
 from . import components
 
@@ -19,7 +21,7 @@ from . import components
 # timeout * timeout_buffer number of seconds left before timeout
 timeout_buffer = 0.05
 
-# The minimum number of iterations of the partial_fit method that must be run 
+# The minimum number of iterations of the partial_fit method that must be run
 # before early stopping can kick in is min_n_iters
 min_n_iters = 7
 
@@ -57,7 +59,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
-            
+
             # np.isfinite() does not work on sparse matrices
             if not (scipy.sparse.issparse(Xfit) or scipy.sparse.issparse(Xval)):
               if not (
@@ -97,7 +99,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(Xfit.shape[0])
           validation_scores = []
-          
+
           while timeout is not None and \
                 time.time() - t_start < timeout - timeout_tolerance:
             n_iters += 1
@@ -107,7 +109,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             validation_scores.append(classifier.score(Xval, yval))
             if max(validation_scores) == validation_scores[-1]:
               best_classifier = copy.deepcopy(classifier)
-              
+
             if should_stop(validation_scores):
               break
             info('VSCORE', validation_scores[-1])
@@ -142,7 +144,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
                 'iterations': n_iters,
                 }
             rtype = 'return'
-        
+
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
@@ -244,14 +246,14 @@ class hyperopt_estimator(object):
                 classifier = components.any_classifier('classifier')
             if preprocessing is None:
                 preprocessing = components.any_preprocessing('preprocessing')
-            self.space = hyperopt.pyll.as_apply({
+            self.space = as_partialplus({
                 'classifier': classifier,
                 'preprocessing': preprocessing,
             })
         else:
             assert classifier is None
             assert preprocessing is None
-            self.space = hyperopt.pyll.as_apply(space)
+            self.space = as_partialplus(space)
 
         if algo is None:
             self.algo=hyperopt.rand.suggest
@@ -283,7 +285,7 @@ class hyperopt_estimator(object):
           X = np.array(X)
         if type(y) is list:
           y = np.array(y)
-        
+
         p = np.random.RandomState(123).permutation( data_length )
         n_fit = int(.8 * data_length)
         Xfit = X[p[:n_fit]]
@@ -341,8 +343,9 @@ class hyperopt_estimator(object):
             new_increment = yield self.trials
             if new_increment is not None:
                 increment = new_increment
+            space = as_pyll(self.space)
             hyperopt.fmin(fn_with_timeout,
-                          space=self.space,
+                          space=space,
                           algo=self.algo,
                           trials=self.trials,
                           max_evals=len(self.trials.trials) + increment,
@@ -419,7 +422,7 @@ class hyperopt_estimator(object):
             X = pp.transform(X)
         self.info("Classifying X of shape", X.shape)
         return self._best_classif.score(X, y)
-    
+
     def best_model( self ):
         """
         Returns the best model found by the previous fit()

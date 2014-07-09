@@ -14,15 +14,14 @@ except:
     import unittest
 
 
-from hyperopt import hp
+from hpsklearn import hp_compat as hp
 from hyperopt import tpe
-from hyperopt.pyll import scope
 from hpsklearn import components as hpc
 
 import skdata.iris.view
 from skdata.base import SklearnClassifier
 from hpsklearn.estimator import hyperopt_estimator
-
+from searchspaces import partial as partialplus, choice, variable
 
 class SkdataInterface(unittest.TestCase):
     def setUp(self):
@@ -70,38 +69,38 @@ class SkdataInterface(unittest.TestCase):
 
         # -- for testing purpose, suppose that the RBM is our "domain-specific
         #    pre-processing"
-
+        pp = variable('pp', ['vq0', 'vq1', 'vq2'])
         algo = SklearnClassifier(
             partial(
                 hyperopt_estimator,
-                preprocessing=hp.choice('pp',
-                    [
+                preprocessing=choice(pp,
+                    *[
                         # -- VQ (alone)
-                        [
+                        ('vq0', [
                             hpc.colkmeans('vq0',
                                 n_init=1),
-                        ],
+                        ]),
                         # -- VQ -> RBM
-                        [
+                        ('vq1', [
                             hpc.colkmeans('vq1',
-                                n_clusters=scope.int(
+                                n_clusters=partialplus(int,
                                     hp.quniform(
                                         'vq1.n_clusters', 1, 5, q=1)),
                                 n_init=1),
                             hpc.rbm(name='rbm:alone',
                                 verbose=0)
-                        ],
+                        ]),
                         # -- VQ -> RBM -> PCA
-                        [
+                        ('vq2', [
                             hpc.colkmeans('vq2',
-                                n_clusters=scope.int(
+                                n_clusters=partialplus(int,
                                     hp.quniform(
                                         'vq2.n_clusters', 1, 5, q=1)),
                                 n_init=1),
                             hpc.rbm(name='rbm:pre-pca',
                                 verbose=0),
                             hpc.pca('pca')
-                        ],
+                        ]),
                     ]),
                 classifier=hpc.any_classifier('classif'),
                 algo=tpe.suggest,
