@@ -7,7 +7,7 @@ def test_demo_iris():
 
     data_view = skdata.iris.view.KfoldClassification(4)
 
-    estimator = hpsklearn.estimator(
+    estimator = hpsklearn.HyperoptEstimator(
         preprocessing=hpsklearn.components.any_preprocessing('pp'),
         classifier=hpsklearn.components.any_classifier('clf'),
         algo=hyperopt.tpe,
