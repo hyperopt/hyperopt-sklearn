@@ -163,9 +163,26 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
                 'duration': t_done - t_start,
                 }
             rtype = 'return'
+        elif 'overflow' in str(exc):
+            t_done = time.time()
+            rval = {
+                'status': hyperopt.STATUS_FAIL,
+                'failure': str(exc),
+                'duration': t_done - t_start,
+                }
+            rtype = 'return'
         else:
             rval = exc
             rtype = 'raise'
+
+    except (MemoryError,), exc:
+        t_done = time.time()
+        rval = {
+            'status': hyperopt.STATUS_FAIL,
+            'failure': str(exc),
+            'duration': t_done - t_start,
+            }
+        rtype = 'return'
 
     except (AttributeError,), exc:
         print 'Failing due to k_means_ weirdness'
