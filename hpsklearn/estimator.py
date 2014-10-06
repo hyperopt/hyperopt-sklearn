@@ -91,30 +91,30 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
 
         n_iters = 0 # Keep track of the number of training iterations
         best_classifier = None
-        if hasattr( classifier, "partial_fit" ):
-          if timeout is not None:
-            timeout_tolerance = timeout * timeout_buffer
-          rng = np.random.RandomState(6665)
-          train_idxs = rng.permutation(Xfit.shape[0])
-          validation_scores = []
-          
-          while timeout is not None and \
-                time.time() - t_start < timeout - timeout_tolerance:
-            n_iters += 1
-            rng.shuffle(train_idxs)
-            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
-                                   classes=np.unique( yfit ))
-            validation_scores.append(classifier.score(Xval, yval))
-            if max(validation_scores) == validation_scores[-1]:
-              best_classifier = copy.deepcopy(classifier)
-              
-            if should_stop(validation_scores):
-              break
-            info('VSCORE', validation_scores[-1])
-          classifier = best_classifier
-        else:
-          classifier.fit( Xfit, yfit )
-
+#        if hasattr( classifier, "partial_fit" ):
+#          if timeout is not None:
+#            timeout_tolerance = timeout * timeout_buffer
+#          rng = np.random.RandomState(6665)
+#          train_idxs = rng.permutation(Xfit.shape[0])
+#          validation_scores = []
+#          
+#          while timeout is not None and \
+#                time.time() - t_start < timeout - timeout_tolerance:
+#            n_iters += 1
+#            rng.shuffle(train_idxs)
+#            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+#                                   classes=np.unique( yfit ))
+#            validation_scores.append(classifier.score(Xval, yval))
+#            if max(validation_scores) == validation_scores[-1]:
+#              best_classifier = copy.deepcopy(classifier)
+#              
+#            if should_stop(validation_scores):
+#              break
+#            info('VSCORE', validation_scores[-1])
+#          classifier = best_classifier
+#        else:
+#          classifier.fit( Xfit, yfit )
+        classifier.fit( Xfit, yfit )
         if classifier is None:
             t_done = time.time()
             rval = {
