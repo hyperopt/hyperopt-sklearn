@@ -120,9 +120,10 @@ _svc_default_cache_size = 1000.0
 def _svc_gamma(name):
     # -- making these non-conditional variables
     #    probably helps the GP algorithm generalize
-    gammanz = hp.choice(name + '.gammanz', [0, 1])
-    gamma = hp.lognormal(name + '.gamma', np.log(0.01), 2.5)
-    return gammanz * gamma
+    gamma = hp.choice(name + '.gammanz', 
+                      ['auto', hp.lognormal(name + '.gamma',
+                                            np.log(0.01), 2.5)])
+    return gamma
 
 
 def _svc_max_iter(name):
