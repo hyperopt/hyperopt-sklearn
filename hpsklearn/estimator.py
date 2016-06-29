@@ -5,6 +5,7 @@ import copy
 from functools import partial
 from multiprocessing import Process, Pipe
 import time
+from sklearn.cross_validation import train_test_split
 
 import numpy as np
 
@@ -39,8 +40,8 @@ class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
-             _conn, best_loss=None):
+def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit, 
+             info, timeout, _conn, best_loss=None):
     try:
         t_start = time.time()
         if 'classifier' in argd:
@@ -91,30 +92,34 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
 
         n_iters = 0 # Keep track of the number of training iterations
         best_classifier = None
-#        if hasattr( classifier, "partial_fit" ):
-#          if timeout is not None:
-#            timeout_tolerance = timeout * timeout_buffer
-#          rng = np.random.RandomState(6665)
-#          train_idxs = rng.permutation(Xfit.shape[0])
-#          validation_scores = []
-#          
-#          while timeout is not None and \
-#                time.time() - t_start < timeout - timeout_tolerance:
-#            n_iters += 1
-#            rng.shuffle(train_idxs)
-#            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
-#                                   classes=np.unique( yfit ))
-#            validation_scores.append(classifier.score(Xval, yval))
-#            if max(validation_scores) == validation_scores[-1]:
-#              best_classifier = copy.deepcopy(classifier)
-#              
-#            if should_stop(validation_scores):
-#              break
-#            info('VSCORE', validation_scores[-1])
-#          classifier = best_classifier
-#        else:
-#          classifier.fit( Xfit, yfit )
-        classifier.fit( Xfit, yfit )
+        #import pdb; pdb.set_trace()
+        if hasattr( classifier, "partial_fit" ) and use_partial_fit:
+            if timeout is not None:
+                timeout_tolerance = timeout * timeout_buffer
+            else:
+                timeout = float('Inf')
+                timeout_tolerance = 0.
+            rng = np.random.RandomState(6665)
+            train_idxs = rng.permutation(Xfit.shape[0])
+            validation_scores = []
+          
+            while timeout is not None and \
+                time.time() - t_start < timeout - timeout_tolerance:
+                n_iters += 1
+                rng.shuffle(train_idxs)
+                classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+                                       classes=np.unique( yfit ))
+                validation_scores.append(classifier.score(Xval, yval))
+                if max(validation_scores) == validation_scores[-1]:
+                    best_classifier = copy.deepcopy(classifier)
+                  
+                if should_stop(validation_scores):
+                    break
+                info('VSCORE', validation_scores[-1])
+            classifier = best_classifier
+        else:
+            classifier.fit( Xfit, yfit )
+
         if classifier is None:
             t_done = time.time()
             rval = {
@@ -197,11 +202,12 @@ class hyperopt_estimator(object):
                  space=None,
                  algo=None,
                  max_evals=100,
-                 verbose=0,
+                 verbose=False,
                  trial_timeout=None,
                  fit_increment=1,
                  fit_increment_dump_filename=None,
                  seed=None,
+                 use_partial_fit=False,
                 ):
         """
         Parameters
@@ -233,12 +239,19 @@ class hyperopt_estimator(object):
         fit_increment_dump_filename : str or None
             Periodically dump self.trials to this file (via cPickle) during
             fit()  Saves after every `fit_increment` trial evaluations.
+        use_partial_fit : boolean
+            If the learner support partial fit, it can be used for online 
+            learning. However, the whole train set is not split into mini 
+            batches here. The partial fit is used to iteratively update 
+            parameters on the whole train set. Early stopping is used to kill 
+            the training when the validation score stops improving.
         """
         self.max_evals = max_evals
         self.verbose = verbose
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
+        self.use_partial_fit = use_partial_fit
         if space is None:
             if classifier is None:
                 classifier = components.any_classifier('classifier')
@@ -267,7 +280,9 @@ class hyperopt_estimator(object):
         if self.verbose:
             print ' '.join(map(str, args))
 
-    def fit_iter(self, X, y, weights=None, increment=None):
+    def fit_iter(self, X, y, valid_size=.2, 
+                 random_state=np.random.RandomState(), 
+                 weights=None, increment=None):
         """Generator of Trials after ever-increasing numbers of evaluations
         """
         assert weights is None
@@ -284,17 +299,17 @@ class hyperopt_estimator(object):
         if type(y) is list:
           y = np.array(y)
         
-        p = np.random.RandomState(123).permutation( data_length )
-        n_fit = int(.8 * data_length)
-        Xfit = X[p[:n_fit]]
-        yfit = y[p[:n_fit]]
-        Xval = X[p[n_fit:]]
-        yval = y[p[n_fit:]]
+        # Data is split into train and validation sets.
+        Xfit, Xval, yfit, yval = train_test_split(
+            X, y, test_size=valid_size, random_state=random_state
+        )
         self.trials = hyperopt.Trials()
         self._best_loss = float('inf')
+        # This is where the cost function is used.
         fn=partial(_cost_fn,
                 Xfit=Xfit, yfit=yfit,
-                Xval=Xval, yval=yval,
+                Xval=Xval, yval=yval, 
+                use_partial_fit=self.use_partial_fit, 
                 info=self.info,
                 timeout=self.trial_timeout)
         self._best_loss = float('inf')
@@ -341,6 +356,7 @@ class hyperopt_estimator(object):
             new_increment = yield self.trials
             if new_increment is not None:
                 increment = new_increment
+            # This is where fmin is called to optimize hyperparameters.
             hyperopt.fmin(fn_with_timeout,
                           space=self.space,
                           algo=self.algo,
@@ -357,7 +373,7 @@ class hyperopt_estimator(object):
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
             X = pp_algo.transform(X * 1) # -- * 1 avoids read-only copy bug
-        if hasattr(self._best_classif, 'partial_fit'):
+        if hasattr(self._best_classif, 'partial_fit') and self.use_partial_fit:
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(X.shape[0])
           for i in xrange(int(self._best_iters * retrain_fraction)):
@@ -368,13 +384,17 @@ class hyperopt_estimator(object):
           self._best_classif.fit(X,y)
 
 
-    def fit(self, X, y, weights=None):
+    def fit(self, X, y, valid_size=.2, 
+            random_state=np.random.RandomState(), 
+            weights=None):
         """
         Search the space of classifiers and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
         """
         filename = self.fit_increment_dump_filename
-        fit_iter = self.fit_iter(X, y,
+        fit_iter = self.fit_iter(X, y, 
+                                 valid_size=valid_size, 
+                                 random_state=random_state, 
                                  weights=weights,
                                  increment=self.fit_increment)
         fit_iter.next()

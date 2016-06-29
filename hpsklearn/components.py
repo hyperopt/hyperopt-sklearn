@@ -26,17 +26,12 @@ def sklearn_SVR(*args, **kwargs):
 def sklearn_LinearSVC(*args, **kwargs):
     return sklearn.svm.LinearSVC(*args, **kwargs)
 
-
 @scope.define
 def sklearn_KNeighborsClassifier(*args, **kwargs):
-    star_star_kwargs = kwargs.pop('starstar_kwargs')
-    kwargs.update(star_star_kwargs)
     return sklearn.neighbors.KNeighborsClassifier(*args, **kwargs)
 
 @scope.define
 def sklearn_KNeighborsRegressor(*args, **kwargs):
-    star_star_kwargs = kwargs.pop('starstar_kwargs')
-    kwargs.update(star_star_kwargs)
     return sklearn.neighbors.KNeighborsRegressor(*args, **kwargs)
 
 
@@ -66,9 +61,9 @@ def sklearn_SGDClassifier(*args, **kwargs):
 def sklearn_SGDRegressor(*args, **kwargs):
     return sklearn.linear_model.SGDRegressor(*args, **kwargs)
 
-@scope.define
-def sklearn_Ridge(*args, **kwargs):
-    return sklearn.linear_model.Ridge(*args, **kwargs)
+# @scope.define
+# def sklearn_Ridge(*args, **kwargs):
+#     return sklearn.linear_model.Ridge(*args, **kwargs)
 
 @scope.define
 def sklearn_MultinomialNB(*args, **kwargs):
@@ -139,36 +134,140 @@ def hp_bool(name):
     return hp.choice(name, [False, True])
 
 
-_svc_default_cache_size = 1000.0
+_svm_default_cache_size = 512
 
 
-def _svc_gamma(name):
+def _svm_gamma(name, n_features=1):
+    '''Generator of default gamma values for SVMs.
+    This setting is based on the following rationales:
+    1.  The gamma hyperparameter is basically an amplifier for the 
+        original dot product or l2 norm.
+    2.  The original dot product or l2 norm shall be normalized by 
+        the number of features first.
+    '''
     # -- making these non-conditional variables
     #    probably helps the GP algorithm generalize
-    gammanz = hp.choice(name + '.gammanz', [0, 1])
-    gamma = hp.lognormal(name + '.gamma', np.log(0.01), 2.5)
-    return gammanz * gamma
+    assert n_features >= 1
+    return hp.loguniform(name, 
+                         np.log(1./n_features*1e-3), 
+                         np.log(1./n_features*1e3))
+
+def _svm_degree(name):
+    return hp.quniform(name, 1.5, 6.5, 1)
+
+def _svm_max_iter(name):
+    return hp.qloguniform(name, np.log(1e7), np.log(1e9), 1)
 
 
-def _svc_max_iter(name):
-    return scope.patience_param(
-        scope.int(
-            hp.loguniform(
-                name + '.max_iter',
-                np.log(1e7),
-                np.log(1e9))))
+def _svm_C(name):
+    return hp.loguniform(name, np.log(1e-5), np.log(1e5))
 
 
-def _svc_C(name):
-    return hp.lognormal(name + '.C', np.log(1e-5), np.log(1e5))
+def _svm_tol(name):
+    return hp.loguniform(name, np.log(1e-5), np.log(1e-2))
+
+def _svm_int_scaling(name):
+    return hp.loguniform(name, np.log(1e-1), np.log(1e1))
+
+def _svm_epsilon(name):
+    return hp.loguniform(name, np.log(1e-3), np.log(1e3))
+
+def _svm_loss_penalty_dual(name):
+    """
+    The combination of penalty='l1' and loss='hinge' is not supported
+    penalty='l2' and loss='hinge' is only supported when dual='true'
+    penalty='l1' is only supported when dual='false'.
+    """
+    return hp.choice(name, [
+        ('hinge', 'l2', True),
+        ('squared_hinge', 'l2', True),
+        ('squared_hinge', 'l1', False),
+        ('squared_hinge', 'l2', False)
+    ])
 
 
-def _svc_tol(name):
-    return scope.inv_patience_param(
-        hp.lognormal(
-            name + '.tol',
-            np.log(1e-3),
-            2.0))
+def _knn_metric(name, sparse_data=False):
+    if sparse_data:
+        return 'euclidean'
+    else:
+        return hp.pchoice(name, [
+            (0.55, 'euclidean'),
+            (0.15, 'manhattan'),
+            (0.15, 'chebyshev'),
+            (0.15, 'minkowski'),
+        ])
+
+def _knn_p(name):
+    return hp.quniform(name, 2.5, 5.5, 1)
+
+def _knn_neighbors(name):
+    return scope.int(hp.qloguniform(name, np.log(0.5), np.log(50.5), 1))
+
+def _knn_weights(name):
+    return hp.choice(name, ['uniform', 'distance'])
+
+def _trees_criterion(name):
+    return hp.choice(name, ['gini', 'entropy'])
+
+def _trees_max_features(name):
+    return hp.pchoice(name, [
+        (0.2, 'sqrt'),  # most common choice.
+        (0.1, 'log2'),  # less common choice.
+        (0.1, None),  # less common choice.
+        (0.6, hp.uniform(name + '.frac', 0., 1.))
+    ])
+
+def _trees_max_depth(name):
+    return None
+
+def _trees_min_samples_split(name):
+    return 2
+
+def _trees_min_samples_leaf(name):
+    return hp.choice(name, [
+        1,  # most common choice.
+        hp.qloguniform(name + '.gt1', np.log(1.5), np.log(50.5), 1)
+    ])
+
+def _trees_bootstrap(name):
+    return hp.choice(name, [True, False])
+
+def _sgd_penalty(name):
+    return hp.pchoice(name, [
+        (0.40, 'l2'), 
+        (0.35, 'l1'), 
+        (0.25, 'elasticnet')
+    ])
+
+def _sgd_alpha(name):
+    return hp.loguniform(name, np.log(1e-6), np.log(1e-1))
+
+def _sgd_l1_ratio(name):
+    return hp.uniform(name, 0, 1)
+
+def _sgd_epsilon(name):
+    return hp.loguniform(name, np.log(1e-7), np.log(1))
+
+def _sgdc_learning_rate(name):
+    return hp.pchoice(name, [
+        (0.50, 'optimal'), 
+        (0.25, 'invscaling'), 
+        (0.25, 'constant')
+    ])
+
+def _sgdr_learning_rate(name):
+    return hp.pchoice(name, [
+        (0.50, 'invscaling'), 
+        (0.25, 'optimal'), 
+        (0.25, 'constant')
+    ])
+
+def _sgd_eta0(name):
+    return hp.loguniform(name, np.log(1e-5), np.log(1e-1))
+
+def _sgd_power_t(name):
+    return hp.uniform(name, 0, 1)
+
 
 def _random_state(name, random_state):
     if random_state is None:
@@ -176,6 +275,8 @@ def _random_state(name, random_state):
     else:
         return random_state
 
+def _class_weight(name):
+    return hp.choice(name, [None, 'balanced'])
 
 def svc_linear(name,
                C=None,
@@ -184,7 +285,7 @@ def svc_linear(name,
                max_iter=None,
                verbose=False,
                random_state=None,
-               cache_size=_svc_default_cache_size):
+               cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with a linear kernel.
@@ -195,15 +296,16 @@ def svc_linear(name,
 
     rval = scope.sklearn_SVC(
         kernel='linear',
-        C=_svc_C(name + '.linear') if C is None else C,
+        C=_svm_C(_name('C')) if C is None else C,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name) if tol is None else tol,
-        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter')) 
+                  if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('.rstate'), random_state),
+        random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
-        )
+    )
     return rval
 
 def svr_linear(name,
@@ -214,7 +316,7 @@ def svr_linear(name,
                max_iter=None,
                verbose=False,
                random_state=None,
-               cache_size=_svc_default_cache_size):
+               cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVR model with a linear kernel.
@@ -225,23 +327,22 @@ def svr_linear(name,
 
     rval = scope.sklearn_SVR(
         kernel='linear',
-        C=_svc_C(name + '.linear') if C is None else C,
-        epsilon=hp.lognormal(
-            _name("epsilon"),
-            np.log(1e-3),
-            np.log(1e3)),
+        C=_svm_C(_name('C')) if C is None else C,
+        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon, 
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name) if tol is None else tol,
-        max_iter=_svc_max_iter(name) if max_iter is None else max_iter,
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter')) 
+                  if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('.rstate'), random_state),
+        random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
-        )
+    )
     return rval
 
 
 def svc_rbf(name,
+            n_features=1,
             C=None,
             gamma=None,
             shrinking=None,
@@ -249,7 +350,7 @@ def svc_rbf(name,
             max_iter=None,
             verbose=False,
             random_state=None,
-            cache_size=_svc_default_cache_size):
+            cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -260,30 +361,31 @@ def svc_rbf(name,
 
     rval = scope.sklearn_SVC(
         kernel='rbf',
-        C=_svc_C(name + '.rbf') if C is None else C,
-        gamma=_svc_gamma(name) if gamma is None else gamma,
+        C=_svm_C(_name('C')) if C is None else C,
+        gamma=(_svm_gamma(_name('gamma'), n_features) 
+               if gamma is None else gamma),
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.rbf') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.rbf')
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
         random_state=_random_state(_name('rstate'), random_state),
-        )
+    )
     return rval
 
 def svr_rbf(name,
+            n_features=1, 
             C=None,
             epsilon=None,
-            degree=None,
             gamma=None,
             shrinking=None,
             tol=None,
             max_iter=None,
             verbose=False,
             random_state=None,
-            cache_size=_svc_default_cache_size):
+            cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVR model with an RBF kernel.
@@ -294,30 +396,24 @@ def svr_rbf(name,
 
     rval = scope.sklearn_SVR(
         kernel='rbf',
-        C=_svc_C(name + '.rbf') if C is None else C,
-        epsilon=hp.lognormal(
-            _name("epsilon"),
-            np.log(1e-3),
-            np.log(1e3)),
-        degree=hp.quniform(
-            _name('degree'),
-            low=1.5,
-            high=5.5,
-            q=1) if degree is None else degree,
-        gamma=_svc_gamma(name) if gamma is None else gamma,
+        C=_svm_C(_name('C')) if C is None else C,
+        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon, 
+        gamma=(_svm_gamma(_name('gamma'), n_features) 
+               if gamma is None else gamma),
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.rbf') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.rbf')
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
         random_state=_random_state(_name('rstate'), random_state),
-        )
+    )
     return rval
 
 
 def svc_poly(name,
+             n_features=1, 
              C=None,
              gamma=None,
              coef0=None,
@@ -327,7 +423,7 @@ def svc_poly(name,
              max_iter=None,
              verbose=False,
              random_state=None,
-             cache_size=_svc_default_cache_size):
+             cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -336,33 +432,38 @@ def svc_poly(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'poly', msg)
 
+    # Some changes to the original design:
+    # 1. The gamma hyperparameter scales the dot product, so shall scale 
+    #    the coef0 as well.
+    # 2. It is more likely to shift the dot product to the positive side 
+    #    so that all of them will become > 1.0.
     # -- (K(x, y) + coef0)^d
-    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
-    coef0 = hp.uniform(_name('coef0'), 0.0, 1.0)
-    poly_coef0 = coef0nz * coef0
+    poly_gamma = (_svm_gamma(_name('gamma'), n_features) 
+                  if gamma is None else gamma)
+    poly_coef0 = hp.pchoice(_name('coef0'), [
+        (0.3, 0), 
+        (0.7, poly_gamma*hp.uniform(_name('coef0val'), 0., 10.))
+    ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVC(
         kernel='poly',
-        C=_svc_C(name + '.poly') if C is None else C,
-        gamma=_svc_gamma(name + '.poly') if gamma is None else gamma,
-        coef0=poly_coef0 if coef0 is None else coef0,
-        degree=hp.quniform(
-            _name('degree'),
-            low=1.5,
-            high=8.5,
-            q=1) if degree is None else degree,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.poly') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.poly')
+        C=_svm_C(_name('C')) if C is None else C,
+        gamma=poly_gamma,
+        coef0=poly_coef0, 
+        degree=_svm_degree(_name('degree')) if degree is None else degree, 
+        shrinking=(hp_bool(_name('shrinking')) 
+                   if shrinking is None else shrinking),
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('.rstate'), random_state),
+        random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
-        )
+    )
     return rval
 
 def svr_poly(name,
+             n_features=1, 
              C=None,
              epsilon=None,
              gamma=None,
@@ -373,7 +474,7 @@ def svr_poly(name,
              max_iter=None,
              verbose=False,
              random_state=None,
-             cache_size=_svc_default_cache_size):
+             cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVR model with an RBF kernel.
@@ -382,38 +483,40 @@ def svr_poly(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'poly', msg)
 
+    # Some changes to the original design:
+    # 1. The gamma hyperparameter scales the dot product, so shall scale 
+    #    the coef0 as well.
+    # 2. It is more likely to shift the dot product to the positive side 
+    #    so that all of them will become > 1.0.
     # -- (K(x, y) + coef0)^d
-    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
-    coef0 = hp.uniform(_name('coef0'), 0.0, 1.0)
-    poly_coef0 = coef0nz * coef0
+    poly_gamma = (_svm_gamma(_name('gamma'), n_features) 
+                  if gamma is None else gamma)
+    poly_coef0 = hp.pchoice(_name('coef0'), [
+        (0.3, 0), 
+        (0.7, poly_gamma*hp.uniform('coef0val', 0., 10.))
+    ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVR(
         kernel='poly',
-        C=_svc_C(name + '.poly') if C is None else C,
-        epsilon=hp.lognormal(
-            _name("epsilon"),
-            np.log(1e-3),
-            np.log(1e3)),
-        gamma=_svc_gamma(name + '.poly') if gamma is None else gamma,
-        coef0=poly_coef0 if coef0 is None else coef0,
-        degree=hp.quniform(
-            _name('degree'),
-            low=1.5,
-            high=8.5,
-            q=1) if degree is None else degree,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.poly') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.poly')
+        C=_svm_C(_name('C')) if C is None else C,
+        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon, 
+        gamma=poly_gamma,
+        coef0=poly_coef0,
+        degree=_svm_degree(_name('degree')) if degree is None else degree,
+        shrinking=(hp_bool(_name('shrinking')) 
+                   if shrinking is None else shrinking),
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('.rstate'), random_state),
+        random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
-        )
+    )
     return rval
 
 
 def svc_sigmoid(name,
+                n_features=1, 
                 C=None,
                 gamma=None,
                 coef0=None,
@@ -422,7 +525,7 @@ def svc_sigmoid(name,
                 max_iter=None,
                 verbose=False,
                 random_state=None,
-                cache_size=_svc_default_cache_size):
+                cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with an RBF kernel.
@@ -431,20 +534,29 @@ def svc_sigmoid(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'sigmoid', msg)
 
+    # Some changes to the original design:
+    # 1. The gamma hyperparameter scales the dot product, so shall scale 
+    #    the coef0 as well.
+    # 2. The purpose of the tanh function is for saturation. There is no 
+    #    preference for positive or negative activation. So the coef0 is 
+    #    set to sample from a symmetric range.
     # -- tanh(K(x, y) + coef0)
-    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
-    coef0 = hp.normal(_name('coef0'), 0.0, 1.0)
-    sigm_coef0 = coef0nz * coef0
+    sigm_gamma = (_svm_gamma(_name('gamma'), n_features) 
+                  if gamma is None else gamma)
+    sigm_coef0 = hp.pchoice(_name('coef0'), [
+        (0.3, 0), 
+        (0.7, sigm_gamma*hp.uniform('coef0val', -10., 10.))
+    ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVC(
         kernel='sigmoid',
-        C=_svc_C(name + '.sigmoid') if C is None else C,
-        gamma=_svc_gamma(name + '.sigmoid') if gamma is None else gamma,
-        coef0=sigm_coef0 if coef0 is None else coef0,
+        C=_svm_C(_name('C')) if C is None else C,
+        gamma=sigm_gamma,
+        coef0=sigm_coef0,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.sigmoid') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.sigmoid')
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
         random_state=_random_state(_name('rstate'), random_state),
@@ -452,6 +564,7 @@ def svc_sigmoid(name,
     return rval
 
 def svr_sigmoid(name,
+                n_features=1, 
                 C=None,
                 epsilon=None,
                 gamma=None,
@@ -461,7 +574,7 @@ def svr_sigmoid(name,
                 max_iter=None,
                 verbose=False,
                 random_state=None,
-                cache_size=_svc_default_cache_size):
+                cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVR model with an RBF kernel.
@@ -470,24 +583,30 @@ def svr_sigmoid(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'sigmoid', msg)
 
+    # Some changes to the original design:
+    # 1. The gamma hyperparameter scales the dot product, so shall scale 
+    #    the coef0 as well.
+    # 2. The purpose of the tanh function is for saturation. There is no 
+    #    preference for positive or negative activation. So the coef0 is 
+    #    set to sample from a symmetric range.
     # -- tanh(K(x, y) + coef0)
-    coef0nz = hp.choice(_name('coef0nz'), [0, 1])
-    coef0 = hp.normal(_name('coef0'), 0.0, 1.0)
-    sigm_coef0 = coef0nz * coef0
+    sigm_gamma = (_svm_gamma(_name('gamma'), n_features) 
+                  if gamma is None else gamma)
+    sigm_coef0 = hp.pchoice(_name('coef0'), [
+        (0.3, 0), 
+        (0.7, sigm_gamma*hp.uniform('coef0val', -10., 10.))
+    ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVR(
         kernel='sigmoid',
-        C=_svc_C(name + '.sigmoid') if C is None else C,
-        epsilon=hp.lognormal(
-            _name("epsilon"),
-            np.log(1e-3),
-            np.log(1e3)),
-        gamma=_svc_gamma(name + '.sigmoid') if gamma is None else gamma,
-        coef0=sigm_coef0 if coef0 is None else coef0,
+        C=_svm_C(_name('C')) if C is None else C,
+        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon, 
+        gamma=sigm_gamma,
+        coef0=sigm_coef0,
         shrinking=hp_bool(
             _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svc_tol(name + '.sigmoid') if tol is None else tol,
-        max_iter=(_svc_max_iter(name + '.sigmoid')
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
         random_state=_random_state(_name('rstate'), random_state),
@@ -495,7 +614,8 @@ def svr_sigmoid(name,
     return rval
 
 
-def svc(name,
+def svc(name, 
+        n_features=1, 
         C=None,
         kernels=['linear', 'rbf', 'poly', 'sigmoid'],
         shrinking=None,
@@ -503,7 +623,7 @@ def svc(name,
         max_iter=None,
         verbose=False,
         random_state=None,
-        cache_size=_svc_default_cache_size):
+        cache_size=_svm_default_cache_size):
     svms = {
         'linear': svc_linear(
             name,
@@ -514,7 +634,8 @@ def svc(name,
             random_state=random_state,
             verbose=verbose),
         'rbf': svc_rbf(
-            name,
+            name, 
+            n_features=n_features, 
             C=C,
             shrinking=shrinking,
             tol=tol,
@@ -523,6 +644,7 @@ def svc(name,
             verbose=verbose),
         'poly': svc_poly(
             name,
+            n_features=n_features, 
             C=C,
             shrinking=shrinking,
             tol=tol,
@@ -531,6 +653,7 @@ def svc(name,
             verbose=verbose),
         'sigmoid': svc_sigmoid(
             name,
+            n_features=n_features, 
             C=C,
             shrinking=shrinking,
             tol=tol,
@@ -546,6 +669,7 @@ def svc(name,
     return rval
 
 def svr(name,
+        n_features=1, 
         C=None,
         epsilon=None,
         kernels=['linear', 'rbf', 'poly', 'sigmoid'],
@@ -554,7 +678,7 @@ def svr(name,
         max_iter=None,
         verbose=False,
         random_state=None,
-        cache_size=_svc_default_cache_size):
+        cache_size=_svm_default_cache_size):
     svms = {
         'linear': svr_linear(
             name,
@@ -567,6 +691,7 @@ def svr(name,
             verbose=verbose),
         'rbf': svr_rbf(
             name,
+            n_features=n_features, 
             C=C,
             epsilon=epsilon,
             shrinking=shrinking,
@@ -576,6 +701,7 @@ def svr(name,
             verbose=verbose),
         'poly': svr_poly(
             name,
+            n_features=n_features, 
             C=C,
             epsilon=epsilon,
             shrinking=shrinking,
@@ -585,6 +711,7 @@ def svr(name,
             verbose=verbose),
         'sigmoid': svr_sigmoid(
             name,
+            n_features=n_features, 
             C=C,
             epsilon=epsilon,
             shrinking=shrinking,
@@ -609,41 +736,35 @@ def liblinear_svc(name,
                   dual=None,
                   tol=None,
                   multi_class=None,
-                  fit_intercept=None,
+                  fit_intercept=True,
                   intercept_scaling=None,
-                  class_weight=None,
+                  class_weight='choose',
                   random_state=None,
-                  verbose=False):
+                  verbose=False, 
+                  max_iter=1000):
 
     def _name(msg):
         return '%s.%s_%s' % (name, 'linear_svc', msg)
 
-    """
-    The combination of penalty='l1' and loss='l1' is not supported
-    penalty='l2' and ploss='l1' is only supported when dual='true'
-    penalty='l1' is only supported when dual='false'
-    """
-    loss_penalty_dual = hp.choice(_name('loss_penalty_dual'),
-                                  [('l1', 'l2', True),
-                                   ('l2', 'l2', True),
-                                   ('l2', 'l1', False),
-                                   ('l2', 'l2', False)])
+    loss_penalty_dual = _svm_loss_penalty_dual(_name('loss_penalty_dual'))
 
     rval = scope.sklearn_LinearSVC(
-        C=_svc_C(name + '.liblinear') if C is None else C,
-        loss=loss_penalty_dual[0] if loss is None else loss,
-        penalty=loss_penalty_dual[1] if penalty is None else penalty,
-        dual=loss_penalty_dual[2] if dual is None else dual,
-        tol=_svc_tol(name + '.liblinear') if tol is None else tol,
-        multi_class=hp.choice(
-            _name('multi_class'),
-            ['ovr', 'crammer_singer']) if multi_class is None else multi_class,
-        fit_intercept=hp.choice(
-            _name('fit_intercept'),
-            [True, False]) if fit_intercept is None else fit_intercept,
+        C=_svm_C(_name('C')) if C is None else C,
+        loss=loss_penalty_dual[0] if loss is None else loss, 
+        penalty=loss_penalty_dual[1] if penalty is None else penalty, 
+        dual=loss_penalty_dual[2] if dual is None else dual, 
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        multi_class=(hp.choice(_name('multiclass'), ['ovr', 'crammer_singer']) 
+                     if multi_class is None else multi_class),
+        fit_intercept=fit_intercept,
+        intercept_scaling=(_svm_int_scaling(_name('intscaling')) 
+                           if intercept_scaling is None else intercept_scaling), 
+        class_weight=(_class_weight(_name('clsweight')) 
+                      if class_weight == 'choose' else class_weight), 
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
-        )
+        max_iter=max_iter, 
+    )
     return rval
 
 
@@ -652,433 +773,340 @@ def knn(name,
         sparse_data=False,
         n_neighbors=None,
         weights=None,
-        leaf_size=None,
+        algorithm='auto', 
+        leaf_size=30,
         metric=None,
         p=None,
-        **kwargs):
+        metric_params=None, 
+        n_jobs=1):
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'knn', msg)
-
-    if sparse_data:
-      metric_args = { 'metric':'euclidean' }
-    else:
-      metric_args = hp.pchoice(_name('metric'), [
-        (0.65, { 'metric':'euclidean' }),
-        (0.10, { 'metric':'manhattan' }),
-        (0.10, { 'metric':'chebyshev' }),
-        (0.10, { 'metric':'minkowski',
-          'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
-        (0.05, { 'metric':'wminkowski',
-          'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
-          'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
-      ] )
+        return '%s.%s_%s' % (name, 'knc', msg)
 
     rval = scope.sklearn_KNeighborsClassifier(
-        n_neighbors=scope.int(hp.quniform(
-            _name('n_neighbors'),
-            0.5, 50, 1)) if n_neighbors is None else n_neighbors,
-        weights=hp.choice(
-            _name('weights'),
-            ['uniform', 'distance']) if weights is None else weights,
-        leaf_size=scope.int(hp.quniform(
-            _name('leaf_size'),
-            0.51, 100, 1)) if leaf_size is None else leaf_size,
-        starstar_kwargs=metric_args
-        )
+        n_neighbors=(_knn_neighbors(_name('neighbors')) 
+                     if n_neighbors is None else n_neighbors),
+        weights=_knn_weights(_name('weights')) if weights is None else weights,
+        algorithm=algorithm, 
+        leaf_size=leaf_size, 
+        metric=(_knn_metric(_name('metric'), sparse_data) 
+                if metric is None else metric), 
+        p=_knn_p(_name('p')) if p is None else p, 
+        metric_params=metric_params, 
+        n_jobs=n_jobs, 
+    )
     return rval
 
 # TODO: Pick reasonable default values
 def knn_regression(name,
-        sparse_data=False,
-        n_neighbors=None,
-        weights=None,
-        leaf_size=None,
-        metric=None,
-        p=None,
-        **kwargs):
+                   sparse_data=False,
+                   n_neighbors=None,
+                   weights=None,
+                   algorithm='auto', 
+                   leaf_size=30,
+                   metric=None,
+                   p=None,
+                   metric_params=None, 
+                   n_jobs=1):           
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'knn_regression', msg)
-
-    if sparse_data:
-      metric_args = { 'metric':'euclidean' }
-    else:
-      metric_args = hp.pchoice(_name('metric'), [
-        (0.05, { 'metric':'euclidean' }),
-        (0.10, { 'metric':'manhattan' }),
-        (0.10, { 'metric':'chebyshev' }),
-        (0.10, { 'metric':'minkowski',
-          'p':scope.int(hp.quniform(_name('minkowski_p'), 1, 5, 1))}),
-        #(0.05, { 'metric':'wminkowski',
-        #  'p':scope.int(hp.quniform(_name('wminkowski_p'), 1, 5, 1)),
-        #  'w':hp.uniform( _name('wminkowski_w'), 0, 100 ) }),
-      ] )
+        return '%s.%s_%s' % (name, 'knr', msg)
 
     rval = scope.sklearn_KNeighborsRegressor(
-        n_neighbors=scope.int(hp.quniform(
-            _name('n_neighbors'),
-            0.5, 50, 1)) if n_neighbors is None else n_neighbors,
-        weights=hp.choice(
-            _name('weights'),
-            ['uniform', 'distance']) if weights is None else weights,
-        leaf_size=scope.int(hp.quniform(
-            _name('leaf_size'),
-            0.51, 100, 1)) if leaf_size is None else leaf_size,
-        starstar_kwargs=metric_args
-        )
+        n_neighbors=(_knn_neighbors(_name('neighbors')) 
+                     if n_neighbors is None else n_neighbors),
+        weights=_knn_weights(_name('weights')) if weights is None else weights,
+        algorithm=algorithm, 
+        leaf_size=leaf_size, 
+        metric=(_knn_metric(_name('metric'), sparse_data) 
+                if metric is None else metric), 
+        p=_knn_p(_name('p')) if p is None else p, 
+        metric_params=metric_params, 
+        n_jobs=n_jobs, 
+    )
     return rval
+
 
 # TODO: Pick reasonable default values
 def random_forest(name,
-                  n_estimators=None,
+                  n_estimators=50,
                   criterion=None,
                   max_features=None,
                   max_depth=None,
                   min_samples_split=None,
                   min_samples_leaf=None,
                   bootstrap=None,
-                  oob_score=None,
+                  oob_score=False,
                   n_jobs=1,
                   random_state=None,
                   verbose=False):
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'random_forest', msg)
-
-    """
-    Out of bag estimation only available if bootstrap=True
-    """
-
-    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
-                              [(True, True),
-                               (True, False),
-                               (False, False)])
+        return '%s.%s_%s' % (name, 'rfc', msg)
 
     rval = scope.sklearn_RandomForestClassifier(
-        n_estimators=scope.int(hp.quniform(
-            _name('n_estimators'),
-            1, 50, 1)) if n_estimators is None else n_estimators,
-        criterion=hp.choice(
-            _name('criterion'),
-            ['gini', 'entropy']) if criterion is None else criterion,
-        max_features=hp.choice(
-            _name('max_features'),
-            ['sqrt', 'log2',
-             None]) if max_features is None else max_features,
-        max_depth=max_depth,
-        min_samples_split=hp.quniform(
-            _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
-            _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
-        oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
+        n_estimators=n_estimators,
+        criterion=(_trees_criterion(_name('criterion')) 
+                   if criterion is None else criterion),
+        max_features=(_trees_max_features(_name('max_features')) 
+                      if max_features is None else max_features),
+        max_depth=(_trees_max_depth(_name('max_depth')) 
+                   if max_depth is None else max_depth),
+        min_samples_split=(_trees_min_samples_split(_name('min_samples_split')) 
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf')) 
+                          if min_samples_leaf is None else min_samples_leaf),
+        bootstrap=(_trees_bootstrap(_name('bootstrap')) 
+                   if bootstrap is None else bootstrap),
+        oob_score=oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
-        )
+    )
     return rval
 
 # TODO: Pick reasonable default values
 def random_forest_regression(name,
-                  n_estimators=None,
-                  criterion=None,
-                  max_features=None,
-                  max_depth=None,
-                  min_samples_split=None,
-                  min_samples_leaf=None,
-                  bootstrap=None,
-                  oob_score=None,
-                  n_jobs=1,
-                  random_state=None,
-                  verbose=False):
+                             n_estimators=50,
+                             criterion='mse',
+                             max_features=None,
+                             max_depth=None,
+                             min_samples_split=None,
+                             min_samples_leaf=None,
+                             bootstrap=None,
+                             oob_score=False,
+                             n_jobs=1,
+                             random_state=None,
+                             verbose=False):
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'random_forest_regression', msg)
-
-    """
-    Out of bag estimation only available if bootstrap=True
-    """
-
-    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
-                              [(True, True),
-                               (True, False),
-                               (False, False)])
+        return '%s.%s_%s' % (name, 'rfr', msg)
 
     rval = scope.sklearn_RandomForestRegressor(
-        n_estimators=scope.int(hp.quniform(
-            _name('n_estimators'),
-            1, 50, 1)) if n_estimators is None else n_estimators,
-        criterion="mse" if criterion is None else criterion,
-        max_features=hp.choice(
-            _name('max_features'),
-            ['sqrt', 'log2',
-             None]) if max_features is None else max_features,
-        max_depth=max_depth,
-        min_samples_split=hp.quniform(
-            _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
-            _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
-        oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
+        n_estimators=n_estimators,
+        criterion=criterion,
+        max_features=(_trees_max_features(_name('max_features')) 
+                      if max_features is None else max_features),
+        max_depth=(_trees_max_depth(_name('max_depth')) 
+                   if max_depth is None else max_depth),
+        min_samples_split=(_trees_min_samples_split(_name('min_samples_split')) 
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf')) 
+                          if min_samples_leaf is None else min_samples_leaf),
+        bootstrap=(_trees_bootstrap(_name('bootstrap')) 
+                   if bootstrap is None else bootstrap),
+        oob_score=oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
-        )
+    )
     return rval
 
 
 # TODO: Pick reasonable default values
 # TODO: the parameters are the same as RandomForest, stick em together somehow
 def extra_trees(name,
-                n_estimators=None,
+                n_estimators=50,
                 criterion=None,
                 max_features=None,
                 max_depth=None,
                 min_samples_split=None,
                 min_samples_leaf=None,
                 bootstrap=None,
-                oob_score=None,
+                oob_score=False,
                 n_jobs=1,
                 random_state=None,
                 verbose=False):
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'extra_trees', msg)
-
-    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
-                              [(True, True),
-                               (True, False),
-                               (False, False)])
+        return '%s.%s_%s' % (name, 'etc', msg)
 
     rval = scope.sklearn_ExtraTreesClassifier(
-        n_estimators=scope.int(hp.quniform(
-            _name('n_estimators'),
-            1, 50, 1)) if n_estimators is None else n_estimators,
-        criterion=hp.choice(
-            _name('criterion'),
-            ['gini', 'entropy']) if criterion is None else criterion,
-        max_features=hp.choice(
-            _name('max_features'),
-            ['sqrt', 'log2',
-             None]) if max_features is None else max_features,
-        max_depth=max_depth,
-        min_samples_split=hp.quniform(
-            _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
-            _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
-        oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
+        n_estimators=n_estimators,
+        criterion=(_trees_criterion(_name('criterion')) 
+                   if criterion is None else criterion),
+        max_features=(_trees_max_features(_name('max_features')) 
+                      if max_features is None else max_features),
+        max_depth=(_trees_max_depth(_name('max_depth')) 
+                   if max_depth is None else max_depth),
+        min_samples_split=(_trees_min_samples_split(_name('min_samples_split')) 
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf')) 
+                          if min_samples_leaf is None else min_samples_leaf),
+        bootstrap=(_trees_bootstrap(_name('bootstrap')) 
+                   if bootstrap is None else bootstrap),
+        oob_score=oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
-        )
+    )
     return rval
+
 
 # TODO: Pick reasonable default values
 # TODO: the parameters are the same as RandomForest, stick em together somehow
 def extra_trees_regression(name,
-                n_estimators=None,
-                criterion=None,
-                max_features=None,
-                max_depth=None,
-                min_samples_split=None,
-                min_samples_leaf=None,
-                bootstrap=None,
-                oob_score=None,
-                n_jobs=1,
-                random_state=None,
-                verbose=False):
+                           n_estimators=50,
+                           criterion='mse',
+                           max_features=None,
+                           max_depth=None,
+                           min_samples_split=None,
+                           min_samples_leaf=None,
+                           bootstrap=None,
+                           oob_score=False,
+                           n_jobs=1,
+                           random_state=None,
+                           verbose=False):
 
     def _name(msg):
-        return '%s.%s_%s' % (name, 'extra_trees_regression', msg)
-
-    bootstrap_oob = hp.choice(_name('bootstrap_oob'),
-                              [(True, True),
-                               (True, False),
-                               (False, False)])
+        return '%s.%s_%s' % (name, 'etr', msg)
 
     rval = scope.sklearn_ExtraTreesRegressor(
-        n_estimators=scope.int(hp.quniform(
-            _name('n_estimators'),
-            1, 50, 1)) if n_estimators is None else n_estimators,
-        criterion="mse" if criterion is None else criterion,
-        max_features=hp.choice(
-            _name('max_features'),
-            ['sqrt', 'log2',
-             None]) if max_features is None else max_features,
-        max_depth=max_depth,
-        min_samples_split=hp.quniform(
-            _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
-            _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        bootstrap=bootstrap_oob[0] if bootstrap is None else bootstrap,
-        oob_score=bootstrap_oob[1] if oob_score is None else oob_score,
+        n_estimators=n_estimators,
+        criterion=criterion,
+        max_features=(_trees_max_features(_name('max_features')) 
+                      if max_features is None else max_features),
+        max_depth=(_trees_max_depth(_name('max_depth')) 
+                   if max_depth is None else max_depth),
+        min_samples_split=(_trees_min_samples_split(_name('min_samples_split')) 
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf')) 
+                          if min_samples_leaf is None else min_samples_leaf),
+        bootstrap=(_trees_bootstrap(_name('bootstrap')) 
+                   if bootstrap is None else bootstrap),
+        oob_score=oob_score,
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose,
-        )
+    )
     return rval
 
+
 def sgd(name,
-    loss=None,            #default - 'hinge'
-    penalty=None,         #default - 'l2'
-    alpha=None,           #default - 0.0001
-    l1_ratio=None,        #default - 0.15, must be within [0, 1]
-    fit_intercept=None,   #default - True
-    n_iter=None,          #default - 5
-    shuffle=None,         #default - False
-    random_state=None,    #default - None
-    epsilon=None,
-    n_jobs=1,             #default - 1 (-1 means all CPUs)
-    learning_rate=None,   #default - 'invscaling'
-    eta0=None,            #default - 0.01
-    power_t=None,         #default - 0.5
-    class_weight=None,
-    warm_start=False,
-    verbose=False,
-    ):
+        loss=None,            #default - 'hinge'
+        penalty=None,         #default - 'l2'
+        alpha=None,           #default - 0.0001
+        l1_ratio=None,        #default - 0.15, must be within [0, 1]
+        fit_intercept=True,   #default - True
+        n_iter=5,             #default - 5
+        shuffle=True,         #default - True
+        random_state=None,    #default - None
+        epsilon=None,
+        n_jobs=1,             #default - 1 (-1 means all CPUs)
+        learning_rate=None,   #default - 'optimal'
+        eta0=None,            #default - 0.0
+        power_t=None,         #default - 0.5
+        class_weight='choose',
+        warm_start=False,
+        verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'sgd', msg)
+      return '%s.%s_%s' % (name, 'sgdc', msg)
     
     rval = scope.sklearn_SGDClassifier(
-        loss=hp.pchoice(
-            _name('loss'),
-            [ (0.25, 'hinge'), 
-              (0.25, 'log'), 
-              (0.25, 'modified_huber'), 
-              (0.05, 'squared_hinge'), 
-              (0.05, 'perceptron'),
-              (0.05, 'squared_loss'), 
-              (0.05, 'huber'), 
-              (0.03, 'epsilon_insensitive'),
-              (0.02, 'squared_epsilon_insensitive') ] ) if loss is None else loss,
-        penalty=hp.pchoice(
-            _name('penalty'),
-            [ (0.40, 'l2'), 
-              (0.35, 'l1'),
-              (0.25, 'elasticnet') ] ) if penalty is None else penalty,
-        alpha=hp.loguniform(
-            _name('alpha'),
-            np.log(1e-7),
-            np.log(1)) if alpha is None else alpha,
-        l1_ratio=hp.uniform(
-            _name('l1_ratio'),
-            0, 1 ) if l1_ratio is None else l1_ratio,
-        fit_intercept=hp.pchoice(
-            _name('fit_intercept'),
-            [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
-        learning_rate='invscaling' if learning_rate is None else learning_rate,
-        eta0=hp.loguniform(
-            _name('eta0'),
-            np.log(1e-5),
-            np.log(1e-1)) if eta0 is None else eta0,
-        power_t=hp.uniform(
-            _name('power_t'),
-            0, 1) if power_t is None else power_t,
+        loss=hp.pchoice(_name('loss'), [ 
+            (0.25, 'hinge'), 
+            (0.25, 'log'), 
+            (0.25, 'modified_huber'), 
+            (0.05, 'squared_hinge'), 
+            (0.05, 'perceptron'),
+            (0.05, 'squared_loss'), 
+            (0.05, 'huber'), 
+            (0.03, 'epsilon_insensitive'),
+            (0.02, 'squared_epsilon_insensitive') 
+        ]) if loss is None else loss,
+        penalty=_sgd_penalty(_name('penalty')) if penalty is None else penalty,
+        alpha=_sgd_alpha(_name('alpha')) if alpha is None else alpha,
+        l1_ratio=(_sgd_l1_ratio(_name('l1ratio')) 
+                  if l1_ratio is None else l1_ratio),
+        fit_intercept=fit_intercept,
+        n_iter=n_iter, 
+        learning_rate=(_sgdc_learning_rate(_name('learning_rate')) 
+                       if learning_rate is None else learning_rate),
+        eta0=_sgd_eta0(_name('eta0')) if eta0 is None else eta0,
+        power_t=_sgd_power_t(_name('power_t')) if power_t is None else power_t,
+        class_weight=(_class_weight(_name('clsweight')) 
+                      if class_weight == 'choose' else class_weight), 
         n_jobs=n_jobs,
         verbose=verbose,
-        )
+        random_state=_random_state(_name('rstate'), random_state), 
+    )
     return rval
 
 def sgd_regression(name,
-    loss=None,            #default - 'hinge'
-    penalty=None,         #default - 'l2'
-    alpha=None,           #default - 0.0001
-    l1_ratio=None,        #default - 0.15, must be within [0, 1]
-    fit_intercept=None,   #default - True
-    n_iter=None,          #default - 5
-    shuffle=None,         #default - False
-    random_state=None,    #default - None
-    epsilon=None,         #default - 0.1
-    learning_rate=None,   #default - 'invscaling'
-    eta0=None,            #default - 0.01
-    power_t=None,         #default - 0.5
-    warm_start=False,
-    verbose=0,
-    ):
+                   loss=None,            #default - 'squared_loss'
+                   penalty=None,         #default - 'l2'
+                   alpha=None,           #default - 0.0001
+                   l1_ratio=None,        #default - 0.15, must be within [0, 1]
+                   fit_intercept=True,   #default - True
+                   n_iter=5,             #default - 5
+                   shuffle=None,         #default - False
+                   random_state=None,    #default - None
+                   epsilon=None,         #default - 0.1
+                   learning_rate=None,   #default - 'invscaling'
+                   eta0=None,            #default - 0.01
+                   power_t=None,         #default - 0.5
+                   warm_start=False,
+                   verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'sgd', msg)
+      return '%s.%s_%s' % (name, 'sgdr', msg)
     
     rval = scope.sklearn_SGDRegressor(
-        loss=hp.pchoice(
-            _name('loss'),
-            [ (0.25, 'squared_loss'), 
-              (0.25, 'huber'), 
-              (0.25, 'epsilon_insensitive'), 
-              (0.25, 'squared_epsilon_insensitive') ] ) if loss is None else loss,
-        penalty=hp.pchoice(
-            _name('penalty'),
-            [ (0.40, 'l2'), 
-              (0.35, 'l1'),
-              (0.25, 'elasticnet') ] ) if penalty is None else penalty,
-        alpha=hp.loguniform(
-            _name('alpha'),
-            np.log(1e-7),
-            np.log(1)) if alpha is None else alpha,
-        l1_ratio=hp.uniform(
-            _name('l1_ratio'),
-            0, 1 ) if l1_ratio is None else l1_ratio,
-        fit_intercept=hp.pchoice(
-            _name('fit_intercept'),
-            [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
-        epsilon=hp.loguniform(
-            _name('epsilon'),
-            np.log(1e-7),
-            np.log(1)) if epsilon is None else epsilon,
-        learning_rate='invscaling' if learning_rate is None else learning_rate,
-        eta0=hp.loguniform(
-            _name('eta0'),
-            np.log(1e-5),
-            np.log(1e-1)) if eta0 is None else eta0,
-        power_t=hp.uniform(
-            _name('power_t'),
-            0, 1) if power_t is None else power_t,
+        loss=hp.pchoice(_name('loss'), [ 
+            (0.25, 'squared_loss'), 
+            (0.25, 'huber'), 
+            (0.25, 'epsilon_insensitive'), 
+            (0.25, 'squared_epsilon_insensitive') 
+        ]) if loss is None else loss,
+        penalty=_sgd_penalty(_name('penalty')) if penalty is None else penalty,
+        alpha=_sgd_alpha(_name('alpha')) if alpha is None else alpha,
+        l1_ratio=(_sgd_l1_ratio(_name('l1ratio')) 
+                  if l1_ratio is None else l1_ratio),
+        fit_intercept=fit_intercept,
+        n_iter=n_iter, 
+        # For regression, use the SVM epsilon instead of the SGD one.
+        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
+        learning_rate=(_sgdr_learning_rate(_name('learning_rate')) 
+                       if learning_rate is None else learning_rate),
+        eta0=_sgd_eta0(_name('eta0')) if eta0 is None else eta0,
+        power_t=_sgd_power_t(_name('power_t')) if power_t is None else power_t,
         verbose=verbose,
-        random_state=random_state,
-        )
+        random_state=_random_state(_name('rstate'), random_state), 
+    )
     return rval
 
-def ridge(name,
-    alpha=None,           #default - 1.0
-    normalize=None,       #default - False, 
-    tol=None,             #default - 0.001
-    solver=None,          #default - 'auto'
-    fit_intercept=None,   #default - True
-    ):
+# def ridge(name,
+#     alpha=None,           #default - 1.0
+#     normalize=None,       #default - False, 
+#     tol=None,             #default - 0.001
+#     solver=None,          #default - 'auto'
+#     fit_intercept=None,   #default - True
+#     ):
 
-    def _name(msg):
-      return '%s.%s_%s' % (name, 'sgd', msg)
+#     def _name(msg):
+#       return '%s.%s_%s' % (name, 'sgd', msg)
     
-    rval = scope.sklearn_Ridge(
-        alpha=hp.loguniform(
-            _name('alpha'),
-            np.log(1e-3),
-            np.log(1e3)) if alpha is None else alpha,
-        normalize=hp.pchoice(
-            _name('normalize'),
-            [ (0.8, True), (0.2, False) ]) if normalize is None else normalize,
-        fit_intercept=hp.pchoice(
-            _name('fit_intercept'),
-            [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
-        tol=0.001 if tol is None else tol,
-        solver="auto" if solver is None else solver,
-        )
-    return rval
+#     rval = scope.sklearn_Ridge(
+#         alpha=hp.loguniform(
+#             _name('alpha'),
+#             np.log(1e-3),
+#             np.log(1e3)) if alpha is None else alpha,
+#         normalize=hp.pchoice(
+#             _name('normalize'),
+#             [ (0.8, True), (0.2, False) ]) if normalize is None else normalize,
+#         fit_intercept=hp.pchoice(
+#             _name('fit_intercept'),
+#             [ (0.8, True), (0.2, False) ]) if fit_intercept is None else fit_intercept,
+#         tol=0.001 if tol is None else tol,
+#         solver="auto" if solver is None else solver,
+#         )
+#     return rval
 
 def multinomial_nb(name,
-    alpha=None,
-    fit_prior=None,
+                   alpha=None,
+                   fit_prior=None,
+                   class_prior=None, 
     ):
 
     def _name(msg):
@@ -1086,13 +1114,12 @@ def multinomial_nb(name,
     
 
     rval = scope.sklearn_MultinomialNB(
-        alpha=hp.quniform(
-            _name('alpha'),
-            0, 1, 0.001 ) if alpha is None else alpha,
-        fit_prior=hp.choice(
-            _name('fit_prior'),
-            [ True, False ] ) if fit_prior is None else fit_prior,
-        )
+        alpha=(hp.quniform(_name('alpha'), 0, 1, 0.001) 
+               if alpha is None else alpha),
+        fit_prior=(hp_bool(_name('fit_prior')) 
+                   if fit_prior is None else fit_prior),
+        class_prior=class_prior
+    )
     return rval
 
 def any_classifier(name):
@@ -1102,15 +1129,30 @@ def any_classifier(name):
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
         sgd(name + '.sgd'),
-        ])
+    ])
 
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
-        svc(name + '.svc'),
+        liblinear_svc(name + '.linear_svc'),
         sgd(name + '.sgd'),
         knn(name + '.knn', sparse_data=True),
         multinomial_nb(name + '.multinomial_nb')
-        ])
+    ])
+
+def any_regressor(name):
+    return hp.choice('%s' % name, [
+        svr(name + '.svr'),
+        knn_regression(name + '.knn'),
+        random_forest_regression(name + '.random_forest'),
+        extra_trees_regression(name + '.extra_trees'),
+        sgd_regression(name + '.sgd'),
+    ])
+
+def any_sparse_regressor(name):
+    return hp.choice('%s' % name, [
+        sgd_regression(name + '.sgd'),
+        knn_regression(name + '.knn', sparse_data=True),
+    ])
 
 def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
@@ -1253,8 +1295,8 @@ def rbm(name,
                 q=1,
                 )) if n_iter is None else n_iter,
         verbose=verbose,
-        random_state=_random_state(name + '.rstate', random_state),
-        )
+        random_state=_random_state(_name('rstate'), random_state),
+    )
     return rval
 
 
@@ -1301,7 +1343,7 @@ def colkmeans(name,
         random_state=random_state,
         copy_x=copy_x,
         n_jobs=n_jobs,
-        )
+    )
     return rval
 
 #XXX: todo GaussianRandomProjection
@@ -1316,7 +1358,6 @@ def any_preprocessing(name):
         [standard_scaler(name + '.standard_scaler')],
         [min_max_scaler(name + '.min_max_scaler')],
         [normalizer(name + '.normalizer')],
-        [],
         # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
     ])
