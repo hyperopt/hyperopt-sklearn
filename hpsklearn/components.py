@@ -347,7 +347,6 @@ def svr_linear(name,
                tol=None,
                max_iter=None,
                verbose=False,
-               random_state=None,
                cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -367,7 +366,7 @@ def svr_linear(name,
         max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
+        # random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
     )
     return rval
@@ -417,7 +416,6 @@ def svr_rbf(name,
             tol=None,
             max_iter=None,
             verbose=False,
-            random_state=None,
             cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -440,7 +438,7 @@ def svr_rbf(name,
                   if max_iter is None else max_iter),
         verbose=verbose,
         cache_size=cache_size,
-        random_state=_random_state(_name('rstate'), random_state),
+        # random_state=_random_state(_name('rstate'), random_state),
     )
     return rval
 
@@ -507,7 +505,6 @@ def svr_poly(name,
              tol=None,
              max_iter=None,
              verbose=False,
-             random_state=None,
              cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -527,7 +524,7 @@ def svr_poly(name,
                   if gamma is None else gamma)
     poly_coef0 = hp.pchoice(_name('coef0'), [
         (0.3, 0),
-        (0.7, poly_gamma * hp.uniform('coef0val', 0., 10.))
+        (0.7, poly_gamma * hp.uniform(_name('coef0val'), 0., 10.))
     ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVR(
@@ -543,7 +540,7 @@ def svr_poly(name,
         max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
+        # random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size,
     )
     return rval
@@ -579,7 +576,7 @@ def svc_sigmoid(name,
                   if gamma is None else gamma)
     sigm_coef0 = hp.pchoice(_name('coef0'), [
         (0.3, 0),
-        (0.7, sigm_gamma * hp.uniform('coef0val', -10., 10.))
+        (0.7, sigm_gamma * hp.uniform(_name('coef0val'), -10., 10.))
     ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVC(
@@ -608,7 +605,6 @@ def svr_sigmoid(name,
                 tol=None,
                 max_iter=None,
                 verbose=False,
-                random_state=None,
                 cache_size=_svm_default_cache_size):
     """
     Return a pyll graph with hyperparamters that will construct
@@ -629,7 +625,7 @@ def svr_sigmoid(name,
                   if gamma is None else gamma)
     sigm_coef0 = hp.pchoice(_name('coef0'), [
         (0.3, 0),
-        (0.7, sigm_gamma * hp.uniform('coef0val', -10., 10.))
+        (0.7, sigm_gamma * hp.uniform(_name('coef0val'), -10., 10.))
     ]) if coef0 is None else coef0
 
     rval = scope.sklearn_SVR(
@@ -644,7 +640,7 @@ def svr_sigmoid(name,
         max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
+        # random_state=_random_state(_name('rstate'), random_state),
         cache_size=cache_size)
     return rval
 
@@ -713,7 +709,6 @@ def svr(name,
         tol=None,
         max_iter=None,
         verbose=False,
-        random_state=None,
         cache_size=_svm_default_cache_size):
     svms = {
         'linear': svr_linear(
@@ -723,7 +718,7 @@ def svr(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
-            random_state=random_state,
+            # random_state=random_state,
             verbose=verbose),
         'rbf': svr_rbf(
             name,
@@ -733,7 +728,7 @@ def svr(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
-            random_state=random_state,
+            # random_state=random_state,
             verbose=verbose),
         'poly': svr_poly(
             name,
@@ -743,7 +738,7 @@ def svr(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
-            random_state=random_state,
+            # random_state=random_state,
             verbose=verbose),
         'sigmoid': svr_sigmoid(
             name,
@@ -753,7 +748,7 @@ def svr(name,
             shrinking=shrinking,
             tol=tol,
             max_iter=max_iter,
-            random_state=random_state,
+            # random_state=random_state,
             verbose=verbose),
     }
     choices = [svms[kern] for kern in kernels]
@@ -1204,15 +1199,15 @@ def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
         # -- qloguniform is missing a "scale" parameter so we
         #    lower the "high" parameter and multiply by 4 out front
-        n_components=4 * scope.int(
-            hp.qloguniform(
-                name + '.n_components',
-                low=np.log(0.51),
-                high=np.log(30.5),
-                q=1.0)) if n_components is None else n_components,
-        whiten=hp_bool(
-            name + '.whiten',
-        ) if whiten is None else whiten,
+        # n_components=4 * scope.int(
+        #     hp.qloguniform(
+        #         name + '.n_components',
+        #         low=np.log(0.51),
+        #         high=np.log(30.5),
+        #         q=1.0)) if n_components is None else n_components,
+        n_components=(hp.uniform(name + '.n_components', 0, 1) 
+                      if n_components is None else n_components),
+        whiten=hp_bool(name + '.whiten') if whiten is None else whiten,
         copy=copy,
     )
     return rval
@@ -1276,8 +1271,8 @@ def tfidf(name,
 def min_max_scaler(name, feature_range=None, copy=True):
     if feature_range is None:
         feature_range = (
-            hp.choice(name + '.feature_min', [-1.0, 0.0]),
-            1.0)
+            hp.choice(name + '.feature_min', [-1.0, 0.0]), 1.0
+        )
     rval = scope.sklearn_MinMaxScaler(
         feature_range=feature_range,
         copy=copy,
@@ -1287,10 +1282,8 @@ def min_max_scaler(name, feature_range=None, copy=True):
 
 def normalizer(name, norm=None):
     rval = scope.sklearn_Normalizer(
-        norm=hp.choice(
-            name + '.with_mean',
-            ['l1', 'l2'],
-        ) if norm is None else norm,
+        norm=(hp.choice(name + '.norm', ['l1', 'l2']) 
+              if norm is None else norm),
     )
     return rval
 
@@ -1408,6 +1401,7 @@ def any_preprocessing(name):
         [normalizer(name + '.normalizer')],
         # -- not putting in one-hot because it can make vectors huge
         #[one_hot_encoder(name + '.one_hot_encoder')],
+        []
     ])
 
 

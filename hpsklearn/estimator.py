@@ -33,7 +33,7 @@ best_loss_cutoff_n_iters = 35
 tipping_pt_ratio = 0.6
 
 # Retraining will be done with all training data for retrain_fraction
-# multiplied by the number of iterations used to train the original classifier
+# multiplied by the number of iterations used to train the original learner
 retrain_fraction = 1.2
 
 
@@ -48,11 +48,14 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
         t_start = time.time()
         if 'classifier' in argd:
             classifier = argd['classifier']
+            regressor = argd['regressor']
             preprocessings = argd['preprocessing']
         else:
             classifier = argd['model']['classifier']
+            regressor = argd['model']['regressor']
             preprocessings = argd['model']['preprocessing']
-        untrained_classifier = copy.deepcopy(classifier)
+        learner = classifier if classifier is not None else regressor
+        untrained_learner = copy.deepcopy(learner)
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in preprocessings:
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
@@ -69,7 +72,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
                     # -- jump to NonFiniteFeature handler below
                     raise NonFiniteFeature(pp_algo)
 
-        info('Training classifier', classifier,
+        info('Training learner', learner,
              'on X of dimension', Xfit.shape)
 
         def should_stop(scores):
@@ -92,9 +95,9 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
             return False
 
         n_iters = 0  # Keep track of the number of training iterations
-        best_classifier = None
+        best_learner = None
         #import pdb; pdb.set_trace()
-        if hasattr(classifier, "partial_fit") and use_partial_fit:
+        if hasattr(learner, "partial_fit") and use_partial_fit:
             if timeout is not None:
                 timeout_tolerance = timeout * timeout_buffer
             else:
@@ -108,20 +111,23 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
                     time.time() - t_start < timeout - timeout_tolerance:
                 n_iters += 1
                 rng.shuffle(train_idxs)
-                classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
-                                       classes=np.unique(yfit))
-                validation_scores.append(classifier.score(Xval, yval))
+                if classifier is not None:
+                    learner.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+                                           classes=np.unique(yfit))
+                else:
+                    learner.partial_fit(Xfit[train_idxs], yfit[train_idxs])
+                validation_scores.append(learner.score(Xval, yval))
                 if max(validation_scores) == validation_scores[-1]:
-                    best_classifier = copy.deepcopy(classifier)
+                    best_learner = copy.deepcopy(learner)
 
                 if should_stop(validation_scores):
                     break
                 info('VSCORE', validation_scores[-1])
-            classifier = best_classifier
+            learner = best_learner
         else:
-            classifier.fit(Xfit, yfit)
+            learner.fit(Xfit, yfit)
 
-        if classifier is None:
+        if learner is None:
             t_done = time.time()
             rval = {
                 'status': hyperopt.STATUS_FAIL,
@@ -131,17 +137,21 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
             rtype = 'return'
         else:
             info('Scoring on Xval of shape', Xval.shape)
-            loss = 1.0 - classifier.score(Xval, yval)
-            # -- squared standard error of mean
-            lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
-            info('OK trial with accuracy %.1f +- %.1f' % (
-                100 * (1.0 - loss),
-                100 * np.sqrt(lossvar)))
+            loss = 1 - learner.score(Xval, yval)
+            if classifier is not None:
+                # -- squared standard error of mean
+                lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
+                info('OK trial with accuracy %.1f +- %.1f' % (
+                    100 * (1 - loss),
+                    100 * np.sqrt(lossvar)))
+            else:
+                lossvar = None  # variance of R2 is undefined.
+                info('OK trial with R2 score %.2e' % (1 - loss))
             t_done = time.time()
             rval = {
                 'loss': loss,
                 'loss_variance': lossvar,
-                'classifier': untrained_classifier,
+                'learner': untrained_learner,
                 'preprocs': preprocessings,
                 'status': hyperopt.STATUS_OK,
                 'duration': t_done - t_start,
@@ -201,6 +211,7 @@ class hyperopt_estimator(object):
     def __init__(self,
                  preprocessing=None,
                  classifier=None,
+                 regressor=None,
                  space=None,
                  algo=None,
                  max_evals=100,
@@ -221,6 +232,10 @@ class hyperopt_estimator(object):
 
         classifier: pyll.Apply node
             This should evaluates to sklearn-style classifier (may include
+            hyperparameters).
+
+        regressor: pyll.Apply node
+            This should evaluates to sklearn-style regressor (may include
             hyperparameters).
 
         algo: hyperopt suggest algo (e.g. rand.suggest)
@@ -255,16 +270,23 @@ class hyperopt_estimator(object):
         self.fit_increment_dump_filename = fit_increment_dump_filename
         self.use_partial_fit = use_partial_fit
         if space is None:
-            if classifier is None:
-                classifier = components.any_classifier('classifier')
+            if classifier is not None:
+                assert regressor is None
+                self.classification = True
+            else:
+                assert regressor is not None
+                self.classification = False
+                # classifier = components.any_classifier('classifier')
             if preprocessing is None:
                 preprocessing = components.any_preprocessing('preprocessing')
             self.space = hyperopt.pyll.as_apply({
                 'classifier': classifier,
+                'regressor': regressor,
                 'preprocessing': preprocessing,
             })
         else:
             assert classifier is None
+            assert regressor is None
             assert preprocessing is None
             self.space = hyperopt.pyll.as_apply(space)
 
@@ -306,7 +328,7 @@ class hyperopt_estimator(object):
             X, y, test_size=valid_size, random_state=random_state
         )
         self.trials = hyperopt.Trials()
-        self._best_loss = float('inf')
+        # self._best_loss = float('inf')
         # This is where the cost function is used.
         fn = partial(_cost_fn,
                      Xfit=Xfit, yfit=yfit,
@@ -345,11 +367,11 @@ class hyperopt_estimator(object):
             if fn_rval[1]['status'] == hyperopt.STATUS_OK:
                 fn_loss = float(fn_rval[1].get('loss'))
                 fn_preprocs = fn_rval[1].pop('preprocs')
-                fn_classif = fn_rval[1].pop('classifier')
+                fn_learner = fn_rval[1].pop('learner')
                 fn_iters = fn_rval[1].pop('iterations')
                 if fn_loss < self._best_loss:
                     self._best_preprocs = fn_preprocs
-                    self._best_classif = fn_classif
+                    self._best_learner = fn_learner
                     self._best_loss = fn_loss
                     self._best_iters = fn_iters
             return fn_rval[1]
@@ -375,21 +397,27 @@ class hyperopt_estimator(object):
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
             X = pp_algo.transform(X * 1)  # -- * 1 avoids read-only copy bug
-        if hasattr(self._best_classif, 'partial_fit') and self.use_partial_fit:
+        if hasattr(self._best_learner, 'partial_fit') and \
+                self.use_partial_fit:
             rng = np.random.RandomState(6665)
             train_idxs = rng.permutation(X.shape[0])
             for i in xrange(int(self._best_iters * retrain_fraction)):
                 rng.shuffle(train_idxs)
-                self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
-                                               classes=np.unique(y))
+                if self.classification:
+                    self._best_learner.partial_fit(X[train_idxs], 
+                                                   y[train_idxs],
+                                                   classes=np.unique(y))
+                else:
+                    self._best_learner.partial_fit(X[train_idxs], 
+                                                   y[train_idxs])
         else:
-            self._best_classif.fit(X, y)
+            self._best_learner.fit(X, y)
 
     def fit(self, X, y, valid_size=.2,
             random_state=np.random.RandomState(),
             weights=None):
         """
-        Search the space of classifiers and preprocessing steps for a good
+        Search the space of learners and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
         """
         filename = self.fit_increment_dump_filename
@@ -426,11 +454,12 @@ class hyperopt_estimator(object):
             self.info("Transforming X of shape", X.shape)
             X = pp.transform(X)
         self.info("Predicting X of shape", X.shape)
-        return self._best_classif.predict(X)
+        return self._best_learner.predict(X)
 
     def score(self, X, y):
         """
-        Return the accuracy of the classifier on a given set of data
+        Return the score (accuracy or R2) of the learner on 
+        a given set of data
         """
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
@@ -439,11 +468,11 @@ class hyperopt_estimator(object):
             self.info("Transforming X of shape", X.shape)
             X = pp.transform(X)
         self.info("Classifying X of shape", X.shape)
-        return self._best_classif.score(X, y)
+        return self._best_learner.score(X, y)
 
     def best_model(self):
         """
         Returns the best model found by the previous fit()
         """
-        return {'classifier': self._best_classif,
+        return {'learner': self._best_learner,
                 'preprocs': self._best_preprocs}
