@@ -20,7 +20,7 @@ from . import components
 # timeout * timeout_buffer number of seconds left before timeout
 timeout_buffer = 0.05
 
-# The minimum number of iterations of the partial_fit method that must be run 
+# The minimum number of iterations of the partial_fit method that must be run
 # before early stopping can kick in is min_n_iters
 min_n_iters = 7
 
@@ -36,11 +36,13 @@ tipping_pt_ratio = 0.6
 # multiplied by the number of iterations used to train the original classifier
 retrain_fraction = 1.2
 
+
 class NonFiniteFeature(Exception):
     """
     """
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit, 
+
+def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
              info, timeout, _conn, best_loss=None):
     try:
         t_start = time.time()
@@ -50,7 +52,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
         else:
             classifier = argd['model']['classifier']
             preprocessings = argd['model']['preprocessing']
-        untrained_classifier = copy.deepcopy( classifier )
+        untrained_classifier = copy.deepcopy(classifier)
         # -- N.B. modify argd['preprocessing'] in-place
         for pp_algo in preprocessings:
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
@@ -58,42 +60,41 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
             info('Transforming fit and Xval', Xfit.shape, Xval.shape)
             Xfit = pp_algo.transform(Xfit)
             Xval = pp_algo.transform(Xval)
-            
+
             # np.isfinite() does not work on sparse matrices
-            if not (scipy.sparse.issparse(Xfit) or scipy.sparse.issparse(Xval)):
-              if not (
-                  np.all(np.isfinite(Xfit))
-                  and np.all(np.isfinite(Xval))):
-                  # -- jump to NonFiniteFeature handler below
-                  raise NonFiniteFeature(pp_algo)
+            if not (scipy.sparse.issparse(Xfit) or
+                    scipy.sparse.issparse(Xval)):
+                if not (np.all(np.isfinite(Xfit)) and
+                        np.all(np.isfinite(Xval))):
+                    # -- jump to NonFiniteFeature handler below
+                    raise NonFiniteFeature(pp_algo)
 
         info('Training classifier', classifier,
              'on X of dimension', Xfit.shape)
 
-
         def should_stop(scores):
-          #TODO: possibly extend min_n_iters based on how close the current
-          #      score is to the best score, up to some larger threshold
-          if len(scores) < min_n_iters:
+            # TODO: possibly extend min_n_iters based on how close the current
+            #      score is to the best score, up to some larger threshold
+            if len(scores) < min_n_iters:
+                return False
+            tipping_pt = int(tipping_pt_ratio * len(scores))
+            early_scores = scores[:tipping_pt]
+            late_scores = scores[tipping_pt:]
+            if max(early_scores) >= max(late_scores):
+                return True
+            # TODO: make this less confusing and possibly more accurate
+            if len(scores) > best_loss_cutoff_n_iters and \
+                    max(scores) < 1 - best_loss and \
+                    3 * ( max(late_scores) - max(early_scores) ) < \
+                    1 - best_loss - max(late_scores):
+                info("stopping early due to best_loss cutoff criterion")
+                return True
             return False
-          tipping_pt = int(tipping_pt_ratio * len(scores))
-          early_scores = scores[:tipping_pt]
-          late_scores = scores[tipping_pt:]
-          if max(early_scores) >= max(late_scores):
-            return True
-          #TODO: make this less confusing and possibly more accurate
-          if len(scores) > best_loss_cutoff_n_iters and \
-                 max(scores) < 1 - best_loss and \
-                 3 * ( max(late_scores) - max(early_scores) ) < \
-                 1 - best_loss - max(late_scores):
-            info("stopping early due to best_loss cutoff criterion")
-            return True
-          return False
 
-        n_iters = 0 # Keep track of the number of training iterations
+        n_iters = 0  # Keep track of the number of training iterations
         best_classifier = None
         #import pdb; pdb.set_trace()
-        if hasattr( classifier, "partial_fit" ) and use_partial_fit:
+        if hasattr(classifier, "partial_fit") and use_partial_fit:
             if timeout is not None:
                 timeout_tolerance = timeout * timeout_buffer
             else:
@@ -102,23 +103,23 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
             rng = np.random.RandomState(6665)
             train_idxs = rng.permutation(Xfit.shape[0])
             validation_scores = []
-          
+
             while timeout is not None and \
-                time.time() - t_start < timeout - timeout_tolerance:
+                    time.time() - t_start < timeout - timeout_tolerance:
                 n_iters += 1
                 rng.shuffle(train_idxs)
                 classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
-                                       classes=np.unique( yfit ))
+                                       classes=np.unique(yfit))
                 validation_scores.append(classifier.score(Xval, yval))
                 if max(validation_scores) == validation_scores[-1]:
                     best_classifier = copy.deepcopy(classifier)
-                  
+
                 if should_stop(validation_scores):
                     break
                 info('VSCORE', validation_scores[-1])
             classifier = best_classifier
         else:
-            classifier.fit( Xfit, yfit )
+            classifier.fit(Xfit, yfit)
 
         if classifier is None:
             t_done = time.time()
@@ -126,11 +127,11 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
                 'status': hyperopt.STATUS_FAIL,
                 'failure': 'Not enough time to train anything',
                 'duration': t_done - t_start,
-                }
+            }
             rtype = 'return'
         else:
             info('Scoring on Xval of shape', Xval.shape)
-            loss = 1.0 - classifier.score(Xval,yval)
+            loss = 1.0 - classifier.score(Xval, yval)
             # -- squared standard error of mean
             lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
             info('OK trial with accuracy %.1f +- %.1f' % (
@@ -145,9 +146,9 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
                 'status': hyperopt.STATUS_OK,
                 'duration': t_done - t_start,
                 'iterations': n_iters,
-                }
+            }
             rtype = 'return'
-        
+
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
@@ -155,18 +156,18 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
             'status': hyperopt.STATUS_FAIL,
             'failure': str(exc),
             'duration': t_done - t_start,
-            }
+        }
         rtype = 'return'
 
     except (ValueError,), exc:
         if ('k must be less than or equal'
-            ' to the number of training points') in str(exc):
+                ' to the number of training points') in str(exc):
             t_done = time.time()
             rval = {
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
                 'duration': t_done - t_start,
-                }
+            }
             rtype = 'return'
         else:
             rval = exc
@@ -181,7 +182,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
                 'status': hyperopt.STATUS_FAIL,
                 'failure': str(exc),
                 'duration': t_done - t_start,
-                }
+            }
             rtype = 'return'
         else:
             rval = exc
@@ -196,6 +197,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, use_partial_fit,
 
 
 class hyperopt_estimator(object):
+
     def __init__(self,
                  preprocessing=None,
                  classifier=None,
@@ -208,7 +210,7 @@ class hyperopt_estimator(object):
                  fit_increment_dump_filename=None,
                  seed=None,
                  use_partial_fit=False,
-                ):
+                 ):
         """
         Parameters
         ----------
@@ -267,7 +269,7 @@ class hyperopt_estimator(object):
             self.space = hyperopt.pyll.as_apply(space)
 
         if algo is None:
-            self.algo=hyperopt.rand.suggest
+            self.algo = hyperopt.rand.suggest
         else:
             self.algo = algo
 
@@ -280,8 +282,8 @@ class hyperopt_estimator(object):
         if self.verbose:
             print ' '.join(map(str, args))
 
-    def fit_iter(self, X, y, valid_size=.2, 
-                 random_state=np.random.RandomState(), 
+    def fit_iter(self, X, y, valid_size=.2,
+                 random_state=np.random.RandomState(),
                  weights=None, increment=None):
         """Generator of Trials after ever-increasing numbers of evaluations
         """
@@ -291,14 +293,14 @@ class hyperopt_estimator(object):
         # len does not work on sparse matrices, so using shape[0] instead
         # shape[0] does not work on lists, so using len() for those
         if scipy.sparse.issparse(X):
-          data_length = X.shape[0]
+            data_length = X.shape[0]
         else:
-          data_length = len(X)
+            data_length = len(X)
         if type(X) is list:
-          X = np.array(X)
+            X = np.array(X)
         if type(y) is list:
-          y = np.array(y)
-        
+            y = np.array(y)
+
         # Data is split into train and validation sets.
         Xfit, Xval, yfit, yval = train_test_split(
             X, y, test_size=valid_size, random_state=random_state
@@ -306,12 +308,12 @@ class hyperopt_estimator(object):
         self.trials = hyperopt.Trials()
         self._best_loss = float('inf')
         # This is where the cost function is used.
-        fn=partial(_cost_fn,
-                Xfit=Xfit, yfit=yfit,
-                Xval=Xval, yval=yval, 
-                use_partial_fit=self.use_partial_fit, 
-                info=self.info,
-                timeout=self.trial_timeout)
+        fn = partial(_cost_fn,
+                     Xfit=Xfit, yfit=yfit,
+                     Xval=Xval, yval=yval,
+                     use_partial_fit=self.use_partial_fit,
+                     info=self.info,
+                     timeout=self.trial_timeout)
         self._best_loss = float('inf')
 
         def fn_with_timeout(*args, **kwargs):
@@ -366,35 +368,34 @@ class hyperopt_estimator(object):
                           # -- let exceptions crash the program,
                           #    so we notice them.
                           catch_eval_exceptions=False,
-                          return_argmin=False, # -- in case no success so far
-                         )
+                          return_argmin=False,  # -- in case no success so far
+                          )
 
     def retrain_best_model_on_full_data(self, X, y, weights=None):
         for pp_algo in self._best_preprocs:
             pp_algo.fit(X)
-            X = pp_algo.transform(X * 1) # -- * 1 avoids read-only copy bug
+            X = pp_algo.transform(X * 1)  # -- * 1 avoids read-only copy bug
         if hasattr(self._best_classif, 'partial_fit') and self.use_partial_fit:
-          rng = np.random.RandomState(6665)
-          train_idxs = rng.permutation(X.shape[0])
-          for i in xrange(int(self._best_iters * retrain_fraction)):
-            rng.shuffle(train_idxs)
-            self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
-                                           classes=np.unique(y))
+            rng = np.random.RandomState(6665)
+            train_idxs = rng.permutation(X.shape[0])
+            for i in xrange(int(self._best_iters * retrain_fraction)):
+                rng.shuffle(train_idxs)
+                self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
+                                               classes=np.unique(y))
         else:
-          self._best_classif.fit(X,y)
+            self._best_classif.fit(X, y)
 
-
-    def fit(self, X, y, valid_size=.2, 
-            random_state=np.random.RandomState(), 
+    def fit(self, X, y, valid_size=.2,
+            random_state=np.random.RandomState(),
             weights=None):
         """
         Search the space of classifiers and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
         """
         filename = self.fit_increment_dump_filename
-        fit_iter = self.fit_iter(X, y, 
-                                 valid_size=valid_size, 
-                                 random_state=random_state, 
+        fit_iter = self.fit_iter(X, y,
+                                 valid_size=valid_size,
+                                 random_state=random_state,
                                  weights=weights,
                                  increment=self.fit_increment)
         fit_iter.next()
@@ -417,9 +418,9 @@ class hyperopt_estimator(object):
         # -- copy because otherwise np.utils.check_arrays sometimes does not
         #    produce a read-write view from read-only memory
         if scipy.sparse.issparse(X):
-          X = scipy.sparse.csr_matrix(X)
+            X = scipy.sparse.csr_matrix(X)
         else:
-          X = np.array(X)
+            X = np.array(X)
 
         for pp in self._best_preprocs:
             self.info("Transforming X of shape", X.shape)
@@ -427,7 +428,7 @@ class hyperopt_estimator(object):
         self.info("Predicting X of shape", X.shape)
         return self._best_classif.predict(X)
 
-    def score( self, X, y ):
+    def score(self, X, y):
         """
         Return the accuracy of the classifier on a given set of data
         """
@@ -439,13 +440,10 @@ class hyperopt_estimator(object):
             X = pp.transform(X)
         self.info("Classifying X of shape", X.shape)
         return self._best_classif.score(X, y)
-    
-    def best_model( self ):
+
+    def best_model(self):
         """
         Returns the best model found by the previous fit()
         """
         return {'classifier': self._best_classif,
                 'preprocs': self._best_preprocs}
-
-
-
