@@ -17,6 +17,7 @@ arguments in this module:
 import numpy as np
 from sklearn.svm import SVR
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 
 class LagSelector:
     '''Base class for all lag selectors
@@ -102,11 +103,84 @@ class KNRLagSelector(LagSelector, KNeighborsRegressor):
     
     def predict(self, X, EX_list=None, lags=False):
         XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
-        return super(SVRLagSelector, self).predict(XEX)
+        return super(KNRLagSelector, self).predict(XEX)
     
     def score(self, X, y, EX_list=None, lags=False, sample_weight=None):
         XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
-        return super(SVRLagSelector, self).score(XEX, y, sample_weight)
+        return super(KNRLagSelector, self).score(XEX, y, sample_weight)
+
+
+class RFRLagSelector(LagSelector, RandomForestRegressor):
+    '''Random forest regressor child class that uses the numbers of lagged 
+    predictors as hyperparameters.
+    '''
+    def __init__(self, en_nlag=None, ex_nlag=None, 
+                 n_estimators=10, criterion="mse",
+                 max_depth=None, min_samples_split=2, min_samples_leaf=1,
+                 min_weight_fraction_leaf=0., max_features="auto",
+                 max_leaf_nodes=None, bootstrap=True, oob_score=False,
+                 n_jobs=1, random_state=None, verbose=0, warm_start=False):
+        super(RFRLagSelector, self).check_set_nlag(en_nlag, ex_nlag)
+        super(RFRLagSelector, self).__init__(
+            n_estimators=n_estimators, criterion=criterion,
+            max_depth=max_depth, min_samples_split=min_samples_split, 
+            min_samples_leaf=min_samples_leaf,
+            min_weight_fraction_leaf=min_weight_fraction_leaf, 
+            max_features=max_features,
+            max_leaf_nodes=max_leaf_nodes, bootstrap=bootstrap, 
+            oob_score=oob_score, n_jobs=n_jobs, random_state=random_state, 
+            verbose=verbose, warm_start=warm_start)
+
+    def fit(self, X, y, EX_list=None, lags=False, sample_weight=None):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(RFRLagSelector, self).fit(XEX, y, sample_weight)
+    
+    def predict(self, X, EX_list=None, lags=False):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(RFRLagSelector, self).predict(XEX)
+    
+    def score(self, X, y, EX_list=None, lags=False, sample_weight=None):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(RFRLagSelector, self).score(XEX, y, sample_weight)
+
+
+class ETRLagSelector(LagSelector, ExtraTreesRegressor):
+    '''Extra trees regressor child class that uses the numbers of lagged 
+    predictors as hyperparameters.
+    '''
+    def __init__(self, en_nlag=None, ex_nlag=None, 
+                 n_estimators=10, criterion="mse",
+                 max_depth=None, min_samples_split=2, min_samples_leaf=1,
+                 min_weight_fraction_leaf=0., max_features="auto",
+                 max_leaf_nodes=None, bootstrap=False, oob_score=False,
+                 n_jobs=1, random_state=None, verbose=0, warm_start=False):
+        super(ETRLagSelector, self).check_set_nlag(en_nlag, ex_nlag)
+        super(ETRLagSelector, self).__init__(
+            n_estimators=n_estimators, criterion=criterion,
+            max_depth=max_depth, min_samples_split=min_samples_split, 
+            min_samples_leaf=min_samples_leaf,
+            min_weight_fraction_leaf=min_weight_fraction_leaf, 
+            max_features=max_features,
+            max_leaf_nodes=max_leaf_nodes, bootstrap=bootstrap, 
+            oob_score=oob_score, n_jobs=n_jobs, random_state=random_state, 
+            verbose=verbose, warm_start=warm_start)
+
+    def fit(self, X, y, EX_list=None, lags=False, sample_weight=None):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(ETRLagSelector, self).fit(XEX, y, sample_weight)
+    
+    def predict(self, X, EX_list=None, lags=False):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(ETRLagSelector, self).predict(XEX)
+    
+    def score(self, X, y, EX_list=None, lags=False, sample_weight=None):
+        XEX = _check_assemble(X, EX_list, self.en_nlag, self.ex_nlag, lags)
+        return super(ETRLagSelector, self).score(XEX, y, sample_weight)
 
 
 
+
+
+
+
+        

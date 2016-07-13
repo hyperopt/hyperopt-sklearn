@@ -8,9 +8,11 @@ import sklearn.neural_network
 import sklearn.linear_model
 import sklearn.feature_extraction.text
 import sklearn.naive_bayes
+from functools import partial
 from hyperopt.pyll import scope, as_apply
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
+from . import lagselectors
 
 
 @scope.define
@@ -22,6 +24,13 @@ def sklearn_SVC(*args, **kwargs):
 def sklearn_SVR(*args, **kwargs):
     return sklearn.svm.SVR(*args, **kwargs)
 
+@scope.define
+def sklearn_SVRLagSelector(*args, **kwargs):
+    return lagselectors.SVRLagSelector(*args, **kwargs)
+
+@scope.define
+def sklearn_KNRLagSelector(*args, **kwargs):
+    return lagselectors.KNRLagSelector(*args, **kwargs)
 
 @scope.define
 def sklearn_LinearSVC(*args, **kwargs):
@@ -154,7 +163,7 @@ def _svm_gamma(name, n_features=1):
     '''
     # -- making these non-conditional variables
     #    probably helps the GP algorithm generalize
-    assert n_features >= 1
+    # assert n_features >= 1
     return hp.loguniform(name,
                          np.log(1. / n_features * 1e-3),
                          np.log(1. / n_features * 1e3))
@@ -198,16 +207,27 @@ def _svm_loss_penalty_dual(name):
     ])
 
 
-def _knn_metric(name, sparse_data=False):
+def _knn_metric_p(name, sparse_data=False, metric=None, p=None):
     if sparse_data:
-        return 'euclidean'
-    else:
+        return ('euclidean', 2)
+    elif metric == 'euclidean':
+        return (metric, 2)
+    elif metric == 'manhattan':
+        return (metric, 1)
+    elif metric == 'chebyshev':
+        return (metric, 0)
+    elif metric == 'minkowski':
+        assert p is not None
+        return (metric, p)
+    elif metric is None:
         return hp.pchoice(name, [
-            (0.55, 'euclidean'),
-            (0.15, 'manhattan'),
-            (0.15, 'chebyshev'),
-            (0.15, 'minkowski'),
+            (0.55, ('euclidean', 2)),
+            (0.15, ('manhattan', 1)),
+            (0.15, ('chebyshev', 0)),
+            (0.15, ('minkowski', _knn_p(name + '.p'))),
         ])
+    else:
+        return (metric, p)  # undefined, simply return user input.
 
 
 def _knn_p(name):
@@ -304,9 +324,275 @@ def _random_state(name, random_state):
     else:
         return random_state
 
-
 def _class_weight(name):
     return hp.choice(name, [None, 'balanced'])
+
+def _lag_size_en(name, max_lag_size):
+    return scope.int(hp.quniform(name, 0.5, max_lag_size + 0.5, 1))
+
+def _lag_size_ex(name, max_lag_size):
+    # Lag size can be zero for exogenous data.
+    return scope.int(hp.quniform(name, -0.5, max_lag_size + 0.5, 1))
+
+def _determine_lag_sizes(name, max_lag_sizes, n_ex_ds, en_nlag, ex_nlag):
+    if max_lag_sizes is None:
+        assert (en_nlag is not None and ex_nlag is not None)
+        return (en_nlag, ex_nlag)
+    else:
+        assert (n_ex_ds is not None and n_ex_ds >= 0)
+        if isinstance(max_lag_sizes, (list, tuple)):
+            assert len(max_lag_sizes) == n_ex_ds + 1
+        else:
+            assert isinstance(max_lag_sizes, int)
+        if en_nlag is not None:
+            en_nlag = en_nlag
+        elif isinstance(max_lag_sizes, int):
+            en_nlag = _lag_size_en(name + '.en', max_lag_sizes) 
+        else:
+            en_nlag = _lag_size_en(name + '.en', max_lag_sizes[0])
+        if ex_nlag is not None:
+            ex_nlag = ex_nlag
+        elif n_ex_ds == 0:
+            ex_nlag = [0]
+        elif isinstance(max_lag_sizes, int):
+            ex_nlag = [
+                _lag_size_ex(name + '.ex' + str(i), 
+                             max_lag_sizes) for i in range(1, n_ex_ds + 1)
+            ]
+        else:
+            ex_nlag = [
+                _lag_size_ex(name + '.ex' + str(i), 
+                             max_lag_sizes[i]) for i in range(1, n_ex_ds + 1)
+            ]
+        return (en_nlag, ex_nlag)
+
+
+def _svm_hp_space(
+        name_func,
+        kernel,
+        n_features=1,
+        C=None,
+        gamma=None,
+        coef0=None,
+        degree=None,
+        shrinking=None,
+        tol=None,
+        max_iter=None,
+        verbose=False,
+        cache_size=_svm_default_cache_size):
+    '''Generate SVM hyperparamters search space
+    '''
+    if kernel in ['linear', 'rbf', 'sigmoid']:
+        degree_ = 1
+    else:
+        degree_ = (_svm_degree(name_func('degree')) 
+                   if degree is None else degree)
+    if kernel in ['linear']:
+        gamma_ = 'auto'
+    else:
+        gamma_ = (_svm_gamma(name_func('gamma'), n_features=1) 
+                  if gamma is None else gamma)
+        gamma_ /= n_features  # make gamma independent on lag sizes.
+    if kernel in ['linear', 'rbf']:
+        coef0_ = 0.0
+    elif coef0 is None:
+        if kernel == 'poly':
+            coef0_ = hp.pchoice(name_func('coef0'), [
+                (0.3, 0),
+                (0.7, gamma_ * hp.uniform(name_func('coef0val'), 0., 10.))
+            ])
+        elif kernel == 'sigmoid':
+            coef0_ = hp.pchoice(name_func('coef0'), [
+                (0.3, 0),
+                (0.7, gamma_ * hp.uniform(name_func('coef0val'), -10., 10.))
+            ])
+        else:
+            pass
+    else:
+        coef0_ = coef0
+
+    hp_space = dict(
+        kernel=kernel,
+        C=_svm_C(name_func('C')) if C is None else C,
+        gamma=gamma_,
+        coef0=coef0_,
+        degree=degree_,
+        shrinking=(hp_bool(name_func('shrinking')) 
+                   if shrinking is None else shrinking),
+        tol=_svm_tol(name_func('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(name_func('maxiter'))
+                  if max_iter is None else max_iter),
+        verbose=verbose,
+        cache_size=cache_size)
+    return hp_space
+
+def _svc_hp_space(name_func, random_state=None):
+    '''Generate SVC specific hyperparamters
+    '''
+    hp_space['random_state'] = _random_state(name_func('rstate'), 
+                                             random_state)
+    return hp_space
+
+def _svr_hp_space(name_func, epsilon=None):
+    '''Generate SVR specific hyperparamters
+    '''
+    hp_space = {}
+    hp_space['epsilon'] = (_svm_epsilon(name_func('epsilon')) 
+                           if epsilon is None else epsilon)
+    return hp_space
+
+def _lags_hp_space(
+        name_func,
+        max_lag_sizes=None,
+        n_ex_ds=None,
+        en_nlag=None,
+        ex_nlag=None):
+    '''Generate lag selector hyperparamters
+    Args:
+        name_func (callable): a function to generate names for hyperparamters
+        max_lag_sizes([int or list or tuple]): maximum lag size(s)
+        n_ex_ds ([int]): number of exogenous datasets
+        en_nlag ([int]): number of lags for endogenous dataset
+        ex_nlag ([list or tuple]): number(s) of lags for exogenous datasets
+
+    max_lag_sizes, n_ex_ds, en_nlag, ex_nlag jointly determine the 
+    lag sizes for endogenous and exogenous predictors.
+
+    If max_lag_sizes is none, en_nlag and ex_nlag shall both be specified.
+    Otherwise, max_lag_sizes gives the maximum lag size(s) for the 
+    predictors to choose from. If max_lag_sizes is int, the same value is 
+    used for all predictors. If max_lag_sizes is a list, different values 
+    can be used for the predictors separately. max_lag_sizes[0] shall contain
+    the value for endogenous predictors, max_lag_sizes[1:] shall contain 
+    the values for exogenous predictors and use the same order as EX_list.
+
+    For endogenous lag size, the default distribution is to choose from 
+    uniform(1, max_lag_size). While for exogenous lag size, the default 
+    is to choose from uniform(0, max_lag_size). The lag size(s) must be 
+    integer(s). Custom values can be provided for en_nlag and ex_nlag to 
+    override this behavior.
+
+    When max_lag_sizes and en_nlag are both specified, en_nlag will override 
+    the value in max_lag_sizes. The same for ex_nlag.
+
+    n_ex_ds gives the number of exogenous datasets. It must be specified 
+    when max_lag_sizes is specified. If there is no exogenous data, it can 
+    simply be set to 0.     
+    '''
+    en_nlag_, ex_nlag_ = _determine_lag_sizes(name_func('lag_size'), 
+                                              max_lag_sizes, n_ex_ds, 
+                                              en_nlag, ex_nlag)
+    hp_space = {}
+    hp_space['en_nlag'] = en_nlag_
+    hp_space['ex_nlag'] = ex_nlag_
+    return hp_space
+
+def svr_lags_kernel(
+        name,
+        kernel,
+        max_lag_sizes=None,
+        n_ex_ds=None,
+        en_nlag=None,
+        ex_nlag=None,
+        C=None,
+        epsilon=None,
+        gamma=None,
+        coef0=None,
+        degree=None,
+        shrinking=None,
+        tol=None,
+        max_iter=None,
+        verbose=False,
+        cache_size=_svm_default_cache_size):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a lagselectors.SVRLagSelector model with user specified kernel.
+
+    See help(hpsklearn.components._lags_hp_space) for details on 
+    specifying lag sizes.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, kernel, msg)
+    # Lag selector hyperparameters.
+    hp_space = _lags_hp_space(_name, 
+                              max_lag_sizes=max_lag_sizes, 
+                              n_ex_ds=n_ex_ds,
+                              en_nlag=en_nlag,
+                              ex_nlag=ex_nlag)
+    # SVM hyperparameters.
+    n_features = scope.int(sum([hp_space['en_nlag']] + hp_space['ex_nlag']))
+    hp_space.update(_svm_hp_space(_name, kernel=kernel,
+                                  n_features=n_features,
+                                  C=C,
+                                  gamma=gamma,
+                                  coef0=coef0,
+                                  degree=degree,
+                                  shrinking=shrinking,
+                                  tol=tol,
+                                  max_iter=max_iter,
+                                  verbose=verbose,
+                                  cache_size=cache_size))
+    # SVR specific hyperparameters.
+    hp_space.update(_svr_hp_space(_name, epsilon=epsilon))
+
+    return scope.sklearn_SVRLagSelector(**hp_space)
+
+
+def svr_lags_linear(name, **kwargs):
+    '''
+    This simply return the result of svr_lags_kernel with the 
+    kernel fixed as linear.
+    See help(svr_lags_kernel) for details.
+    '''
+    return svr_lags_kernel(name, kernel='linear', **kwargs)
+
+def svr_lags_rbf(name, **kwargs):
+    '''
+    This simply return the result of svr_lags_kernel with the 
+    kernel fixed as rbf.
+    See help(svr_lags_kernel) for details.
+    '''
+    return svr_lags_kernel(name, kernel='rbf', **kwargs)
+
+def svr_lags_poly(name, **kwargs):
+    '''
+    This simply return the result of svr_lags_kernel with the 
+    kernel fixed as poly.
+    See help(svr_lags_kernel) for details.
+    '''
+    return svr_lags_kernel(name, kernel='poly', **kwargs)
+
+def svr_lags_sigmoid(name, **kwargs):
+    '''
+    This simply return the result of svr_lags_kernel with the 
+    kernel fixed as sigmoid.
+    See help(svr_lags_kernel) for details.
+    '''
+    return svr_lags_kernel(name, kernel='sigmoid', **kwargs)
+
+
+def svr_lags(
+        name, 
+        kernels=['linear', 'rbf', 'poly', 'sigmoid'], 
+        **kwargs):
+    '''SVR lag selector with kernel function to be chosen by hyperopt
+    Args:
+        kernels ([list]): available kernels to choose from.
+        **kwargs: all other parameters for svr_lagselector.
+    Return: an SVRLagSelector instance.
+    '''
+    svms = {
+        'linear': partial(svr_lags_linear, name=name),
+        'rbf': partial(svr_lags_rbf, name=name),
+        'poly': partial(svr_lags_poly, name=name),
+        'sigmoid': partial(svr_lags_sigmoid, name=name),
+    }
+    choices = [svms[kern](**kwargs) for kern in kernels]
+    if len(choices) == 1:
+        rval = choices[0]
+    else:
+        rval = hp.choice('%s.kernel' % name, choices)
+    return rval
 
 
 def svc_linear(name,
@@ -797,6 +1083,77 @@ def liblinear_svc(name,
         max_iter=max_iter,
     )
     return rval
+
+def _knn_hp_space(
+        name_func,
+        sparse_data=False,
+        n_neighbors=None,
+        weights=None,
+        algorithm='auto',
+        leaf_size=30,
+        metric=None,
+        p=None,
+        metric_params=None,
+        n_jobs=1):
+    '''Generate KNN hyperparameters search space
+    '''
+    metric_p = _knn_metric_p(name_func('metric_p'), sparse_data, metric, p)
+    hp_space = dict(
+        n_neighbors=(_knn_neighbors(name_func('neighbors'))
+                     if n_neighbors is None else n_neighbors),
+        weights=(_knn_weights(name_func('weights')) 
+                 if weights is None else weights),
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric_p[0],
+        p=metric_p[1],
+        metric_params=metric_params,
+        n_jobs=n_jobs)
+    return hp_space
+
+def knr_lags(
+        name,
+        max_lag_sizes=None,
+        n_ex_ds=None,
+        en_nlag=None,
+        ex_nlag=None,
+        sparse_data=False,
+        n_neighbors=None,
+        weights=None,
+        algorithm='auto',
+        leaf_size=30,
+        metric=None,
+        p=None,
+        metric_params=None,
+        n_jobs=1):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a lagselectors.KNRLagSelector (KNN regression lag selector) 
+    model.
+
+    See help(hpsklearn.components._lags_hp_space) for details on 
+    specifying lag sizes.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'knr', msg)
+    # Lag selector hyperparameters.
+    hp_space = _lags_hp_space(_name, 
+                              max_lag_sizes=max_lag_sizes, 
+                              n_ex_ds=n_ex_ds,
+                              en_nlag=en_nlag,
+                              ex_nlag=ex_nlag)
+    # KNN hyperparameters.
+    hp_space.update(_knn_hp_space(_name,
+                                  sparse_data=sparse_data,
+                                  n_neighbors=n_neighbors,
+                                  weights=weights,
+                                  algorithm=algorithm,
+                                  leaf_size=leaf_size,
+                                  metric=metric,
+                                  p=p,
+                                  metric_params=metric_params,
+                                  n_jobs=n_jobs))
+    return scope.sklearn_KNRLagSelector(**hp_space)
 
 
 # TODO: Pick reasonable default values
