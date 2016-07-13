@@ -33,6 +33,14 @@ def sklearn_KNRLagSelector(*args, **kwargs):
     return lagselectors.KNRLagSelector(*args, **kwargs)
 
 @scope.define
+def sklearn_RFRLagSelector(*args, **kwargs):
+    return lagselectors.RFRLagSelector(*args, **kwargs)
+
+@scope.define
+def sklearn_ETRLagSelector(*args, **kwargs):
+    return lagselectors.ETRLagSelector(*args, **kwargs)
+
+@scope.define
 def sklearn_LinearSVC(*args, **kwargs):
     return sklearn.svm.LinearSVC(*args, **kwargs)
 
@@ -242,6 +250,9 @@ def _knn_weights(name):
     return hp.choice(name, ['uniform', 'distance'])
 
 
+def _trees_n_estimators(name):
+    return scope.int(hp.qloguniform(name, np.log(9.5), np.log(3000.5), 1))
+
 def _trees_criterion(name):
     return hp.choice(name, ['gini', 'entropy'])
 
@@ -250,13 +261,18 @@ def _trees_max_features(name):
     return hp.pchoice(name, [
         (0.2, 'sqrt'),  # most common choice.
         (0.1, 'log2'),  # less common choice.
-        (0.1, None),  # less common choice.
+        (0.1, None),  # all features, less common choice.
         (0.6, hp.uniform(name + '.frac', 0., 1.))
     ])
 
-
 def _trees_max_depth(name):
-    return None
+    return hp.pchoice(name, [
+        (0.7, None),  # most common choice.
+        # Try some shallow trees.
+        (0.1, 2),
+        (0.1, 3),
+        (0.1, 4),
+    ])
 
 
 def _trees_min_samples_split(name):
@@ -266,7 +282,7 @@ def _trees_min_samples_split(name):
 def _trees_min_samples_leaf(name):
     return hp.choice(name, [
         1,  # most common choice.
-        hp.qloguniform(name + '.gt1', np.log(1.5), np.log(50.5), 1)
+        scope.int(hp.qloguniform(name + '.gt1', np.log(1.5), np.log(50.5), 1))
     ])
 
 
@@ -1216,6 +1232,137 @@ def knn_regression(name,
     )
     return rval
 
+def _trees_hp_space(
+        name_func,
+        n_estimators=None,
+        criterion='mse',
+        max_features=None,
+        max_depth=None,
+        min_samples_split=None,
+        min_samples_leaf=None,
+        bootstrap=None,
+        oob_score=False,
+        n_jobs=1,
+        random_state=None,
+        verbose=False):
+    '''Generate trees ensemble hyperparameters search space
+    '''
+    hp_space = dict(
+        n_estimators=(_trees_n_estimators(name_func('n_estimators')) 
+                      if n_estimators is None else n_estimators),
+        criterion=criterion,
+        max_features=(_trees_max_features(name_func('max_features'))
+                      if max_features is None else max_features),
+        max_depth=(_trees_max_depth(name_func('max_depth'))
+                   if max_depth is None else max_depth),
+        min_samples_split=(_trees_min_samples_split(name_func('min_samples_split'))
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf'))
+                          if min_samples_leaf is None else min_samples_leaf),
+        bootstrap=(_trees_bootstrap(name_func('bootstrap'))
+                   if bootstrap is None else bootstrap),
+        oob_score=oob_score,
+        n_jobs=n_jobs,
+        random_state=_random_state(name_func('rstate'), random_state),
+        verbose=verbose,
+    )
+    return hp_space
+
+def rfr_lags(
+        name,
+        max_lag_sizes=None,
+        n_ex_ds=None,
+        en_nlag=None,
+        ex_nlag=None,
+        n_estimators=None,
+        criterion='mse',
+        max_features=None,
+        max_depth=None,
+        min_samples_split=None,
+        min_samples_leaf=None,
+        bootstrap=None,
+        oob_score=False,
+        n_jobs=1,
+        random_state=None,
+        verbose=False):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a lagselectors.RFRLagSelector (random forest regression lag selector) 
+    model.
+
+    See help(hpsklearn.components._lags_hp_space) for details on 
+    specifying lag sizes.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'rfr', msg)
+    # Lag selector hyperparameters.
+    hp_space = _lags_hp_space(_name, 
+                              max_lag_sizes=max_lag_sizes, 
+                              n_ex_ds=n_ex_ds,
+                              en_nlag=en_nlag,
+                              ex_nlag=ex_nlag)
+    # Random forest hyperparameters.
+    hp_space.update(_trees_hp_space(_name,
+                                    n_estimators=n_estimators,
+                                    criterion=criterion,
+                                    max_features=max_features,
+                                    max_depth=max_depth,
+                                    min_samples_split=min_samples_split,
+                                    min_samples_leaf=min_samples_leaf,
+                                    bootstrap=bootstrap,
+                                    oob_score=oob_score,
+                                    n_jobs=n_jobs,
+                                    random_state=random_state,
+                                    verbose=verbose))
+    return scope.sklearn_RFRLagSelector(**hp_space)
+
+def etr_lags(
+        name,
+        max_lag_sizes=None,
+        n_ex_ds=None,
+        en_nlag=None,
+        ex_nlag=None,
+        n_estimators=None,
+        criterion='mse',
+        max_features=None,
+        max_depth=None,
+        min_samples_split=None,
+        min_samples_leaf=None,
+        bootstrap=None,
+        oob_score=False,
+        n_jobs=1,
+        random_state=None,
+        verbose=False):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a lagselectors.ETRLagSelector (extra trees regression lag selector) 
+    model.
+
+    See help(hpsklearn.components._lags_hp_space) for details on 
+    specifying lag sizes.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'etr', msg)
+    # Lag selector hyperparameters.
+    hp_space = _lags_hp_space(_name, 
+                              max_lag_sizes=max_lag_sizes, 
+                              n_ex_ds=n_ex_ds,
+                              en_nlag=en_nlag,
+                              ex_nlag=ex_nlag)
+    # Extra trees hyperparameters.
+    hp_space.update(_trees_hp_space(_name,
+                                    n_estimators=n_estimators,
+                                    criterion=criterion,
+                                    max_features=max_features,
+                                    max_depth=max_depth,
+                                    min_samples_split=min_samples_split,
+                                    min_samples_leaf=min_samples_leaf,
+                                    bootstrap=bootstrap,
+                                    oob_score=oob_score,
+                                    n_jobs=n_jobs,
+                                    random_state=random_state,
+                                    verbose=verbose))
+    return scope.sklearn_ETRLagSelector(**hp_space)
 
 # TODO: Pick reasonable default values
 def random_forest(name,
