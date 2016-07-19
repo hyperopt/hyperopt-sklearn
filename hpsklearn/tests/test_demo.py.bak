@@ -20,7 +20,7 @@ def test_demo_iris():
     iterator = estimator.fit_iter(
         data_view.split[0].train.X,
         data_view.split[0].train.y)
-    next(iterator)
+    iterator.next()
 
     while len(estimator.trials.trials) < estimator.max_evals:
         iterator.send(1) # -- try one more model
@@ -34,4 +34,4 @@ def test_demo_iris():
     # /END Demo version of `estimator.fit()`
 
     test_predictions = estimator.predict(data_view.split[0].test.X)
-    print(np.mean(test_predictions == data_view.split[0].test.y))
+    print np.mean(test_predictions == data_view.split[0].test.y)

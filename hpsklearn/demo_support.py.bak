@@ -8,12 +8,12 @@ def scatter_error_vs_time(estimator, ax):
     losses = estimator.trials.losses()
     ax.set_ylabel('Validation error rate')
     ax.set_xlabel('Iteration')
-    ax.scatter(list(range(len(losses))), losses)
+    ax.scatter(range(len(losses)), losses)
 
 
 def plot_minvalid_vs_time(estimator, ax, ylim=None):
     losses = estimator.trials.losses()
-    ts = list(range(1, len(losses)))
+    ts = range(1, len(losses))
     mins = [np.min(losses[:ii]) for ii in ts]
     ax.set_ylabel('min(Validation error rate to-date)')
     ax.set_xlabel('Iteration')
