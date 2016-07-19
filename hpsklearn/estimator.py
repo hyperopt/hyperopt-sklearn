@@ -1,6 +1,6 @@
 """
 """
-import cPickle
+import pickle
 import copy
 from functools import partial
 from multiprocessing import Process, Pipe
@@ -143,8 +143,8 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
                 }
             rtype = 'return'
         
-    except (NonFiniteFeature,), exc:
-        print 'Failing trial due to NaN in', str(exc)
+    except (NonFiniteFeature,) as exc:
+        print('Failing trial due to NaN in', str(exc))
         t_done = time.time()
         rval = {
             'status': hyperopt.STATUS_FAIL,
@@ -153,7 +153,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             }
         rtype = 'return'
 
-    except (ValueError,), exc:
+    except (ValueError,) as exc:
         if ('k must be less than or equal'
             ' to the number of training points') in str(exc):
             t_done = time.time()
@@ -167,8 +167,8 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             rval = exc
             rtype = 'raise'
 
-    except (AttributeError,), exc:
-        print 'Failing due to k_means_ weirdness'
+    except (AttributeError,) as exc:
+        print('Failing due to k_means_ weirdness')
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
             t_done = time.time()
@@ -182,7 +182,7 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
             rval = exc
             rtype = 'raise'
 
-    except Exception, exc:
+    except Exception as exc:
         rval = exc
         rtype = 'raise'
 
@@ -265,7 +265,7 @@ class hyperopt_estimator(object):
 
     def info(self, *args):
         if self.verbose:
-            print ' '.join(map(str, args))
+            print(' '.join(map(str, args)))
 
     def fit_iter(self, X, y, weights=None, increment=None):
         """Generator of Trials after ever-increasing numbers of evaluations
@@ -360,7 +360,7 @@ class hyperopt_estimator(object):
         if hasattr(self._best_classif, 'partial_fit'):
           rng = np.random.RandomState(6665)
           train_idxs = rng.permutation(X.shape[0])
-          for i in xrange(int(self._best_iters * retrain_fraction)):
+          for i in range(int(self._best_iters * retrain_fraction)):
             rng.shuffle(train_idxs)
             self._best_classif.partial_fit(X[train_idxs], y[train_idxs],
                                            classes=np.unique(y))
@@ -377,7 +377,7 @@ class hyperopt_estimator(object):
         fit_iter = self.fit_iter(X, y,
                                  weights=weights,
                                  increment=self.fit_increment)
-        fit_iter.next()
+        next(fit_iter)
         while len(self.trials.trials) < self.max_evals:
             increment = min(self.fit_increment,
                             self.max_evals - len(self.trials.trials))
@@ -385,7 +385,7 @@ class hyperopt_estimator(object):
             if filename is not None:
                 with open(filename, 'wb') as dump_file:
                     self.info('---> dumping trials to', filename)
-                    cPickle.dump(self.trials, dump_file)
+                    pickle.dump(self.trials, dump_file)
 
         self.retrain_best_model_on_full_data(X, y, weights)
 

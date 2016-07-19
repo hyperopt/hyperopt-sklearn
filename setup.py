@@ -69,7 +69,7 @@ def find_subdirectories(package):
     This will include resources (non-submodules) and submodules
     """
     try:
-        subdirectories = os.walk(package_to_path(package)).next()[1]
+        subdirectories = next(os.walk(package_to_path(package)))[1]
     except StopIteration:
         subdirectories = []
     return subdirectories
