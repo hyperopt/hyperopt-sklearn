@@ -15,70 +15,52 @@ from .vkmeans import ColumnKMeans
 from . import lagselectors
 
 
+##########################################
+##==== Wrappers for sklearn modules ====##
+##########################################
 @scope.define
 def sklearn_SVC(*args, **kwargs):
     return sklearn.svm.SVC(*args, **kwargs)
-
 
 @scope.define
 def sklearn_SVR(*args, **kwargs):
     return sklearn.svm.SVR(*args, **kwargs)
 
 @scope.define
-def sklearn_SVRLagSelector(*args, **kwargs):
-    return lagselectors.SVRLagSelector(*args, **kwargs)
-
-@scope.define
-def sklearn_KNRLagSelector(*args, **kwargs):
-    return lagselectors.KNRLagSelector(*args, **kwargs)
-
-@scope.define
-def sklearn_RFRLagSelector(*args, **kwargs):
-    return lagselectors.RFRLagSelector(*args, **kwargs)
-
-@scope.define
-def sklearn_ETRLagSelector(*args, **kwargs):
-    return lagselectors.ETRLagSelector(*args, **kwargs)
+def ts_LagSelector(*args, **kwargs):
+    return lagselectors.LagSelector(*args, **kwargs)
 
 @scope.define
 def sklearn_LinearSVC(*args, **kwargs):
     return sklearn.svm.LinearSVC(*args, **kwargs)
 
-
 @scope.define
 def sklearn_KNeighborsClassifier(*args, **kwargs):
     return sklearn.neighbors.KNeighborsClassifier(*args, **kwargs)
-
 
 @scope.define
 def sklearn_KNeighborsRegressor(*args, **kwargs):
     return sklearn.neighbors.KNeighborsRegressor(*args, **kwargs)
 
-
 @scope.define
 def sklearn_RandomForestClassifier(*args, **kwargs):
     return sklearn.ensemble.RandomForestClassifier(*args, **kwargs)
-
 
 @scope.define
 def sklearn_RandomForestRegressor(*args, **kwargs):
     return sklearn.ensemble.RandomForestRegressor(*args, **kwargs)
 
-
 @scope.define
 def sklearn_ExtraTreesClassifier(*args, **kwargs):
     return sklearn.ensemble.ExtraTreesClassifier(*args, **kwargs)
-
 
 @scope.define
 def sklearn_ExtraTreesRegressor(*args, **kwargs):
     return sklearn.ensemble.ExtraTreesRegressor(*args, **kwargs)
 
-
 @scope.define
 def sklearn_SGDClassifier(*args, **kwargs):
     return sklearn.linear_model.SGDClassifier(*args, **kwargs)
-
 
 @scope.define
 def sklearn_SGDRegressor(*args, **kwargs):
@@ -88,51 +70,41 @@ def sklearn_SGDRegressor(*args, **kwargs):
 # def sklearn_Ridge(*args, **kwargs):
 #     return sklearn.linear_model.Ridge(*args, **kwargs)
 
-
 @scope.define
 def sklearn_MultinomialNB(*args, **kwargs):
     return sklearn.naive_bayes.MultinomialNB(*args, **kwargs)
-
 
 @scope.define
 def sklearn_PCA(*args, **kwargs):
     return sklearn.decomposition.PCA(*args, **kwargs)
 
-
 @scope.define
 def sklearn_Tfidf(*args, **kwargs):
     return sklearn.feature_extraction.text.TfidfVectorizer(*args, **kwargs)
-
 
 @scope.define
 def sklearn_StandardScaler(*args, **kwargs):
     return sklearn.preprocessing.StandardScaler(*args, **kwargs)
 
-
 @scope.define
 def sklearn_MinMaxScaler(*args, **kwargs):
     return sklearn.preprocessing.MinMaxScaler(*args, **kwargs)
-
 
 @scope.define
 def sklearn_Normalizer(*args, **kwargs):
     return sklearn.preprocessing.Normalizer(*args, **kwargs)
 
-
 @scope.define
 def sklearn_OneHotEncoder(*args, **kwargs):
     return sklearn.preprocessing.OneHotEncoder(*args, **kwargs)
-
 
 @scope.define
 def sklearn_BernoulliRBM(*args, **kwargs):
     return sklearn.neural_network.BernoulliRBM(*args, **kwargs)
 
-
 @scope.define
 def sklearn_ColumnKMeans(*args, **kwargs):
     return ColumnKMeans(*args, **kwargs)
-
 
 @scope.define
 def patience_param(x):
@@ -142,7 +114,6 @@ def patience_param(x):
     """
     # -- TODO: make this do something!
     return x
-
 
 @scope.define
 def inv_patience_param(x):
@@ -154,12 +125,17 @@ def inv_patience_param(x):
     return x
 
 
-def hp_bool(name):
-    return hp.choice(name, [False, True])
-
-
+##############################
+##==== Global variables ====##
+##############################
 _svm_default_cache_size = 512
 
+
+###############################################
+##==== Various hyperparameter generators ====##
+###############################################
+def hp_bool(name):
+    return hp.choice(name, [False, True])
 
 def _svm_gamma(name, n_features=1):
     '''Generator of default gamma values for SVMs.
@@ -176,30 +152,23 @@ def _svm_gamma(name, n_features=1):
                          np.log(1. / n_features * 1e-3),
                          np.log(1. / n_features * 1e3))
 
-
 def _svm_degree(name):
     return hp.quniform(name, 1.5, 6.5, 1)
-
 
 def _svm_max_iter(name):
     return hp.qloguniform(name, np.log(1e7), np.log(1e9), 1)
 
-
 def _svm_C(name):
     return hp.loguniform(name, np.log(1e-5), np.log(1e5))
-
 
 def _svm_tol(name):
     return hp.loguniform(name, np.log(1e-5), np.log(1e-2))
 
-
 def _svm_int_scaling(name):
     return hp.loguniform(name, np.log(1e-1), np.log(1e1))
 
-
 def _svm_epsilon(name):
     return hp.loguniform(name, np.log(1e-3), np.log(1e3))
-
 
 def _svm_loss_penalty_dual(name):
     """
@@ -213,7 +182,6 @@ def _svm_loss_penalty_dual(name):
         ('squared_hinge', 'l1', False),
         ('squared_hinge', 'l2', False)
     ])
-
 
 def _knn_metric_p(name, sparse_data=False, metric=None, p=None):
     if sparse_data:
@@ -237,25 +205,20 @@ def _knn_metric_p(name, sparse_data=False, metric=None, p=None):
     else:
         return (metric, p)  # undefined, simply return user input.
 
-
 def _knn_p(name):
     return hp.quniform(name, 2.5, 5.5, 1)
-
 
 def _knn_neighbors(name):
     return scope.int(hp.qloguniform(name, np.log(0.5), np.log(50.5), 1))
 
-
 def _knn_weights(name):
     return hp.choice(name, ['uniform', 'distance'])
-
 
 def _trees_n_estimators(name):
     return scope.int(hp.qloguniform(name, np.log(9.5), np.log(3000.5), 1))
 
 def _trees_criterion(name):
     return hp.choice(name, ['gini', 'entropy'])
-
 
 def _trees_max_features(name):
     return hp.pchoice(name, [
@@ -274,10 +237,8 @@ def _trees_max_depth(name):
         (0.1, 4),
     ])
 
-
 def _trees_min_samples_split(name):
     return 2
-
 
 def _trees_min_samples_leaf(name):
     return hp.choice(name, [
@@ -285,10 +246,8 @@ def _trees_min_samples_leaf(name):
         scope.int(hp.qloguniform(name + '.gt1', np.log(1.5), np.log(50.5), 1))
     ])
 
-
 def _trees_bootstrap(name):
     return hp.choice(name, [True, False])
-
 
 def _sgd_penalty(name):
     return hp.pchoice(name, [
@@ -297,18 +256,14 @@ def _sgd_penalty(name):
         (0.25, 'elasticnet')
     ])
 
-
 def _sgd_alpha(name):
     return hp.loguniform(name, np.log(1e-6), np.log(1e-1))
-
 
 def _sgd_l1_ratio(name):
     return hp.uniform(name, 0, 1)
 
-
 def _sgd_epsilon(name):
     return hp.loguniform(name, np.log(1e-7), np.log(1))
-
 
 def _sgdc_learning_rate(name):
     return hp.pchoice(name, [
@@ -317,7 +272,6 @@ def _sgdc_learning_rate(name):
         (0.25, 'constant')
     ])
 
-
 def _sgdr_learning_rate(name):
     return hp.pchoice(name, [
         (0.50, 'invscaling'),
@@ -325,14 +279,11 @@ def _sgdr_learning_rate(name):
         (0.25, 'constant')
     ])
 
-
 def _sgd_eta0(name):
     return hp.loguniform(name, np.log(1e-5), np.log(1e-1))
 
-
 def _sgd_power_t(name):
     return hp.uniform(name, 0, 1)
-
 
 def _random_state(name, random_state):
     if random_state is None:
@@ -343,46 +294,10 @@ def _random_state(name, random_state):
 def _class_weight(name):
     return hp.choice(name, [None, 'balanced'])
 
-def _lag_size_en(name, max_lag_size):
-    return scope.int(hp.quniform(name, 0.5, max_lag_size + 0.5, 1))
 
-def _lag_size_ex(name, max_lag_size):
-    # Lag size can be zero for exogenous data.
-    return scope.int(hp.quniform(name, -0.5, max_lag_size + 0.5, 1))
-
-def _determine_lag_sizes(name, max_lag_sizes, n_ex_ds, en_nlag, ex_nlag):
-    if max_lag_sizes is None:
-        assert (en_nlag is not None and ex_nlag is not None)
-        return (en_nlag, ex_nlag)
-    else:
-        assert (n_ex_ds is not None and n_ex_ds >= 0)
-        if isinstance(max_lag_sizes, (list, tuple)):
-            assert len(max_lag_sizes) == n_ex_ds + 1
-        else:
-            assert isinstance(max_lag_sizes, int)
-        if en_nlag is not None:
-            en_nlag = en_nlag
-        elif isinstance(max_lag_sizes, int):
-            en_nlag = _lag_size_en(name + '.en', max_lag_sizes) 
-        else:
-            en_nlag = _lag_size_en(name + '.en', max_lag_sizes[0])
-        if ex_nlag is not None:
-            ex_nlag = ex_nlag
-        elif n_ex_ds == 0:
-            ex_nlag = [0]
-        elif isinstance(max_lag_sizes, int):
-            ex_nlag = [
-                _lag_size_ex(name + '.ex' + str(i), 
-                             max_lag_sizes) for i in range(1, n_ex_ds + 1)
-            ]
-        else:
-            ex_nlag = [
-                _lag_size_ex(name + '.ex' + str(i), 
-                             max_lag_sizes[i]) for i in range(1, n_ex_ds + 1)
-            ]
-        return (en_nlag, ex_nlag)
-
-
+##############################################
+##==== SVM hyperparameters search space ====##
+##############################################
 def _svm_hp_space(
         name_func,
         kernel,
@@ -408,7 +323,7 @@ def _svm_hp_space(
     else:
         gamma_ = (_svm_gamma(name_func('gamma'), n_features=1) 
                   if gamma is None else gamma)
-        gamma_ /= n_features  # make gamma independent on lag sizes.
+        gamma_ /= n_features  # make gamma independent of n_features.
     if kernel in ['linear', 'rbf']:
         coef0_ = 0.0
     elif coef0 is None:
@@ -445,6 +360,7 @@ def _svm_hp_space(
 def _svc_hp_space(name_func, random_state=None):
     '''Generate SVC specific hyperparamters
     '''
+    hp_space = {}
     hp_space['random_state'] = _random_state(name_func('rstate'), 
                                              random_state)
     return hp_space
@@ -457,151 +373,55 @@ def _svr_hp_space(name_func, epsilon=None):
                            if epsilon is None else epsilon)
     return hp_space
 
-def _lags_hp_space(
-        name_func,
-        max_lag_sizes=None,
-        n_ex_ds=None,
-        en_nlag=None,
-        ex_nlag=None):
-    '''Generate lag selector hyperparamters
-    Args:
-        name_func (callable): a function to generate names for hyperparamters
-        max_lag_sizes([int or list or tuple]): maximum lag size(s)
-        n_ex_ds ([int]): number of exogenous datasets
-        en_nlag ([int]): number of lags for endogenous dataset
-        ex_nlag ([list or tuple]): number(s) of lags for exogenous datasets
 
-    max_lag_sizes, n_ex_ds, en_nlag, ex_nlag jointly determine the 
-    lag sizes for endogenous and exogenous predictors.
-
-    If max_lag_sizes is none, en_nlag and ex_nlag shall both be specified.
-    Otherwise, max_lag_sizes gives the maximum lag size(s) for the 
-    predictors to choose from. If max_lag_sizes is int, the same value is 
-    used for all predictors. If max_lag_sizes is a list, different values 
-    can be used for the predictors separately. max_lag_sizes[0] shall contain
-    the value for endogenous predictors, max_lag_sizes[1:] shall contain 
-    the values for exogenous predictors and use the same order as EX_list.
-
-    For endogenous lag size, the default distribution is to choose from 
-    uniform(1, max_lag_size). While for exogenous lag size, the default 
-    is to choose from uniform(0, max_lag_size). The lag size(s) must be 
-    integer(s). Custom values can be provided for en_nlag and ex_nlag to 
-    override this behavior.
-
-    When max_lag_sizes and en_nlag are both specified, en_nlag will override 
-    the value in max_lag_sizes. The same for ex_nlag.
-
-    n_ex_ds gives the number of exogenous datasets. It must be specified 
-    when max_lag_sizes is specified. If there is no exogenous data, it can 
-    simply be set to 0.     
-    '''
-    en_nlag_, ex_nlag_ = _determine_lag_sizes(name_func('lag_size'), 
-                                              max_lag_sizes, n_ex_ds, 
-                                              en_nlag, ex_nlag)
-    hp_space = {}
-    hp_space['en_nlag'] = en_nlag_
-    hp_space['ex_nlag'] = ex_nlag_
-    return hp_space
-
-def svr_lags_kernel(
-        name,
-        kernel,
-        max_lag_sizes=None,
-        n_ex_ds=None,
-        en_nlag=None,
-        ex_nlag=None,
-        C=None,
-        epsilon=None,
-        gamma=None,
-        coef0=None,
-        degree=None,
-        shrinking=None,
-        tol=None,
-        max_iter=None,
-        verbose=False,
-        cache_size=_svm_default_cache_size):
-    '''
+#########################################
+##==== SVM classifier constructors ====##
+#########################################
+def svc_kernel(name, kernel, random_state=None, **kwargs):
+    """
     Return a pyll graph with hyperparamters that will construct
-    a lagselectors.SVRLagSelector model with user specified kernel.
+    a sklearn.svm.SVC model with a user specified kernel.
 
-    See help(hpsklearn.components._lags_hp_space) for details on 
-    specifying lag sizes.
-    '''
+    See help(hpsklearn.components._svm_hp_space) for info on additional SVM
+    arguments.
+    """
     def _name(msg):
         return '%s.%s_%s' % (name, kernel, msg)
-    # Lag selector hyperparameters.
-    hp_space = _lags_hp_space(_name, 
-                              max_lag_sizes=max_lag_sizes, 
-                              n_ex_ds=n_ex_ds,
-                              en_nlag=en_nlag,
-                              ex_nlag=ex_nlag)
-    # SVM hyperparameters.
-    n_features = scope.int(sum([hp_space['en_nlag']] + hp_space['ex_nlag']))
-    hp_space.update(_svm_hp_space(_name, kernel=kernel,
-                                  n_features=n_features,
-                                  C=C,
-                                  gamma=gamma,
-                                  coef0=coef0,
-                                  degree=degree,
-                                  shrinking=shrinking,
-                                  tol=tol,
-                                  max_iter=max_iter,
-                                  verbose=verbose,
-                                  cache_size=cache_size))
-    # SVR specific hyperparameters.
-    hp_space.update(_svr_hp_space(_name, epsilon=epsilon))
 
-    return scope.sklearn_SVRLagSelector(**hp_space)
+    hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
+    hp_space.update(_svc_hp_space(_name, random_state))
+    return scope.sklearn_SVC(**hp_space)
 
+def svc_linear(name, **kwargs):
+    '''Simply use the svc_kernel function with kernel fixed as linear to 
+    return an SVC object.
+    '''
+    return svc_kernel(name, kernel='linear', **kwargs)
 
-def svr_lags_linear(name, **kwargs):
+def svc_rbf(name, **kwargs):
+    '''Simply use the svc_kernel function with kernel fixed as rbf to 
+    return an SVC object.
     '''
-    This simply return the result of svr_lags_kernel with the 
-    kernel fixed as linear.
-    See help(svr_lags_kernel) for details.
-    '''
-    return svr_lags_kernel(name, kernel='linear', **kwargs)
+    return svc_kernel(name, kernel='rbf', **kwargs)
 
-def svr_lags_rbf(name, **kwargs):
+def svc_poly(name, **kwargs):
+    '''Simply use the svc_kernel function with kernel fixed as poly to 
+    return an SVC object.
     '''
-    This simply return the result of svr_lags_kernel with the 
-    kernel fixed as rbf.
-    See help(svr_lags_kernel) for details.
-    '''
-    return svr_lags_kernel(name, kernel='rbf', **kwargs)
+    return svc_kernel(name, kernel='poly', **kwargs)
 
-def svr_lags_poly(name, **kwargs):
+def svc_sigmoid(name, **kwargs):
+    '''Simply use the svc_kernel function with kernel fixed as sigmoid to 
+    return an SVC object.
     '''
-    This simply return the result of svr_lags_kernel with the 
-    kernel fixed as poly.
-    See help(svr_lags_kernel) for details.
-    '''
-    return svr_lags_kernel(name, kernel='poly', **kwargs)
+    return svc_kernel(name, kernel='sigmoid', **kwargs)
 
-def svr_lags_sigmoid(name, **kwargs):
-    '''
-    This simply return the result of svr_lags_kernel with the 
-    kernel fixed as sigmoid.
-    See help(svr_lags_kernel) for details.
-    '''
-    return svr_lags_kernel(name, kernel='sigmoid', **kwargs)
-
-
-def svr_lags(
-        name, 
-        kernels=['linear', 'rbf', 'poly', 'sigmoid'], 
-        **kwargs):
-    '''SVR lag selector with kernel function to be chosen by hyperopt
-    Args:
-        kernels ([list]): available kernels to choose from.
-        **kwargs: all other parameters for svr_lagselector.
-    Return: an SVRLagSelector instance.
-    '''
+def svc(name, kernels=['linear', 'rbf', 'poly', 'sigmoid'], **kwargs):
     svms = {
-        'linear': partial(svr_lags_linear, name=name),
-        'rbf': partial(svr_lags_rbf, name=name),
-        'poly': partial(svr_lags_poly, name=name),
-        'sigmoid': partial(svr_lags_sigmoid, name=name),
+        'linear': partial(svc_linear, name=name),
+        'rbf': partial(svc_rbf, name=name),
+        'poly': partial(svc_poly, name=name),
+        'sigmoid': partial(svc_sigmoid, name=name),
     }
     choices = [svms[kern](**kwargs) for kern in kernels]
     if len(choices) == 1:
@@ -610,458 +430,68 @@ def svr_lags(
         rval = hp.choice('%s.kernel' % name, choices)
     return rval
 
-
-def svc_linear(name,
-               C=None,
-               shrinking=None,
-               tol=None,
-               max_iter=None,
-               verbose=False,
-               random_state=None,
-               cache_size=_svm_default_cache_size):
+########################################
+##==== SVM regressor constructors ====##
+########################################
+def svr_kernel(name, kernel, epsilon=None, **kwargs):
     """
     Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVC model with a linear kernel.
+    a sklearn.svm.SVR model with a user specified kernel.
 
+    Args:
+        epsilon([float]): tolerance on regression errors.
+
+    See help(hpsklearn.components._svm_hp_space) for info on additional SVM
+    arguments.
     """
     def _name(msg):
-        return '%s.%s_%s' % (name, 'linear', msg)
+        return '%s.%s_%s' % (name, kernel, msg)
 
-    rval = scope.sklearn_SVC(
-        kernel='linear',
-        C=_svm_C(_name('C')) if C is None else C,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size,
-    )
-    return rval
+    hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
+    hp_space.update(_svr_hp_space(_name, epsilon))
+    return scope.sklearn_SVR(**hp_space)
 
+def svr_linear(name, **kwargs):
+    '''Simply use the svr_kernel function with kernel fixed as linear to 
+    return an SVR object.
+    '''
+    return svr_kernel(name, kernel='linear', **kwargs)
 
-def svr_linear(name,
-               C=None,
-               epsilon=None,
-               shrinking=None,
-               tol=None,
-               max_iter=None,
-               verbose=False,
-               cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVR model with a linear kernel.
+def svr_rbf(name, **kwargs):
+    '''Simply use the svr_kernel function with kernel fixed as rbf to 
+    return an SVR object.
+    '''
+    return svr_kernel(name, kernel='rbf', **kwargs)
 
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'linear', msg)
+def svr_poly(name, **kwargs):
+    '''Simply use the svr_kernel function with kernel fixed as poly to 
+    return an SVR object.
+    '''
+    return svr_kernel(name, kernel='poly', **kwargs)
 
-    rval = scope.sklearn_SVR(
-        kernel='linear',
-        C=_svm_C(_name('C')) if C is None else C,
-        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        # random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size,
-    )
-    return rval
+def svr_sigmoid(name, **kwargs):
+    '''Simply use the svr_kernel function with kernel fixed as sigmoid to 
+    return an SVR object.
+    '''
+    return svr_kernel(name, kernel='sigmoid', **kwargs)
 
-
-def svc_rbf(name,
-            n_features=1,
-            C=None,
-            gamma=None,
-            shrinking=None,
-            tol=None,
-            max_iter=None,
-            verbose=False,
-            random_state=None,
-            cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVC model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'rbf', msg)
-
-    rval = scope.sklearn_SVC(
-        kernel='rbf',
-        C=_svm_C(_name('C')) if C is None else C,
-        gamma=(_svm_gamma(_name('gamma'), n_features)
-               if gamma is None else gamma),
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        cache_size=cache_size,
-        random_state=_random_state(_name('rstate'), random_state),
-    )
-    return rval
-
-
-def svr_rbf(name,
-            n_features=1,
-            C=None,
-            epsilon=None,
-            gamma=None,
-            shrinking=None,
-            tol=None,
-            max_iter=None,
-            verbose=False,
-            cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVR model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'rbf', msg)
-
-    rval = scope.sklearn_SVR(
-        kernel='rbf',
-        C=_svm_C(_name('C')) if C is None else C,
-        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
-        gamma=(_svm_gamma(_name('gamma'), n_features)
-               if gamma is None else gamma),
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        cache_size=cache_size,
-        # random_state=_random_state(_name('rstate'), random_state),
-    )
-    return rval
-
-
-def svc_poly(name,
-             n_features=1,
-             C=None,
-             gamma=None,
-             coef0=None,
-             degree=None,
-             shrinking=None,
-             tol=None,
-             max_iter=None,
-             verbose=False,
-             random_state=None,
-             cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVC model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'poly', msg)
-
-    # Some changes to the original design:
-    # 1. The gamma hyperparameter scales the dot product, so shall scale
-    #    the coef0 as well.
-    # 2. It is more likely to shift the dot product to the positive side
-    #    so that all of them will become > 1.0.
-    # -- (K(x, y) + coef0)^d
-    poly_gamma = (_svm_gamma(_name('gamma'), n_features)
-                  if gamma is None else gamma)
-    poly_coef0 = hp.pchoice(_name('coef0'), [
-        (0.3, 0),
-        (0.7, poly_gamma * hp.uniform(_name('coef0val'), 0., 10.))
-    ]) if coef0 is None else coef0
-
-    rval = scope.sklearn_SVC(
-        kernel='poly',
-        C=_svm_C(_name('C')) if C is None else C,
-        gamma=poly_gamma,
-        coef0=poly_coef0,
-        degree=_svm_degree(_name('degree')) if degree is None else degree,
-        shrinking=(hp_bool(_name('shrinking'))
-                   if shrinking is None else shrinking),
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size,
-    )
-    return rval
-
-
-def svr_poly(name,
-             n_features=1,
-             C=None,
-             epsilon=None,
-             gamma=None,
-             coef0=None,
-             degree=None,
-             shrinking=None,
-             tol=None,
-             max_iter=None,
-             verbose=False,
-             cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVR model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'poly', msg)
-
-    # Some changes to the original design:
-    # 1. The gamma hyperparameter scales the dot product, so shall scale
-    #    the coef0 as well.
-    # 2. It is more likely to shift the dot product to the positive side
-    #    so that all of them will become > 1.0.
-    # -- (K(x, y) + coef0)^d
-    poly_gamma = (_svm_gamma(_name('gamma'), n_features)
-                  if gamma is None else gamma)
-    poly_coef0 = hp.pchoice(_name('coef0'), [
-        (0.3, 0),
-        (0.7, poly_gamma * hp.uniform(_name('coef0val'), 0., 10.))
-    ]) if coef0 is None else coef0
-
-    rval = scope.sklearn_SVR(
-        kernel='poly',
-        C=_svm_C(_name('C')) if C is None else C,
-        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
-        gamma=poly_gamma,
-        coef0=poly_coef0,
-        degree=_svm_degree(_name('degree')) if degree is None else degree,
-        shrinking=(hp_bool(_name('shrinking'))
-                   if shrinking is None else shrinking),
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        # random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size,
-    )
-    return rval
-
-
-def svc_sigmoid(name,
-                n_features=1,
-                C=None,
-                gamma=None,
-                coef0=None,
-                shrinking=None,
-                tol=None,
-                max_iter=None,
-                verbose=False,
-                random_state=None,
-                cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVC model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'sigmoid', msg)
-
-    # Some changes to the original design:
-    # 1. The gamma hyperparameter scales the dot product, so shall scale
-    #    the coef0 as well.
-    # 2. The purpose of the tanh function is for saturation. There is no
-    #    preference for positive or negative activation. So the coef0 is
-    #    set to sample from a symmetric range.
-    # -- tanh(K(x, y) + coef0)
-    sigm_gamma = (_svm_gamma(_name('gamma'), n_features)
-                  if gamma is None else gamma)
-    sigm_coef0 = hp.pchoice(_name('coef0'), [
-        (0.3, 0),
-        (0.7, sigm_gamma * hp.uniform(_name('coef0val'), -10., 10.))
-    ]) if coef0 is None else coef0
-
-    rval = scope.sklearn_SVC(
-        kernel='sigmoid',
-        C=_svm_C(_name('C')) if C is None else C,
-        gamma=sigm_gamma,
-        coef0=sigm_coef0,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size)
-    return rval
-
-
-def svr_sigmoid(name,
-                n_features=1,
-                C=None,
-                epsilon=None,
-                gamma=None,
-                coef0=None,
-                shrinking=None,
-                tol=None,
-                max_iter=None,
-                verbose=False,
-                cache_size=_svm_default_cache_size):
-    """
-    Return a pyll graph with hyperparamters that will construct
-    a sklearn.svm.SVR model with an RBF kernel.
-
-    """
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'sigmoid', msg)
-
-    # Some changes to the original design:
-    # 1. The gamma hyperparameter scales the dot product, so shall scale
-    #    the coef0 as well.
-    # 2. The purpose of the tanh function is for saturation. There is no
-    #    preference for positive or negative activation. So the coef0 is
-    #    set to sample from a symmetric range.
-    # -- tanh(K(x, y) + coef0)
-    sigm_gamma = (_svm_gamma(_name('gamma'), n_features)
-                  if gamma is None else gamma)
-    sigm_coef0 = hp.pchoice(_name('coef0'), [
-        (0.3, 0),
-        (0.7, sigm_gamma * hp.uniform(_name('coef0val'), -10., 10.))
-    ]) if coef0 is None else coef0
-
-    rval = scope.sklearn_SVR(
-        kernel='sigmoid',
-        C=_svm_C(_name('C')) if C is None else C,
-        epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
-        gamma=sigm_gamma,
-        coef0=sigm_coef0,
-        shrinking=hp_bool(
-            _name('shrinking')) if shrinking is None else shrinking,
-        tol=_svm_tol(_name('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(_name('maxiter'))
-                  if max_iter is None else max_iter),
-        verbose=verbose,
-        # random_state=_random_state(_name('rstate'), random_state),
-        cache_size=cache_size)
-    return rval
-
-
-def svc(name,
-        n_features=1,
-        C=None,
-        kernels=['linear', 'rbf', 'poly', 'sigmoid'],
-        shrinking=None,
-        tol=None,
-        max_iter=None,
-        verbose=False,
-        random_state=None,
-        cache_size=_svm_default_cache_size):
+def svr(name, kernels=['linear', 'rbf', 'poly', 'sigmoid'], **kwargs):
     svms = {
-        'linear': svc_linear(
-            name,
-            C=C,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            random_state=random_state,
-            verbose=verbose),
-        'rbf': svc_rbf(
-            name,
-            n_features=n_features,
-            C=C,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            random_state=random_state,
-            verbose=verbose),
-        'poly': svc_poly(
-            name,
-            n_features=n_features,
-            C=C,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            random_state=random_state,
-            verbose=verbose),
-        'sigmoid': svc_sigmoid(
-            name,
-            n_features=n_features,
-            C=C,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            random_state=random_state,
-            verbose=verbose),
+        'linear': partial(svr_linear, name=name),
+        'rbf': partial(svr_rbf, name=name),
+        'poly': partial(svr_poly, name=name),
+        'sigmoid': partial(svr_sigmoid, name=name),
     }
-    choices = [svms[kern] for kern in kernels]
+    choices = [svms[kern](**kwargs) for kern in kernels]
     if len(choices) == 1:
         rval = choices[0]
     else:
         rval = hp.choice('%s.kernel' % name, choices)
     return rval
 
-
-def svr(name,
-        n_features=1,
-        C=None,
-        epsilon=None,
-        kernels=['linear', 'rbf', 'poly', 'sigmoid'],
-        shrinking=None,
-        tol=None,
-        max_iter=None,
-        verbose=False,
-        cache_size=_svm_default_cache_size):
-    svms = {
-        'linear': svr_linear(
-            name,
-            C=C,
-            epsilon=epsilon,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            # random_state=random_state,
-            verbose=verbose),
-        'rbf': svr_rbf(
-            name,
-            n_features=n_features,
-            C=C,
-            epsilon=epsilon,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            # random_state=random_state,
-            verbose=verbose),
-        'poly': svr_poly(
-            name,
-            n_features=n_features,
-            C=C,
-            epsilon=epsilon,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            # random_state=random_state,
-            verbose=verbose),
-        'sigmoid': svr_sigmoid(
-            name,
-            n_features=n_features,
-            C=C,
-            epsilon=epsilon,
-            shrinking=shrinking,
-            tol=tol,
-            max_iter=max_iter,
-            # random_state=random_state,
-            verbose=verbose),
-    }
-    choices = [svms[kern] for kern in kernels]
-    if len(choices) == 1:
-        rval = choices[0]
-    else:
-        rval = hp.choice('%s.kernel' % name, choices)
-    return rval
-
-
-# TODO: Some combinations of parameters are not allowed in LinearSVC
+##################################################
+##==== Liblinear SVM classifier constructor ====##
+##################################################
 def liblinear_svc(name,
                   C=None,
                   loss=None,
@@ -1100,6 +530,10 @@ def liblinear_svc(name,
     )
     return rval
 
+
+##############################################
+##==== KNN hyperparameters search space ====##
+##############################################
 def _knn_hp_space(
         name_func,
         sparse_data=False,
@@ -1127,115 +561,45 @@ def _knn_hp_space(
         n_jobs=n_jobs)
     return hp_space
 
-def knr_lags(
-        name,
-        max_lag_sizes=None,
-        n_ex_ds=None,
-        en_nlag=None,
-        ex_nlag=None,
-        sparse_data=False,
-        n_neighbors=None,
-        weights=None,
-        algorithm='auto',
-        leaf_size=30,
-        metric=None,
-        p=None,
-        metric_params=None,
-        n_jobs=1):
+###################################################
+##==== KNN classifier/regressor constructors ====##
+###################################################
+def knn(name, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
-    a lagselectors.KNRLagSelector (KNN regression lag selector) 
-    model.
-
-    See help(hpsklearn.components._lags_hp_space) for details on 
-    specifying lag sizes.
+    a sklearn.neighbors.KNeighborsClassifier model.
+    
+    See help(hpsklearn.components._knn_hp_space) for info on available KNN 
+    arguments.    
     '''
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'knr', msg)
-    # Lag selector hyperparameters.
-    hp_space = _lags_hp_space(_name, 
-                              max_lag_sizes=max_lag_sizes, 
-                              n_ex_ds=n_ex_ds,
-                              en_nlag=en_nlag,
-                              ex_nlag=ex_nlag)
-    # KNN hyperparameters.
-    hp_space.update(_knn_hp_space(_name,
-                                  sparse_data=sparse_data,
-                                  n_neighbors=n_neighbors,
-                                  weights=weights,
-                                  algorithm=algorithm,
-                                  leaf_size=leaf_size,
-                                  metric=metric,
-                                  p=p,
-                                  metric_params=metric_params,
-                                  n_jobs=n_jobs))
-    return scope.sklearn_KNRLagSelector(**hp_space)
-
-
-# TODO: Pick reasonable default values
-def knn(name,
-        sparse_data=False,
-        n_neighbors=None,
-        weights=None,
-        algorithm='auto',
-        leaf_size=30,
-        metric=None,
-        p=None,
-        metric_params=None,
-        n_jobs=1):
-
     def _name(msg):
         return '%s.%s_%s' % (name, 'knc', msg)
 
-    rval = scope.sklearn_KNeighborsClassifier(
-        n_neighbors=(_knn_neighbors(_name('neighbors'))
-                     if n_neighbors is None else n_neighbors),
-        weights=_knn_weights(_name('weights')) if weights is None else weights,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        metric=(_knn_metric(_name('metric'), sparse_data)
-                if metric is None else metric),
-        p=_knn_p(_name('p')) if p is None else p,
-        metric_params=metric_params,
-        n_jobs=n_jobs,
-    )
-    return rval
-
-# TODO: Pick reasonable default values
+    hp_space = _knn_hp_space(_name, **kwargs)
+    return scope.sklearn_KNeighborsClassifier(**hp_space)
 
 
-def knn_regression(name,
-                   sparse_data=False,
-                   n_neighbors=None,
-                   weights=None,
-                   algorithm='auto',
-                   leaf_size=30,
-                   metric=None,
-                   p=None,
-                   metric_params=None,
-                   n_jobs=1):
-
+def knn_regression(name, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.neighbors.KNeighborsRegressor model.
+    
+    See help(hpsklearn.components._knn_hp_space) for info on available KNN 
+    arguments.    
+    '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'knr', msg)
 
-    rval = scope.sklearn_KNeighborsRegressor(
-        n_neighbors=(_knn_neighbors(_name('neighbors'))
-                     if n_neighbors is None else n_neighbors),
-        weights=_knn_weights(_name('weights')) if weights is None else weights,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        metric=(_knn_metric(_name('metric'), sparse_data)
-                if metric is None else metric),
-        p=_knn_p(_name('p')) if p is None else p,
-        metric_params=metric_params,
-        n_jobs=n_jobs,
-    )
-    return rval
+    hp_space = _knn_hp_space(_name, **kwargs)
+    return scope.sklearn_KNeighborsRegressor(**hp_space)
 
+
+####################################################################
+##==== Random forest/extra trees hyperparameters search space ====##
+####################################################################
 def _trees_hp_space(
         name_func,
         n_estimators=None,
-        criterion='mse',
         max_features=None,
         max_depth=None,
         min_samples_split=None,
@@ -1250,7 +614,6 @@ def _trees_hp_space(
     hp_space = dict(
         n_estimators=(_trees_n_estimators(name_func('n_estimators')) 
                       if n_estimators is None else n_estimators),
-        criterion=criterion,
         max_features=(_trees_max_features(name_func('max_features'))
                       if max_features is None else max_features),
         max_depth=(_trees_max_depth(name_func('max_depth'))
@@ -1268,259 +631,94 @@ def _trees_hp_space(
     )
     return hp_space
 
-def rfr_lags(
-        name,
-        max_lag_sizes=None,
-        n_ex_ds=None,
-        en_nlag=None,
-        ex_nlag=None,
-        n_estimators=None,
-        criterion='mse',
-        max_features=None,
-        max_depth=None,
-        min_samples_split=None,
-        min_samples_leaf=None,
-        bootstrap=None,
-        oob_score=False,
-        n_jobs=1,
-        random_state=None,
-        verbose=False):
+#############################################################
+##==== Random forest classifier/regressor constructors ====##
+#############################################################
+def random_forest(name, criterion=None, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
-    a lagselectors.RFRLagSelector (random forest regression lag selector) 
-    model.
+    a sklearn.ensemble.RandomForestClassifier model.
 
-    See help(hpsklearn.components._lags_hp_space) for details on 
-    specifying lag sizes.
+    Args:
+        criterion([str]): choose 'gini' or 'entropy'.
+    
+    See help(hpsklearn.components._trees_hp_space) for info on additional 
+    available random forest/extra trees arguments.    
     '''
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'rfr', msg)
-    # Lag selector hyperparameters.
-    hp_space = _lags_hp_space(_name, 
-                              max_lag_sizes=max_lag_sizes, 
-                              n_ex_ds=n_ex_ds,
-                              en_nlag=en_nlag,
-                              ex_nlag=ex_nlag)
-    # Random forest hyperparameters.
-    hp_space.update(_trees_hp_space(_name,
-                                    n_estimators=n_estimators,
-                                    criterion=criterion,
-                                    max_features=max_features,
-                                    max_depth=max_depth,
-                                    min_samples_split=min_samples_split,
-                                    min_samples_leaf=min_samples_leaf,
-                                    bootstrap=bootstrap,
-                                    oob_score=oob_score,
-                                    n_jobs=n_jobs,
-                                    random_state=random_state,
-                                    verbose=verbose))
-    return scope.sklearn_RFRLagSelector(**hp_space)
-
-def etr_lags(
-        name,
-        max_lag_sizes=None,
-        n_ex_ds=None,
-        en_nlag=None,
-        ex_nlag=None,
-        n_estimators=None,
-        criterion='mse',
-        max_features=None,
-        max_depth=None,
-        min_samples_split=None,
-        min_samples_leaf=None,
-        bootstrap=None,
-        oob_score=False,
-        n_jobs=1,
-        random_state=None,
-        verbose=False):
-    '''
-    Return a pyll graph with hyperparamters that will construct
-    a lagselectors.ETRLagSelector (extra trees regression lag selector) 
-    model.
-
-    See help(hpsklearn.components._lags_hp_space) for details on 
-    specifying lag sizes.
-    '''
-    def _name(msg):
-        return '%s.%s_%s' % (name, 'etr', msg)
-    # Lag selector hyperparameters.
-    hp_space = _lags_hp_space(_name, 
-                              max_lag_sizes=max_lag_sizes, 
-                              n_ex_ds=n_ex_ds,
-                              en_nlag=en_nlag,
-                              ex_nlag=ex_nlag)
-    # Extra trees hyperparameters.
-    hp_space.update(_trees_hp_space(_name,
-                                    n_estimators=n_estimators,
-                                    criterion=criterion,
-                                    max_features=max_features,
-                                    max_depth=max_depth,
-                                    min_samples_split=min_samples_split,
-                                    min_samples_leaf=min_samples_leaf,
-                                    bootstrap=bootstrap,
-                                    oob_score=oob_score,
-                                    n_jobs=n_jobs,
-                                    random_state=random_state,
-                                    verbose=verbose))
-    return scope.sklearn_ETRLagSelector(**hp_space)
-
-# TODO: Pick reasonable default values
-def random_forest(name,
-                  n_estimators=50,
-                  criterion=None,
-                  max_features=None,
-                  max_depth=None,
-                  min_samples_split=None,
-                  min_samples_leaf=None,
-                  bootstrap=None,
-                  oob_score=False,
-                  n_jobs=1,
-                  random_state=None,
-                  verbose=False):
-
     def _name(msg):
         return '%s.%s_%s' % (name, 'rfc', msg)
 
-    rval = scope.sklearn_RandomForestClassifier(
-        n_estimators=n_estimators,
-        criterion=(_trees_criterion(_name('criterion'))
-                   if criterion is None else criterion),
-        max_features=(_trees_max_features(_name('max_features'))
-                      if max_features is None else max_features),
-        max_depth=(_trees_max_depth(_name('max_depth'))
-                   if max_depth is None else max_depth),
-        min_samples_split=(_trees_min_samples_split(_name('min_samples_split'))
-                           if min_samples_split is None else min_samples_split),
-        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf'))
-                          if min_samples_leaf is None else min_samples_leaf),
-        bootstrap=(_trees_bootstrap(_name('bootstrap'))
-                   if bootstrap is None else bootstrap),
-        oob_score=oob_score,
-        n_jobs=n_jobs,
-        random_state=_random_state(_name('rstate'), random_state),
-        verbose=verbose,
-    )
-    return rval
-
-# TODO: Pick reasonable default values
+    hp_space = _trees_hp_space(_name, **kwargs)
+    hp_space['criterion'] = (_trees_criterion(_name('criterion'))
+                             if criterion is None else criterion)
+    return scope.sklearn_RandomForestClassifier(**hp_space)
 
 
-def random_forest_regression(name,
-                             n_estimators=50,
-                             criterion='mse',
-                             max_features=None,
-                             max_depth=None,
-                             min_samples_split=None,
-                             min_samples_leaf=None,
-                             bootstrap=None,
-                             oob_score=False,
-                             n_jobs=1,
-                             random_state=None,
-                             verbose=False):
+def random_forest_regression(name, criterion='mse', **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.RandomForestRegressor model.
 
+    Args:
+        criterion([str]): 'mse' is the only choice.
+    
+    See help(hpsklearn.components._trees_hp_space) for info on additional 
+    available random forest/extra trees arguments.    
+    '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'rfr', msg)
 
-    rval = scope.sklearn_RandomForestRegressor(
-        n_estimators=n_estimators,
-        criterion=criterion,
-        max_features=(_trees_max_features(_name('max_features'))
-                      if max_features is None else max_features),
-        max_depth=(_trees_max_depth(_name('max_depth'))
-                   if max_depth is None else max_depth),
-        min_samples_split=(_trees_min_samples_split(_name('min_samples_split'))
-                           if min_samples_split is None else min_samples_split),
-        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf'))
-                          if min_samples_leaf is None else min_samples_leaf),
-        bootstrap=(_trees_bootstrap(_name('bootstrap'))
-                   if bootstrap is None else bootstrap),
-        oob_score=oob_score,
-        n_jobs=n_jobs,
-        random_state=_random_state(_name('rstate'), random_state),
-        verbose=verbose,
-    )
-    return rval
+    hp_space = _trees_hp_space(_name, **kwargs)
+    hp_space['criterion'] = criterion
+    return scope.sklearn_RandomForestRegressor(**hp_space)
 
 
-# TODO: Pick reasonable default values
-# TODO: the parameters are the same as RandomForest, stick em together somehow
-def extra_trees(name,
-                n_estimators=50,
-                criterion=None,
-                max_features=None,
-                max_depth=None,
-                min_samples_split=None,
-                min_samples_leaf=None,
-                bootstrap=None,
-                oob_score=False,
-                n_jobs=1,
-                random_state=None,
-                verbose=False):
+###########################################################
+##==== Extra trees classifier/regressor constructors ====##
+###########################################################
+def extra_trees(name, criterion=None, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.ExtraTreesClassifier model.
+
+    Args:
+        criterion([str]): choose 'gini' or 'entropy'.
+    
+    See help(hpsklearn.components._trees_hp_space) for info on additional 
+    available random forest/extra trees arguments.    
+    '''
 
     def _name(msg):
         return '%s.%s_%s' % (name, 'etc', msg)
 
-    rval = scope.sklearn_ExtraTreesClassifier(
-        n_estimators=n_estimators,
-        criterion=(_trees_criterion(_name('criterion'))
-                   if criterion is None else criterion),
-        max_features=(_trees_max_features(_name('max_features'))
-                      if max_features is None else max_features),
-        max_depth=(_trees_max_depth(_name('max_depth'))
-                   if max_depth is None else max_depth),
-        min_samples_split=(_trees_min_samples_split(_name('min_samples_split'))
-                           if min_samples_split is None else min_samples_split),
-        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf'))
-                          if min_samples_leaf is None else min_samples_leaf),
-        bootstrap=(_trees_bootstrap(_name('bootstrap'))
-                   if bootstrap is None else bootstrap),
-        oob_score=oob_score,
-        n_jobs=n_jobs,
-        random_state=_random_state(_name('rstate'), random_state),
-        verbose=verbose,
-    )
-    return rval
+    hp_space = _trees_hp_space(_name, **kwargs)
+    hp_space['criterion'] = (_trees_criterion(_name('criterion'))
+                             if criterion is None else criterion)
+    return scope.sklearn_ExtraTreesClassifier(**hp_space)
 
 
-# TODO: Pick reasonable default values
-# TODO: the parameters are the same as RandomForest, stick em together somehow
-def extra_trees_regression(name,
-                           n_estimators=50,
-                           criterion='mse',
-                           max_features=None,
-                           max_depth=None,
-                           min_samples_split=None,
-                           min_samples_leaf=None,
-                           bootstrap=None,
-                           oob_score=False,
-                           n_jobs=1,
-                           random_state=None,
-                           verbose=False):
+def extra_trees_regression(name, criterion='mse', **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.ExtraTreesRegressor model.
 
+    Args:
+        criterion([str]): 'mse' is the only choice.
+    
+    See help(hpsklearn.components._trees_hp_space) for info on additional 
+    available random forest/extra trees arguments.    
+    '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'etr', msg)
 
-    rval = scope.sklearn_ExtraTreesRegressor(
-        n_estimators=n_estimators,
-        criterion=criterion,
-        max_features=(_trees_max_features(_name('max_features'))
-                      if max_features is None else max_features),
-        max_depth=(_trees_max_depth(_name('max_depth'))
-                   if max_depth is None else max_depth),
-        min_samples_split=(_trees_min_samples_split(_name('min_samples_split'))
-                           if min_samples_split is None else min_samples_split),
-        min_samples_leaf=(_trees_min_samples_leaf(_name('min_samples_leaf'))
-                          if min_samples_leaf is None else min_samples_leaf),
-        bootstrap=(_trees_bootstrap(_name('bootstrap'))
-                   if bootstrap is None else bootstrap),
-        oob_score=oob_score,
-        n_jobs=n_jobs,
-        random_state=_random_state(_name('rstate'), random_state),
-        verbose=verbose,
-    )
-    return rval
+    hp_space = _trees_hp_space(_name, **kwargs)
+    hp_space['criterion'] = criterion
+    return scope.sklearn_ExtraTreesRegressor(**hp_space)
 
 
+###################################################
+##==== SGD classifier/regressor constructors ====##
+###################################################
 def sgd(name,
         loss=None,  # default - 'hinge'
         penalty=None,  # default - 'l2'
@@ -1644,6 +842,9 @@ def sgd_regression(name,
 #     return rval
 
 
+############################################################
+##==== Multinomial Naive Bayes classifier constructor ====##
+############################################################
 def multinomial_nb(name,
                    alpha=None,
                    fit_prior=None,
@@ -1663,6 +864,9 @@ def multinomial_nb(name,
     return rval
 
 
+####################################################
+##==== Various classifier/regressor selectors ====##
+####################################################
 def any_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
@@ -1699,6 +903,9 @@ def any_sparse_regressor(name):
     ])
 
 
+###############################################
+##==== Various preprocessor constructors ====##
+###############################################
 def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
         # -- qloguniform is missing a "scale" parameter so we
@@ -1728,6 +935,13 @@ def standard_scaler(name, with_mean=None, with_std=None):
     )
     return rval
 
+def ts_lagselector(name, lower_lags=1, upper_lags=1):
+    rval = scope.ts_LagSelector(
+        lag_size=scope.int(
+            hp.quniform(name + '.lags', 
+                        lower_lags - .5, upper_lags + .5, 1))
+    )
+    return rval
 
 def tfidf(name,
           analyzer=None,
@@ -1895,6 +1109,9 @@ def colkmeans(name,
 # XXX: todo SparseRandomProjection
 
 
+####################################
+##==== Preprocessor selectors ====##
+####################################
 def any_preprocessing(name):
     """Generic pre-processing appropriate for a wide variety of data
     """
@@ -1917,6 +1134,9 @@ def any_text_preprocessing(name):
     ])
 
 
+##############################################################
+##==== Generic hyperparameters search space constructor ====##
+##############################################################
 def generic_space(name='space'):
     model = hp.pchoice('%s' % name, [
         (.8, {'preprocessing': [pca(name + '.pca')],
