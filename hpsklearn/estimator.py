@@ -102,11 +102,8 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval, info, timeout,
                 time.time() - t_start < timeout - timeout_tolerance:
             n_iters += 1
             rng.shuffle(train_idxs)
-            try:
-                classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
+            classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs],
                                    classes=np.unique( yfit ))
-            except TypeError:  # partial_fit doesn't accept classes
-                classifier.partial_fit(Xfit[train_idxs], yfit[train_idxs])
             validation_scores.append(classifier.score(Xval, yval))
             if max(validation_scores) == validation_scores[-1]:
               best_classifier = copy.deepcopy(classifier)
