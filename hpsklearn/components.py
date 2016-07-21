@@ -82,6 +82,7 @@ def sklearn_QDA(*args, **kwargs):
 def sklearn_MultinomialNB(*args, **kwargs):
     return sklearn.naive_bayes.MultinomialNB(*args, **kwargs)
 
+
 @scope.define
 def sklearn_GaussianNB(*args, **kwargs):
     return sklearn.naive_bayes.GaussianNB(*args, **kwargs)
@@ -756,6 +757,44 @@ def sgd(name,
         verbose=verbose,
         )
     return rval
+
+
+def passive_aggressive(name,
+    loss=None,
+    C=None,
+    fit_intercept=False,
+    n_iter=None,
+    n_jobs=1,
+    shuffle=True,
+    random_state=None,
+    verbose=False):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'sgd', msg)
+
+    rval = scope.sklearn_PassiveAggressiveClassifier(
+        loss=hp.pchoice(
+            _name('loss'),
+            ['hinge', 'squared_hinge']) if loss is none else loss,
+        C=hp.lognormal(
+            _name('learning_rate'),
+            np.log(0.01),
+            np.log(10),
+            ) if C is None else C,
+        fit_intercept=fit_intercept,
+        n_iter=scope.int(
+            hp.qloguniform(
+                _name('n_iter')
+                np.log(1),
+                np.log(1000),
+                q=1,
+                )) if n_iter is None else n_iter,
+        n_jobs=n_jobs,
+        random_state=_random_state(_name('rstate'), random_state),
+        verbose=verbose
+        )
+    return rval
+
 
 def multinomial_nb(name,
     alpha=None,
