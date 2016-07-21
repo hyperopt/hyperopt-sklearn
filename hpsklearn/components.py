@@ -7,8 +7,7 @@ import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
 import sklearn.linear_model
-import sklearn.lda
-import sklearn.qda
+import sklearn.discriminant_analysis
 import sklearn.feature_extraction.text
 import sklearn.naive_bayes
 from hyperopt.pyll import scope, as_apply
@@ -69,13 +68,13 @@ def sklearn_PassiveAggressiveClassifier(*args, **kwargs):
 
 
 @scope.define
-def sklearn_LDA(*args, **kwargs):
-    return sklearn.lda.LDA(*args, **kwargs)
+def sklearn_LinearDiscriminantAnalysis(*args, **kwargs):
+    return sklearn.discriminant_analysis.LinearDiscriminantAnalysis(*args, **kwargs)
 
 
 @scope.define
-def sklearn_QDA(*args, **kwargs):
-    return sklearn.qda.QDA(*args, **kwargs)
+def sklearn_QuadraticDiscriminantAnalysis(*args, **kwargs):
+    return sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis(*args, **kwargs)
 
 
 @scope.define
@@ -794,18 +793,18 @@ def passive_aggressive(name,
     return rval
 
 
-def lda(name,
-        solver=None,
-        shrinkage=None,
-        priors=None,
-        n_components=None,
-        store_covariance=False,
-        tol=0.00001):
+def linear_discriminant_analysis(name,
+    solver=None,
+    shrinkage=None,
+    priors=None,
+    n_components=None,
+    store_covariance=False,
+    tol=0.00001):
 
     def _name(msg):
         return '%s.%s_%s' % (name, 'lda', msg)
 
-    rval = scope.sklearn_LDA(
+    rval = scope.sklearn_LinearDiscriminantAnalysis(
         solver=hp.choice(
             _name('solver'),
             ['svd', 'lsqr', 'eigen']) if solver is None else solver,
@@ -825,14 +824,14 @@ def lda(name,
     return rval
 
 
-def qda(name,
-        reg_param=None,
-        priors=None):
+def quadratic_discriminant_analysis(name,
+    reg_param=None,
+    priors=None):
 
     def _name(msg):
         return '%s.%s_%s' % (name, 'qda', msg)
 
-    rval = scope.sklearn_QDA(
+    rval = scope.sklearn_QuadraticDiscriminantAnalysis(
         reg_param=hp.uniform(
             _name('reg_param'),
             0.0, 1.0) if reg_param is None else 0.0,
@@ -843,8 +842,7 @@ def qda(name,
 
 def multinomial_nb(name,
     alpha=None,
-    fit_prior=None,
-    ):
+    fit_prior=None):
 
     def _name(msg):
         return '%s.%s_%s' % (name, 'multinomial_nb', msg)
