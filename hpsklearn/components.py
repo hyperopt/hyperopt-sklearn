@@ -506,7 +506,7 @@ def ada_boost(name,
 
 
 def gradient_boosting(name,
-                      loss=None,
+                      loss='deviance',
                       learning_rate=None,
                       n_estimators=None,
                       max_depth=None,
@@ -523,9 +523,7 @@ def gradient_boosting(name,
         return '%s.%s_%s' % (name, 'gradient_boosting', msg)
 
     rval = scope.sklearn_GradientBoostingClassifier(
-        loss=hp.choice(
-            _name('loss'),
-            ['deviance', 'exponential']) if loss is None else loss,
+        loss=loss,
         learning_rate=hp.lognormal(
              _name('learning_rate'),
              np.log(0.01),
