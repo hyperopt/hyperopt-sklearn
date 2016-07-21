@@ -490,7 +490,7 @@ def ada_boost(name,
      rval = scope.sklearn_AdaBoostClassifier(
          base_estimator=base_estimator,
          n_estimators=scope.int(hp.quniform(
-             _name('n_estimators')
+             _name('n_estimators'),
              1, 50, 1)) if n_estimators is None else n_estimators,
          learning_rate=hp.lognormal(
              _name('learning_rate'),
@@ -499,15 +499,15 @@ def ada_boost(name,
              ) if learning_rate is None else learning_rate,
          algorithm=hp.choice(
              _name('algorithm'),
-             ['SAMME', 'SAMME.R'])
-         random_state=_random_state(_name('rstate'), random_state) 
+             ['SAMME', 'SAMME.R']),
+         random_state=_random_state(_name('rstate'), random_state)
          )
-    return rval
+     return rval
 
 
 def gradient_boosting(name,
                       loss=None,
-                      learning_rate=None
+                      learning_rate=None,
                       n_estimators=None,
                       max_depth=None,
                       min_samples_split=None,
@@ -666,7 +666,7 @@ def decision_tree(name,
                   max_depth=None,
                   min_samples_split=None,
                   min_samples_leaf=None,
-                  presort=False
+                  presort=False,
                   random_state=None):
 
     def _name(msg):
@@ -773,9 +773,9 @@ def passive_aggressive(name,
         return '%s.%s_%s' % (name, 'sgd', msg)
 
     rval = scope.sklearn_PassiveAggressiveClassifier(
-        loss=hp.pchoice(
+        loss=hp.choice(
             _name('loss'),
-            ['hinge', 'squared_hinge']) if loss is none else loss,
+            ['hinge', 'squared_hinge']) if loss is None else loss,
         C=hp.lognormal(
             _name('learning_rate'),
             np.log(0.01),
@@ -784,7 +784,7 @@ def passive_aggressive(name,
         fit_intercept=fit_intercept,
         n_iter=scope.int(
             hp.qloguniform(
-                _name('n_iter')
+                _name('n_iter'),
                 np.log(1),
                 np.log(1000),
                 q=1,
@@ -837,7 +837,7 @@ def qda(name,
     rval = scope.sklearn_QDA(
         reg_param=hp.uniform(
             _name('reg_param'),
-            0.0, 1.0) if reg_param is None else 0.0
+            0.0, 1.0) if reg_param is None else 0.0,
         priors=priors
         )
     return rval
