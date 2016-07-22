@@ -5,8 +5,10 @@ import copy
 from functools import partial
 from multiprocessing import Process, Pipe
 import time
-from sklearn.cross_validation import train_test_split
-from sklearn.pipeline import make_pipeline
+from sklearn.cross_validation import KFold, StratifiedKFold, LeaveOneOut, \
+                                     ShuffleSplit, StratifiedShuffleSplit, \
+                                     PredefinedSplit
+from sklearn.metrics import accuracy_score, r2_score
 import numpy as np
 import warnings
 
@@ -177,13 +179,13 @@ def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
         return (best_learner, n_iters)
 
 
-def _cost_fn(argd, Xfit, yfit, Xval, yval, 
-             EXfit_list, EXval_list,
+def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
              use_partial_fit, info, timeout, _conn, best_loss=None):
     '''Calculate the loss function
     '''
     try:
         t_start = time.time()
+        # Extract info from calling function.
         if 'classifier' in argd:
             classifier = argd['classifier']
             regressor = argd['regressor']
@@ -196,43 +198,92 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval,
             ex_pps_list = argd['model']['ex_preprocs']
         learner = classifier if classifier is not None else regressor
         is_classif = classifier is not None
-        # is_lagselector = isinstance(learner, LagSelector)
         untrained_learner = copy.deepcopy(learner)
         # -- N.B. modify argd['preprocessing'] in-place
-        XEXfit, XEXval = transform_combine_XEX(
-            Xfit, info, preprocessings, Xval, 
-            EXfit_list, ex_pps_list, EXval_list
-        )
 
-        info('Training learner', learner, 'on X/EX of dimension', XEXfit.shape)
-        #import pdb; pdb.set_trace()
-        if hasattr(learner, "partial_fit") and use_partial_fit:
-            learner, n_iters = pfit_until_convergence(
-                learner, is_classif, XEXfit, yfit, info, best_loss=best_loss,
-                XEXval=XEXval, yval=yval, timeout=timeout, t_start=t_start
-            )
-        else:
-            learner.fit(XEXfit, yfit)
-            n_iters = None
-
-        if learner is None:
-            t_done = time.time()
-            rval = {
-                'status': hyperopt.STATUS_FAIL,
-                'failure': 'Not enough time to train anything',
-                'duration': t_done - t_start,
-            }
-            rtype = 'return'
-        else:
-            info('Scoring on X/EX validation of shape', Xval.shape)
-            loss = 1 - learner.score(XEXval, yval)
-            if is_classif:
-                # -- squared standard error of mean
-                lossvar = (loss * (1 - loss)) / max(1, len(yval) - 1)
-                info('OK trial with accuracy %.1f +- %.1f' % (
-                    100 * (1 - loss),
-                    100 * np.sqrt(lossvar)))
+        # Determine cross-validation iterator.
+        if n_folds is not None:
+            if n_folds == -1:
+                info('Will use leave-one-out CV')
+                cv_iter = LeaveOneOut(len(y))
+            elif is_classif:
+                info('Will use stratified K-fold CV with K:', n_folds,
+                     'and Shuffle:', shuffle)
+                cv_iter = StratifiedKFold(y, n_folds=n_folds, 
+                                          shuffle=shuffle, 
+                                          random_state=random_state)
             else:
+                info('Will use K-fold CV with K:', n_folds,
+                     'and Shuffle:', shuffle)
+                cv_iter = KFold(len(y), n_folds=n_folds, 
+                                shuffle=shuffle, 
+                                random_state=random_state)
+        else:
+            if not shuffle:  # always choose the last samples.
+                info('Will use the last', valid_size, 
+                     'portion of samples for validation')
+                n_train = int(len(y) * (1 - valid_size))
+                valid_fold = np.ones(len(y), dtype=np.int)
+                valid_fold[:n_train] = -1  # "-1" indicates train fold.
+                cv_iter = PredefinedSplit(valid_fold)
+            elif is_classif:
+                info('Will use stratified shuffle-and-split with validation \
+                      portion:', valid_size)
+                cv_iter = StratifiedShuffleSplit(y, 1, test_size=valid_size, 
+                                                 random_state=random_state)
+            else:
+                info('Will use shuffle-and-split with validation portion:', 
+                     valid_size)
+                cv_iter = ShuffleSplit(len(y), 1, test_size=valid_size, 
+                                       random_state=random_state)
+
+        # Use the above iterator for cross-validation prediction.
+        cv_y_pool = np.array([])
+        cv_pred_pool = np.array([])
+        cv_n_iters = np.array([])
+        for train_index, valid_index in cv_iter:
+            Xfit, Xval = X[train_index], X[valid_index]
+            yfit, yval = y[train_index], y[valid_index]
+            if EX_list is not None:
+                _EX_list = [ (EX[train_index], EX[valid_index]) 
+                             for EX in EX_list ]
+                EXfit_list, EXval_list = zip(*_EX_list)
+            else:
+                EXfit_list = None
+                EXval_list = None        
+            XEXfit, XEXval = transform_combine_XEX(
+                Xfit, info, preprocessings, Xval, 
+                EXfit_list, ex_pps_list, EXval_list
+            )
+            learner = copy.deepcopy(untrained_learner)
+            info('Training learner', learner, 'on X/EX of dimension', 
+                 XEXfit.shape)
+            if hasattr(learner, "partial_fit") and use_partial_fit:
+                learner, n_iters = pfit_until_convergence(
+                    learner, is_classif, XEXfit, yfit, info, 
+                    best_loss=best_loss, XEXval=XEXval, yval=yval, 
+                    timeout=timeout, t_start=t_start
+                )
+            else:
+                learner.fit(XEXfit, yfit)
+                n_iters = None
+            if learner is None:
+                break
+            cv_y_pool = np.append(cv_y_pool, yval)
+            info('Scoring on X/EX validation of shape', XEXval.shape)
+            cv_pred_pool = np.append(cv_pred_pool, learner.predict(XEXval))
+            cv_n_iters = np.append(cv_n_iters, n_iters)
+        else:  # all CV folds are exhausted.
+            if is_classif:
+                loss = 1 - accuracy_score(cv_y_pool, cv_pred_pool)
+                # -- squared standard error of mean
+                lossvar = (loss * (1 - loss)) / max(1, len(cv_y_pool) - 1)
+                info('OK trial with accuracy %.1f +- %.1f' % (
+                     100 * (1 - loss),
+                     100 * np.sqrt(lossvar))
+                )
+            else:
+                loss = 1 - r2_score(cv_y_pool, cv_pred_pool)
                 lossvar = None  # variance of R2 is undefined.
                 info('OK trial with R2 score %.2e' % (1 - loss))
             t_done = time.time()
@@ -244,10 +295,21 @@ def _cost_fn(argd, Xfit, yfit, Xval, yval,
                 'ex_preprocs': ex_pps_list,
                 'status': hyperopt.STATUS_OK,
                 'duration': t_done - t_start,
-                'iterations': n_iters,
+                'iterations': cv_n_iters.max(),
+            }
+            rtype = 'return'
+        # The for loop exit with break, one fold did not finish running.
+        if learner is None:
+            t_done = time.time()
+            rval = {
+                'status': hyperopt.STATUS_FAIL,
+                'failure': 'Not enough time to finish training on \
+                            all CV folds',
+                'duration': t_done - t_start,
             }
             rtype = 'return'
 
+    ##==== Cost function exception handling ====##
     except (NonFiniteFeature,), exc:
         print 'Failing trial due to NaN in', str(exc)
         t_done = time.time()
@@ -417,8 +479,8 @@ class hyperopt_estimator(object):
         if self.verbose:
             print ' '.join(map(str, args))
 
-    def fit_iter(self, X, y, EX_list=None, valid_size=.2,
-                 random_state=np.random.RandomState(),
+    def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
+                 cv_shuffle=False, random_state=np.random.RandomState(),
                  weights=None, increment=None):
         """Generator of Trials after ever-increasing numbers of evaluations
         """
@@ -436,27 +498,13 @@ class hyperopt_estimator(object):
         if type(y) is list:
             y = np.array(y)
 
-        # Data is split into train and validation sets.
-        Xfit, Xval, yfit, yval = train_test_split(
-            X, y, test_size=valid_size, random_state=random_state
-        )
-        if EX_list is not None:
-            _EX_list = [train_test_split(
-                EX, test_size=valid_size, random_state=random_state
-            ) for EX in EX_list]
-            EXfit_list, EXval_list = zip(*_EX_list)
-        else:
-            EXfit_list = None
-            EXval_list = None
-
         self.trials = hyperopt.Trials()
         # self._best_loss = float('inf')
         # This is where the cost function is used.
         fn = partial(_cost_fn,
-                     Xfit=Xfit, yfit=yfit,
-                     Xval=Xval, yval=yval,
-                     EXfit_list=EXfit_list, 
-                     EXval_list=EXval_list,
+                     X=X, y=y, EX_list=EX_list, 
+                     valid_size=valid_size, n_folds=n_folds, 
+                     shuffle=cv_shuffle, random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
                      info=self.info,
                      timeout=self.trial_timeout)
@@ -541,12 +589,32 @@ class hyperopt_estimator(object):
         else:
             self._best_learner.fit(XEX, y)
 
-    def fit(self, X, y, EX_list=None, valid_size=.2,
-            random_state=np.random.RandomState(),
+    def fit(self, X, y, EX_list=None, 
+            valid_size=.2, n_folds=None, 
+            cv_shuffle=False, random_state=np.random.RandomState(),
             weights=None):
         """
         Search the space of learners and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
+
+        Args:
+            EX_list ([list]): List of exogenous datasets. Each must has the 
+                              same number of samples as X.
+            valid_size ([float]): The portion of the dataset used as the 
+                                  validation set. If cv_shuffle is False, 
+                                  always use the last samples as validation.
+            n_folds ([int]): When n_folds is not None, use K-fold cross-
+                             validation when n_folds > 2. Or, use leave-one-out
+                             cross-validation when n_folds = -1.
+            cv_shuffle ([boolean]): Whether do sample shuffling before 
+                                    splitting the data into train and valid 
+                                    sets or not.
+            random_state: The random state used to seed the cross-validation 
+                          shuffling.
+
+        Notes:
+            For classification problems, will always use the stratified version 
+            of the K-fold cross-validation or shuffle-and-split.
         """
         if EX_list is not None:
             assert isinstance(EX_list, (list, tuple))
@@ -555,6 +623,8 @@ class hyperopt_estimator(object):
         filename = self.fit_increment_dump_filename
         fit_iter = self.fit_iter(X, y, EX_list=EX_list,
                                  valid_size=valid_size,
+                                 n_folds=n_folds,
+                                 cv_shuffle=cv_shuffle,
                                  random_state=random_state,
                                  weights=weights,
                                  increment=self.fit_increment)
