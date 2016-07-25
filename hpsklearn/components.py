@@ -1,11 +1,13 @@
 import numpy as np
 import sklearn.svm
 import sklearn.ensemble
+import sklearn.tree
 import sklearn.neighbors
 import sklearn.decomposition
 import sklearn.preprocessing
 import sklearn.neural_network
 import sklearn.linear_model
+import sklearn.discriminant_analysis
 import sklearn.feature_extraction.text
 import sklearn.naive_bayes
 from hyperopt.pyll import scope, as_apply
@@ -31,6 +33,16 @@ def sklearn_KNeighborsClassifier(*args, **kwargs):
 
 
 @scope.define
+def sklearn_AdaBoostClassifier(*args, **kwargs):
+    return sklearn.ensemble.AdaBoostClassifier(*args, **kwargs)
+
+
+@scope.define
+def sklearn_GradientBoostingClassifier(*args, **kwargs):
+    return sklearn.ensemble.GradientBoostingClassifier(*args, **kwargs)
+
+
+@scope.define
 def sklearn_RandomForestClassifier(*args, **kwargs):
     return sklearn.ensemble.RandomForestClassifier(*args, **kwargs)
 
@@ -41,13 +53,38 @@ def sklearn_ExtraTreesClassifier(*args, **kwargs):
 
 
 @scope.define
+def sklearn_DecisionTreeClassifier(*args, **kwargs):
+    return sklearn.tree.DecisionTreeClassifier(*args, **kwargs)
+
+
+@scope.define
 def sklearn_SGDClassifier(*args, **kwargs):
     return sklearn.linear_model.SGDClassifier(*args, **kwargs)
 
 
 @scope.define
+def sklearn_PassiveAggressiveClassifier(*args, **kwargs):
+    return sklearn.linear_model.PassiveAggressiveClassifier(*args, **kwargs)
+
+
+@scope.define
+def sklearn_LinearDiscriminantAnalysis(*args, **kwargs):
+    return sklearn.discriminant_analysis.LinearDiscriminantAnalysis(*args, **kwargs)
+
+
+@scope.define
+def sklearn_QuadraticDiscriminantAnalysis(*args, **kwargs):
+    return sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis(*args, **kwargs)
+
+
+@scope.define
 def sklearn_MultinomialNB(*args, **kwargs):
     return sklearn.naive_bayes.MultinomialNB(*args, **kwargs)
+
+
+@scope.define
+def sklearn_GaussianNB(*args, **kwargs):
+    return sklearn.naive_bayes.GaussianNB(*args, **kwargs)
 
 
 @scope.define
@@ -438,6 +475,84 @@ def knn(name,
         )
     return rval
 
+
+def ada_boost(name,
+             base_estimator=None,
+             n_estimators=None,
+             learning_rate=None,
+             algorithm=None,
+             random_state=None):
+
+     def _name(msg):
+         return '%s.%s_%s' % (name, 'ada_boost', msg)
+
+     rval = scope.sklearn_AdaBoostClassifier(
+         base_estimator=base_estimator,
+         n_estimators=scope.int(hp.quniform(
+             _name('n_estimators'),
+             1, 50, 1)) if n_estimators is None else n_estimators,
+         learning_rate=hp.lognormal(
+             _name('learning_rate'),
+             np.log(0.01),
+             np.log(10),
+             ) if learning_rate is None else learning_rate,
+         algorithm=hp.choice(
+             _name('algorithm'),
+             ['SAMME', 'SAMME.R']),
+         random_state=_random_state(_name('rstate'), random_state)
+         )
+     return rval
+
+
+def gradient_boosting(name,
+                      loss='deviance',
+                      learning_rate=None,
+                      n_estimators=None,
+                      max_depth=None,
+                      min_samples_split=None,
+                      min_samples_leaf=None,
+                      subsample=None,
+                      max_features=None,
+                      init=None,
+                      presort='auto',
+                      random_state=None,
+                      verbose=False):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'gradient_boosting', msg)
+
+    rval = scope.sklearn_GradientBoostingClassifier(
+        loss=loss,
+        learning_rate=hp.lognormal(
+             _name('learning_rate'),
+             np.log(0.01),
+             np.log(10),
+             ) if learning_rate is None else learning_rate,
+        n_estimators=scope.int(hp.quniform(
+            _name('n_estimators'),
+            1, 50, 1)) if n_estimators is None else n_estimators,
+        max_depth=max_depth,
+        min_samples_split=hp.quniform(
+            _name('min_samples_split'),
+            1, 10, 1) if min_samples_split is None else min_samples_split,
+        min_samples_leaf=hp.quniform(
+            _name('min_samples_leaf'),
+            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
+        subsample=hp.uniform(
+            _name('subsample'),
+            0, 1) if subsample is None else subsample,
+        max_features=hp.choice(
+            _name('max_features'),
+            ['sqrt', 'log2',
+             None]) if max_features is None else max_features,
+        init=init,
+        presort=presort,
+        random_state=_random_state(_name('rstate'), random_state),
+        verbose=verbose,
+        )
+    return rval
+ 
+
 # TODO: Pick reasonable default values
 def random_forest(name,
                   n_estimators=None,
@@ -540,6 +655,44 @@ def extra_trees(name,
         )
     return rval
 
+
+def decision_tree(name,
+                  criterion=None,
+                  splitter=None,
+                  max_features=None,
+                  max_depth=None,
+                  min_samples_split=None,
+                  min_samples_leaf=None,
+                  presort=False,
+                  random_state=None):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'sgd', msg)
+
+    rval = scope.sklearn_DecisionTreeClassifier(
+        criterion=hp.choice(
+            _name('criterion'),
+            ['gini', 'entropy']) if criterion is None else criterion,
+        splitter=hp.choice(
+            _name('splitter'),
+            ['best', 'random']) if splitter is None else splitter,
+        max_features=hp.choice(
+            _name('max_features'),
+            ['sqrt', 'log2',
+             None]) if max_features is None else max_features,
+        max_depth=max_depth,
+        min_samples_split=hp.quniform(
+            _name('min_samples_split'),
+            1, 10, 1) if min_samples_split is None else min_samples_split,
+        min_samples_leaf=hp.quniform(
+            _name('min_samples_leaf'),
+            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
+        presort=presort, 
+        random_state=_random_state(_name('rstate'), random_state),
+        )
+    return rval
+
+
 def sgd(name,
     loss=None,            #default - 'hinge'
     penalty=None,         #default - 'l2'
@@ -602,24 +755,119 @@ def sgd(name,
         )
     return rval
 
-def multinomial_nb(name,
-    alpha=None,
-    fit_prior=None,
-    ):
+
+def passive_aggressive(name,
+    loss=None,
+    C=None,
+    fit_intercept=False,
+    n_iter=None,
+    n_jobs=1,
+    shuffle=True,
+    random_state=None,
+    verbose=False):
 
     def _name(msg):
-      return '%s.%s_%s' % (name, 'multinomial_nb', msg)
-    
+        return '%s.%s_%s' % (name, 'sgd', msg)
 
+    rval = scope.sklearn_PassiveAggressiveClassifier(
+        loss=hp.choice(
+            _name('loss'),
+            ['hinge', 'squared_hinge']) if loss is None else loss,
+        C=hp.lognormal(
+            _name('learning_rate'),
+            np.log(0.01),
+            np.log(10),
+            ) if C is None else C,
+        fit_intercept=fit_intercept,
+        n_iter=scope.int(
+            hp.qloguniform(
+                _name('n_iter'),
+                np.log(1),
+                np.log(1000),
+                q=1,
+                )) if n_iter is None else n_iter,
+        n_jobs=n_jobs,
+        random_state=_random_state(_name('rstate'), random_state),
+        verbose=verbose
+        )
+    return rval
+
+
+def linear_discriminant_analysis(name,
+    solver=None,
+    shrinkage=None,
+    priors=None,
+    n_components=None,
+    store_covariance=False,
+    tol=0.00001):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'lda', msg)
+
+    solver_shrinkage = hp.choice(_name('solver_shrinkage_dual'),
+                                     [('svd', None),
+                                      ('lsqr', None),
+                                      ('lsqr', 'auto'),
+                                      ('eigen', None),
+                                      ('eigen', 'auto')])
+
+    rval = scope.sklearn_LinearDiscriminantAnalysis(
+        solver=solver_shrinkage[0] if solver is None else solver,
+        shrinkage=solver_shrinkage[1] if shrinkage is None else shrinkage,
+        priors=priors,
+        n_components=4 * scope.int(
+            hp.qloguniform(
+                _name('n_components'),
+                low=np.log(0.51),
+                high=np.log(30.5),
+                q=1.0)) if n_components is None else n_components,
+        store_covariance=store_covariance,
+        tol=tol
+        )
+    return rval
+
+
+def quadratic_discriminant_analysis(name,
+    reg_param=None,
+    priors=None):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'qda', msg)
+
+    rval = scope.sklearn_QuadraticDiscriminantAnalysis(
+        reg_param=hp.uniform(
+            _name('reg_param'),
+            0.0, 1.0) if reg_param is None else 0.0,
+        priors=priors
+        )
+    return rval
+
+
+def multinomial_nb(name,
+    alpha=None,
+    fit_prior=None):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'multinomial_nb', msg)
+    
     rval = scope.sklearn_MultinomialNB(
         alpha=hp.quniform(
             _name('alpha'),
             0, 1, 0.001 ) if alpha is None else alpha,
         fit_prior=hp.choice(
             _name('fit_prior'),
-            [ True, False ] ) if fit_prior is None else fit_prior,
+            [ True, False ]) if fit_prior is None else fit_prior,
         )
     return rval
+
+
+def gaussian_nb(name):
+    def _name(msg):
+      return '%s.%s_%s' % (name, 'gaussian_nb', msg)
+
+    rval = scope.sklearn_GaussianNB()
+    return rval
+
 
 def any_classifier(name):
     return hp.choice('%s' % name, [
@@ -630,6 +878,7 @@ def any_classifier(name):
         sgd(name + '.sgd'),
         ])
 
+
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         svc(name + '.svc'),
@@ -637,6 +886,7 @@ def any_sparse_classifier(name):
         knn(name + '.knn', sparse_data=True),
         multinomial_nb(name + '.multinomial_nb')
         ])
+
 
 def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
@@ -666,6 +916,7 @@ def standard_scaler(name, with_mean=None, with_std=None):
             ) if with_std is None else with_std,
         )
     return rval
+
 
 def tfidf(name,
     analyzer=None,
@@ -708,6 +959,7 @@ def tfidf(name,
         sublinear_tf=sublinear_tf,
         )
     return rval
+
 
 def min_max_scaler(name, feature_range=None, copy=True):
     if feature_range is None:
