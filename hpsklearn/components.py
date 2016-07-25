@@ -804,16 +804,16 @@ def linear_discriminant_analysis(name,
     def _name(msg):
         return '%s.%s_%s' % (name, 'lda', msg)
 
-    solver_shrinkage_dual = hp.choice(_name('solver_shrinkage_dual'),
-                                      [('svd', None),
-                                       ('lsqr', None),
-                                       ('lsqr', 'auto'),
-                                       ('eigen', None),
-                                       ('eigen', 'auto')])
+    solver_shrinkage = hp.choice(_name('solver_shrinkage_dual'),
+                                     [('svd', None),
+                                      ('lsqr', None),
+                                      ('lsqr', 'auto'),
+                                      ('eigen', None),
+                                      ('eigen', 'auto')])
 
     rval = scope.sklearn_LinearDiscriminantAnalysis(
-        solver=solver_shrinkage_dual[0] if solver is None else solver,
-        shrinkage=solver_shrinkage_dual[1] if shrinkage is None else shrinkage,
+        solver=solver_shrinkage[0] if solver is None else solver,
+        shrinkage=solver_shrinkage[1] if shrinkage is None else shrinkage,
         priors=priors,
         n_components=4 * scope.int(
             hp.qloguniform(
