@@ -157,9 +157,10 @@ _svc_default_cache_size = 1000.0
 def _svc_gamma(name):
     # -- making these non-conditional variables
     #    probably helps the GP algorithm generalize
-    gammanz = hp.choice(name + '.gammanz', [0, 1])
-    gamma = hp.lognormal(name + '.gamma', np.log(0.01), 2.5)
-    return gammanz * gamma
+    gamma = hp.choice(name + '.gammanz', 
+                      ['auto', hp.lognormal(name + '.gamma',
+                                            np.log(0.01), 2.5)])
+    return gamma
 
 
 def _svc_max_iter(name):
@@ -411,10 +412,10 @@ def liblinear_svc(name,
     penalty='l1' is only supported when dual='false'
     """
     loss_penalty_dual = hp.choice(_name('loss_penalty_dual'),
-                                  [('l1', 'l2', True),
-                                   ('l2', 'l2', True),
-                                   ('l2', 'l1', False),
-                                   ('l2', 'l2', False)])
+                                  [('hinge', 'l2', True),
+                                   ('squared_hinge', 'l2', True),
+                                   ('squared_hinge', 'l1', False),
+                                   ('squared_hinge', 'l2', False)])
 
     rval = scope.sklearn_LinearSVC(
         C=_svc_C(name + '.liblinear') if C is None else C,
