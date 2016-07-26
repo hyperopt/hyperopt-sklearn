@@ -414,6 +414,12 @@ class hyperopt_estimator(object):
         fit_increment_dump_filename : str or None
             Periodically dump self.trials to this file (via cPickle) during
             fit()  Saves after every `fit_increment` trial evaluations.
+
+        seed: numpy.random.RandomState or int or None
+            If int, the integer will be used to seed a RandomState instance 
+            for use in hyperopt.fmin. Use None to make sure each run is 
+            independent. Default is None.
+
         use_partial_fit : boolean
             If the learner support partial fit, it can be used for online 
             learning. However, the whole train set is not split into mini 
@@ -471,7 +477,8 @@ class hyperopt_estimator(object):
             self.algo = algo
 
         if seed is not None:
-            self.rstate = np.random.RandomState(seed)
+            self.rstate = (np.random.RandomState(seed) 
+                           if isinstance(seed, int) else seed)
         else:
             self.rstate = np.random.RandomState()
 
