@@ -10,6 +10,7 @@ from hpsklearn import components
 
 
 class TestIter(unittest.TestCase):
+
     def setUp(self):
         np.random.seed(123)
         self.X = np.random.randn(1000, 2)
@@ -37,6 +38,7 @@ class TestIter(unittest.TestCase):
 
 
 class TestSpace(unittest.TestCase):
+
     def setUp(self):
         np.random.seed(123)
         self.X = np.random.randn(1000, 2)

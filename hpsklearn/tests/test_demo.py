@@ -11,9 +11,9 @@ def test_demo_iris():
         preprocessing=hpsklearn.components.any_preprocessing('pp'),
         classifier=hpsklearn.components.any_classifier('clf'),
         algo=hyperopt.tpe,
-        trial_timeout=15.0, # seconds
+        trial_timeout=15.0,  # seconds
         max_evals=100,
-        )
+    )
 
     # /BEGIN `Demo version of estimator.fit()`
 
@@ -23,7 +23,7 @@ def test_demo_iris():
     iterator.next()
 
     while len(estimator.trials.trials) < estimator.max_evals:
-        iterator.send(1) # -- try one more model
+        iterator.send(1)  # -- try one more model
         hpsklearn.demo_support.scatter_error_vs_time(estimator)
         hpsklearn.demo_support.bar_classifier_choice(estimator)
 
