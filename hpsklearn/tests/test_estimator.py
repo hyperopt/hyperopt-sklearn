@@ -42,18 +42,18 @@ class TestIter(unittest.TestCase):
         assert len(model.trials.trials) == 5
 
 
-class TestSpace(unittest.TestCase):
+# class TestSpace(unittest.TestCase):
 
-    def setUp(self):
-        np.random.seed(123)
-        self.X = np.random.randn(1000, 2)
-        self.Y = (self.X[:, 0] > 0).astype('int')
+#     def setUp(self):
+#         np.random.seed(123)
+#         self.X = np.random.randn(1000, 2)
+#         self.Y = (self.X[:, 0] > 0).astype('int')
 
-    def test_smoke(self):
-        # -- verify the space argument is accepted and runs
-        space = components.generic_space()
-        model = hyperopt_estimator(
-            verbose=1, max_evals=10, trial_timeout=5, space=space)
-        model.fit(self.X, self.Y)
+#     def test_smoke(self):
+#         # -- verify the space argument is accepted and runs
+#         space = components.generic_space()
+#         model = hyperopt_estimator(
+#             verbose=1, max_evals=10, trial_timeout=5, space=space)
+#         model.fit(self.X, self.Y)
 
 # -- flake8 eof

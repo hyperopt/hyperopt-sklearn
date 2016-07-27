@@ -1169,14 +1169,14 @@ def pca(name, n_components=None, whiten=None, copy=True):
     rval = scope.sklearn_PCA(
         # -- qloguniform is missing a "scale" parameter so we
         #    lower the "high" parameter and multiply by 4 out front
-        # n_components=4 * scope.int(
-        #     hp.qloguniform(
-        #         name + '.n_components',
-        #         low=np.log(0.51),
-        #         high=np.log(30.5),
-        #         q=1.0)) if n_components is None else n_components,
-        n_components=(hp.uniform(name + '.n_components', 0, 1) 
-                      if n_components is None else n_components),
+        n_components=4 * scope.int(
+            hp.qloguniform(
+                name + '.n_components',
+                low=np.log(0.51),
+                high=np.log(30.5),
+                q=1.0)) if n_components is None else n_components,
+        # n_components=(hp.uniform(name + '.n_components', 0, 1) 
+        #               if n_components is None else n_components),
         whiten=hp_bool(name + '.whiten') if whiten is None else whiten,
         copy=copy,
     )
@@ -1287,6 +1287,10 @@ def rbm(name,
         n_iter=None,
         verbose=False,
         random_state=None):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'rbm', msg)
+
     rval = scope.sklearn_BernoulliRBM(
         n_components=scope.int(
             hp.qloguniform(

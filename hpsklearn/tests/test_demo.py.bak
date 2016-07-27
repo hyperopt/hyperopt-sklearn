@@ -15,7 +15,7 @@ def test_demo_iris():
         classifier=hpsklearn.components.any_classifier('clf'),
         algo=hyperopt.tpe,
         trial_timeout=15.0,  # seconds
-        max_evals=100,
+        max_evals=10,
     )
 
     # /BEGIN `Demo version of estimator.fit()`

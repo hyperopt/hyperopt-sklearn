@@ -9,6 +9,7 @@ from sklearn.cross_validation import KFold, StratifiedKFold, LeaveOneOut, \
                                      ShuffleSplit, StratifiedShuffleSplit, \
                                      PredefinedSplit
 from sklearn.metrics import accuracy_score, r2_score
+from sklearn.decomposition import PCA
 import numpy as np
 import warnings
 
@@ -56,6 +57,11 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
         '''
         for pp_algo in preprocessings:
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
+            if isinstance(pp_algo, PCA):
+                n_components = pp_algo.get_params()['n_components']
+                n_components = min(n_components, Xfit.shape[1])
+                pp_algo.set_params(n_components=n_components)
+                info('Limited PCA n_components at', n_components)
             pp_algo.fit(Xfit)
             info('Transforming Xfit', Xfit.shape)
             Xfit = pp_algo.transform(Xfit)
@@ -444,14 +450,15 @@ class hyperopt_estimator(object):
             if preprocessing is None:
                 preprocessing = components.any_preprocessing('preprocessing')
             else:
-                assert isinstance(preprocessing, (list, tuple))
+                # assert isinstance(preprocessing, (list, tuple))
+                pass
             if ex_preprocs is None:
                 ex_preprocs = []
             else:
                 assert isinstance(ex_preprocs, (list, tuple))
-                assert all(
-                    isinstance(pps, (list, tuple)) for pps in ex_preprocs
-                )
+                # assert all(
+                #     isinstance(pps, (list, tuple)) for pps in ex_preprocs
+                # )
             self.n_ex_pps = len(ex_preprocs)
             self.space = hyperopt.pyll.as_apply({
                 'classifier': classifier,
