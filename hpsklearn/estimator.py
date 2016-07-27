@@ -366,7 +366,7 @@ class hyperopt_estimator(object):
                  regressor=None,
                  space=None,
                  algo=None,
-                 max_evals=100,
+                 max_evals=10,
                  verbose=False,
                  trial_timeout=None,
                  fit_increment=1,
@@ -464,12 +464,14 @@ class hyperopt_estimator(object):
             assert regressor is None
             assert preprocessing is None
             assert ex_preprocs is None
-            self.space = hyperopt.pyll.as_apply(space)
+            # self.space = hyperopt.pyll.as_apply(space)
+            self.space = space
             evaled_space = space.eval()
             if 'ex_preprocs' in evaled_space:
-                self.n_ex_pps = evaled_space['ex_preprocs']
+                self.n_ex_pps = len(evaled_space['ex_preprocs'])
             else:
                 self.n_ex_pps = 0
+                self.ex_preprocs = []
 
         if algo is None:
             self.algo = hyperopt.rand.suggest

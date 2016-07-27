@@ -1,11 +1,14 @@
 
 def test_demo_iris():
     import numpy as np
-    import skdata.iris.view
+    try:
+        import skdata.iris.view as iris_view
+    except ImportError:
+        import skdata.iris.views as iris_view
     import hyperopt.tpe
     import hpsklearn
 
-    data_view = skdata.iris.view.KfoldClassification(4)
+    data_view = iris_view.KfoldClassification(4)
 
     estimator = hpsklearn.HyperoptEstimator(
         preprocessing=hpsklearn.components.any_preprocessing('pp'),

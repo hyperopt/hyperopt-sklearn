@@ -18,16 +18,21 @@ from hyperopt import hp
 from hyperopt import tpe
 from hyperopt.pyll import scope
 from hpsklearn import components as hpc
-
-import skdata.iris.view
-from skdata.base import SklearnClassifier
+try:
+    import skdata.iris.view as iris_view
+except ImportError:
+    import skdata.iris.views as iris_view
+try:
+    from skdata.base import SklearnClassifier as LearningAlgo
+except ImportError:
+    from skdata.base import LearningAlgo as LearningAlgo
 from hpsklearn.estimator import hyperopt_estimator
 
 
 class SkdataInterface(unittest.TestCase):
 
     def setUp(self):
-        self.view = skdata.iris.view.KfoldClassification(4)
+        self.view = iris_view.KfoldClassification(4)
 
     def test_search_all(self):
         """
@@ -36,8 +41,9 @@ class SkdataInterface(unittest.TestCase):
         set.
 
         """
-        algo = SklearnClassifier(
+        algo = LearningAlgo(
             partial(hyperopt_estimator,
+                    classifier=hpc.any_classifier('classifier'),
                     trial_timeout=15.0,  # seconds
                     verbose=1,
                     max_evals=10,
@@ -53,7 +59,7 @@ class SkdataInterface(unittest.TestCase):
         For example, PCA followed by linear SVM.
 
         """
-        algo = SklearnClassifier(
+        algo = LearningAlgo(
             partial(
                 hyperopt_estimator,
                 preprocessing=[hpc.pca('pca')],
@@ -72,38 +78,41 @@ class SkdataInterface(unittest.TestCase):
         # -- for testing purpose, suppose that the RBM is our "domain-specific
         #    pre-processing"
 
-        algo = SklearnClassifier(
+        algo = LearningAlgo(
             partial(
                 hyperopt_estimator,
-                preprocessing=hp.choice('pp',
-                                        [
-                                            # -- VQ (alone)
-                                            [
-                                                hpc.colkmeans('vq0',
-                                                              n_init=1),
-                                            ],
-                                            # -- VQ -> RBM
-                                            [
-                                                hpc.colkmeans('vq1',
-                                                              n_clusters=scope.int(
-                                                                  hp.quniform(
-                                                                      'vq1.n_clusters', 1, 5, q=1)),
-                                                              n_init=1),
-                                                hpc.rbm(name='rbm:alone',
-                                                        verbose=0)
-                                            ],
-                                            # -- VQ -> RBM -> PCA
-                                            [
-                                                hpc.colkmeans('vq2',
-                                                              n_clusters=scope.int(
-                                                                  hp.quniform(
-                                                                      'vq2.n_clusters', 1, 5, q=1)),
-                                                              n_init=1),
-                                                hpc.rbm(name='rbm:pre-pca',
-                                                        verbose=0),
-                                                hpc.pca('pca')
-                                            ],
-                                        ]),
+                preprocessing=hp.choice(
+                    'pp',
+                    [
+                        # -- VQ (alone)
+                        [
+                            hpc.colkmeans('vq0',
+                                          n_init=1),
+                        ],
+                        # -- VQ -> RBM
+                        [
+                            hpc.colkmeans(
+                                'vq1',
+                                n_clusters=scope.int(
+                                    hp.quniform(
+                                        'vq1.n_clusters', 1, 5, q=1)),
+                                n_init=1),
+                            hpc.rbm(name='rbm:alone',
+                                    verbose=0)
+                        ],
+                        # -- VQ -> RBM -> PCA
+                        [
+                            hpc.colkmeans(
+                                'vq2',
+                                n_clusters=scope.int(
+                                    hp.quniform(
+                                        'vq2.n_clusters', 1, 5, q=1)),
+                                n_init=1),
+                            hpc.rbm(name='rbm:pre-pca',
+                                    verbose=0),
+                            hpc.pca('pca')
+                        ],
+                    ]),
                 classifier=hpc.any_classifier('classif'),
                 algo=tpe.suggest,
                 max_evals=10,
