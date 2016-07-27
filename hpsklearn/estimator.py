@@ -1,6 +1,6 @@
 """
 """
-import cPickle
+import pickle
 import copy
 from functools import partial
 from multiprocessing import Process, Pipe
@@ -320,7 +320,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
         }
         rtype = 'return'
 
-    except (ValueError,), exc:
+    except (ValueError,) as exc:
         if ('k must be less than or equal'
                 ' to the number of training points') in str(exc):
             t_done = time.time()
@@ -334,8 +334,8 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             rval = exc
             rtype = 'raise'
 
-    except (AttributeError,), exc:
-        print 'Failing due to k_means_ weirdness'
+    except (AttributeError,) as exc:
+        print('Failing due to k_means_ weirdness')
         if "'NoneType' object has no attribute 'copy'" in str(exc):
             # -- sklearn/cluster/k_means_.py line 270 raises this sometimes
             t_done = time.time()
@@ -349,7 +349,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             rval = exc
             rtype = 'raise'
 
-    except Exception, exc:
+    except Exception as exc:
         rval = exc
         rtype = 'raise'
 
@@ -484,7 +484,7 @@ class hyperopt_estimator(object):
 
     def info(self, *args):
         if self.verbose:
-            print ' '.join(map(str, args))
+            print(' '.join(map(str, args)))
 
     def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
                  cv_shuffle=False, random_state=np.random.RandomState(),
@@ -635,7 +635,7 @@ class hyperopt_estimator(object):
                                  random_state=random_state,
                                  weights=weights,
                                  increment=self.fit_increment)
-        fit_iter.next()
+        next(fit_iter)
         while len(self.trials.trials) < self.max_evals:
             increment = min(self.fit_increment,
                             self.max_evals - len(self.trials.trials))
@@ -643,7 +643,7 @@ class hyperopt_estimator(object):
             if filename is not None:
                 with open(filename, 'wb') as dump_file:
                     self.info('---> dumping trials to', filename)
-                    cPickle.dump(self.trials, dump_file)
+                    pickle.dump(self.trials, dump_file)
 
         self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 

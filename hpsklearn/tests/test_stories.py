@@ -43,7 +43,7 @@ class SkdataInterface(unittest.TestCase):
                     max_evals=10,
                     ))
         mean_test_error = self.view.protocol(algo)
-        print 'mean test error:', mean_test_error
+        print('mean test error:', mean_test_error)
 
     def test_pca_svm(self):
         """
@@ -60,7 +60,7 @@ class SkdataInterface(unittest.TestCase):
                 classifier=hpc.svc_linear('classif'),
                 max_evals=10))
         mean_test_error = self.view.protocol(algo)
-        print 'mean test error:', mean_test_error
+        print('mean test error:', mean_test_error)
 
     def test_preproc(self):
         """
@@ -109,7 +109,7 @@ class SkdataInterface(unittest.TestCase):
                 max_evals=10,
             ))
         mean_test_error = self.view.protocol(algo)
-        print 'mean test error:', mean_test_error
+        print('mean test error:', mean_test_error)
 
 
 # -- TODO: develop tests with pure sklearn stories
