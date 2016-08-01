@@ -41,6 +41,16 @@ class TestIter(unittest.TestCase):
         # -- make sure we only get 5 even with big fit_increment
         assert len(model.trials.trials) == 5
 
+    def test_warm_start(self):
+        model = hyperopt_estimator(
+            classifier=components.any_classifier('classifier'), 
+            verbose=1, max_evals=5, trial_timeout=5.0)
+        model.fit(self.X, self.Y, warm_start=False)
+        assert len(model.trials.trials) == 5
+        model.set_max_evals(10)
+        model.fit(self.X, self.Y, warm_start=True)
+        assert len(model.trials.trials) == 15
+
 
 # class TestSpace(unittest.TestCase):
 

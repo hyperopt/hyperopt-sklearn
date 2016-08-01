@@ -495,8 +495,14 @@ class hyperopt_estimator(object):
         if self.verbose:
             print(' '.join(map(str, args)))
 
+    def set_max_evals(self, max_evals):
+        """Modify max_evals after estimator creation
+        """
+        self.max_evals = max_evals
+
     def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
-                 cv_shuffle=False, random_state=np.random.RandomState(),
+                 cv_shuffle=False, warm_start=False,
+                 random_state=np.random.RandomState(),
                  weights=None, increment=None):
         """Generator of Trials after ever-increasing numbers of evaluations
         """
@@ -514,7 +520,10 @@ class hyperopt_estimator(object):
         if type(y) is list:
             y = np.array(y)
 
-        self.trials = hyperopt.Trials()
+        if not warm_start:
+            self.trials = hyperopt.Trials()
+        else:
+            assert hasattr(self, 'trials')
         # self._best_loss = float('inf')
         # This is where the cost function is used.
         fn = partial(_cost_fn,
@@ -607,7 +616,8 @@ class hyperopt_estimator(object):
 
     def fit(self, X, y, EX_list=None, 
             valid_size=.2, n_folds=None, 
-            cv_shuffle=False, random_state=np.random.RandomState(),
+            cv_shuffle=False, warm_start=False,
+            random_state=np.random.RandomState(),
             weights=None):
         """
         Search the space of learners and preprocessing steps for a good
@@ -625,6 +635,8 @@ class hyperopt_estimator(object):
             cv_shuffle ([boolean]): Whether do sample shuffling before 
                                     splitting the data into train and valid 
                                     sets or not.
+            warm_start ([boolean]): If warm_start, the estimator will start 
+                                    from an existing sequence of trials.
             random_state: The random state used to seed the cross-validation 
                           shuffling.
 
@@ -641,13 +653,16 @@ class hyperopt_estimator(object):
                                  valid_size=valid_size,
                                  n_folds=n_folds,
                                  cv_shuffle=cv_shuffle,
+                                 warm_start=warm_start,
                                  random_state=random_state,
                                  weights=weights,
                                  increment=self.fit_increment)
         next(fit_iter)
-        while len(self.trials.trials) < self.max_evals:
+        adjusted_max_evals = (self.max_evals if not warm_start else 
+                              len(self.trials.trials) + self.max_evals)
+        while len(self.trials.trials) < adjusted_max_evals:
             increment = min(self.fit_increment,
-                            self.max_evals - len(self.trials.trials))
+                            adjusted_max_evals - len(self.trials.trials))
             fit_iter.send(increment)
             if filename is not None:
                 with open(filename, 'wb') as dump_file:

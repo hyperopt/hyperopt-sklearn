@@ -64,7 +64,7 @@ class SkdataInterface(unittest.TestCase):
                 hyperopt_estimator,
                 preprocessing=[hpc.pca('pca')],
                 classifier=hpc.svc_linear('classif'),
-                trial_timeout=15.0,  # seconds
+                trial_timeout=30.0,  # seconds
                 max_evals=10))
         mean_test_error = self.view.protocol(algo)
         print('mean test error:', mean_test_error)
@@ -116,7 +116,7 @@ class SkdataInterface(unittest.TestCase):
                     ]),
                 classifier=hpc.any_classifier('classif'),
                 algo=tpe.suggest,
-                trial_timeout=15.0,  # seconds
+                trial_timeout=30.0,  # seconds
                 max_evals=10,
             ))
         mean_test_error = self.view.protocol(algo)
