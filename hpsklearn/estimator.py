@@ -500,6 +500,11 @@ class hyperopt_estimator(object):
         """
         self.max_evals = max_evals
 
+    def set_algo(self, algo):
+        """Change search algorithm after estimator creation
+        """
+        self.algo = algo
+
     def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
                  cv_shuffle=False, warm_start=False,
                  random_state=np.random.RandomState(),
@@ -522,6 +527,7 @@ class hyperopt_estimator(object):
 
         if not warm_start:
             self.trials = hyperopt.Trials()
+            self._best_loss = float('inf')
         else:
             assert hasattr(self, 'trials')
         # self._best_loss = float('inf')
@@ -533,7 +539,6 @@ class hyperopt_estimator(object):
                      use_partial_fit=self.use_partial_fit,
                      info=self.info,
                      timeout=self.trial_timeout)
-        self._best_loss = float('inf')
 
         # Wrap up the cost function as a process with timeout control.
         def fn_with_timeout(*args, **kwargs):
