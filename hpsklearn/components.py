@@ -48,11 +48,17 @@ def sklearn_KNeighborsRegressor(*args, **kwargs):
 def sklearn_AdaBoostClassifier(*args, **kwargs):
     return sklearn.ensemble.AdaBoostClassifier(*args, **kwargs)
 
+@scope.define
+def sklearn_AdaBoostRegressor(*args, **kwargs):
+    return sklearn.ensemble.AdaBoostRegressor(*args, **kwargs)
 
 @scope.define
 def sklearn_GradientBoostingClassifier(*args, **kwargs):
     return sklearn.ensemble.GradientBoostingClassifier(*args, **kwargs)
 
+@scope.define
+def sklearn_GradientBoostingRegressor(*args, **kwargs):
+    return sklearn.ensemble.GradientBoostingRegressor(*args, **kwargs)
 
 @scope.define
 def sklearn_RandomForestClassifier(*args, **kwargs):
@@ -285,6 +291,38 @@ def _trees_min_samples_leaf(name):
 
 def _trees_bootstrap(name):
     return hp.choice(name, [True, False])
+
+def _boosting_n_estimators(name):
+    return scope.int(hp.qloguniform(name, np.log(10.5), np.log(1000.5), 1))
+
+def _ada_boost_learning_rate(name):
+    return hp.lognormal(name, np.log(0.01), np.log(10.0))
+
+def _ada_boost_loss(name):
+    return hp.choice(name, ['linear', 'square', 'exponential'])
+
+def _ada_boost_algo(name):
+    return hp.choice(name, ['SAMME', 'SAMME.R'])
+
+def _grad_boosting_reg_loss_alpha(name):
+    return hp.choice(name, [
+        ('ls', 0.9), 
+        ('lad', 0.9), 
+        ('huber', hp.uniform(name + '.alpha', 0.85, 0.95)), 
+        ('quantile', 0.5)
+    ])
+
+def _grad_boosting_clf_loss(name):
+    return hp.choice(name, ['deviance', 'exponential'])
+
+def _grad_boosting_learning_rate(name):
+    return hp.lognormal(name, np.log(0.01), np.log(10.0))
+
+def _grad_boosting_subsample(name):
+    return hp.pchoice(name, [
+        (0.2, 1.0),  # default choice.
+        (0.8, hp.uniform(name + '.sgb', 0.5, 1.0))  # stochastic grad boosting.
+    ])
 
 def _sgd_penalty(name):
     return hp.pchoice(name, [
@@ -592,8 +630,8 @@ def _knn_hp_space(
                  if weights is None else weights),
         algorithm=algorithm,
         leaf_size=leaf_size,
-        metric=metric_p[0],
-        p=metric_p[1],
+        metric=metric_p[0] if metric is None else metric,
+        p=metric_p[1] if p is None else p,
         metric_params=metric_params,
         n_jobs=n_jobs)
     return hp_space
@@ -710,85 +748,158 @@ def random_forest_regression(name, criterion='mse', **kwargs):
     return scope.sklearn_RandomForestRegressor(**hp_space)
 
 
-##############################################
-##==== Boosting classifier constructors ====##
-##############################################
-def ada_boost(name,
-             base_estimator=None,
-             n_estimators=None,
-             learning_rate=None,
-             algorithm=None,
-             random_state=None):
-
-     def _name(msg):
-         return '%s.%s_%s' % (name, 'ada_boost', msg)
-
-     rval = scope.sklearn_AdaBoostClassifier(
-         base_estimator=base_estimator,
-         n_estimators=scope.int(hp.quniform(
-             _name('n_estimators'),
-             1, 50, 1)) if n_estimators is None else n_estimators,
-         learning_rate=hp.lognormal(
-             _name('learning_rate'),
-             np.log(0.01),
-             np.log(10),
-             ) if learning_rate is None else learning_rate,
-         algorithm=hp.choice(
-             _name('algorithm'),
-             ['SAMME', 'SAMME.R']),
-         random_state=_random_state(_name('rstate'), random_state)
-         )
-     return rval
+###################################################
+##==== AdaBoost hyperparameters search space ====##
+###################################################
+def _ada_boost_hp_space(
+    name_func,
+    base_estimator=None,
+    n_estimators=None,
+    learning_rate=None,
+    random_state=None):
+    '''Generate AdaBoost hyperparameters search space
+    '''
+    hp_space = dict(
+        base_estimator=base_estimator,
+        n_estimators=(_boosting_n_estimators(name_func('n_estimators')) 
+                      if n_estimators is None else n_estimators),
+        learning_rate=(_ada_boost_learning_rate(name_func('learning_rate')) 
+                       if learning_rate is None else learning_rate),
+        random_state=_random_state(name_func('rstate'), random_state) 
+    )
+    return hp_space
 
 
-def gradient_boosting(name,
-                      loss='deviance',
-                      learning_rate=None,
-                      n_estimators=None,
-                      max_depth=None,
-                      min_samples_split=None,
-                      min_samples_leaf=None,
-                      subsample=None,
-                      max_features=None,
-                      init=None,
-                      presort='auto',
-                      random_state=None,
-                      verbose=False):
+########################################################
+##==== AdaBoost classifier/regressor constructors ====##
+########################################################
+def ada_boost(name, algorithm=None, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.AdaBoostClassifier model.
 
+    Args:
+        algorithm([str]): choose from ['SAMME', 'SAMME.R']
+    
+    See help(hpsklearn.components._ada_boost_hp_space) for info on 
+    additional available AdaBoost arguments.    
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'ada_boost', msg)
+
+    hp_space = _ada_boost_hp_space(_name, **kwargs)
+    hp_space['algorithm'] = (_ada_boost_algo(_name('algo')) if 
+                             algorithm is None else algorithm)
+    return scope.sklearn_AdaBoostClassifier(**hp_space)
+
+
+def ada_boost_regression(name, loss=None, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.AdaBoostRegressor model.
+
+    Args:
+        loss([str]): choose from ['linear', 'square', 'exponential']
+    
+    See help(hpsklearn.components._ada_boost_hp_space) for info on 
+    additional available AdaBoost arguments.    
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'ada_boost_reg', msg)
+
+    hp_space = _ada_boost_hp_space(_name, **kwargs)
+    hp_space['loss'] = (_ada_boost_loss(_name('loss')) if 
+                        loss is None else loss)
+    return scope.sklearn_AdaBoostRegressor(**hp_space)
+
+
+###########################################################
+##==== GradientBoosting hyperparameters search space ====##
+###########################################################
+def _grad_boosting_hp_space(
+    name_func,
+    learning_rate=None, 
+    n_estimators=None, 
+    subsample=None, 
+    min_samples_split=None, 
+    min_samples_leaf=None, 
+    max_depth=None, 
+    init=None, 
+    random_state=None, 
+    max_features=None, 
+    verbose=0, 
+    max_leaf_nodes=None, 
+    warm_start=False, 
+    presort='auto'):
+    '''Generate GradientBoosting hyperparameters search space
+    '''
+    hp_space = dict(
+        learning_rate=(_grad_boosting_learning_rate(name_func('learning_rate')) 
+                       if learning_rate is None else learning_rate),
+        n_estimators=(_boosting_n_estimators(name_func('n_estimators')) 
+                      if n_estimators is None else n_estimators),
+        subsample=(_grad_boosting_subsample(name_func('subsample')) 
+                   if subsample is None else subsample),
+        min_samples_split=(_trees_min_samples_split(name_func('min_samples_split')) 
+                           if min_samples_split is None else min_samples_split),
+        min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf')) 
+                          if min_samples_leaf is None else min_samples_leaf),
+        max_depth=(_trees_max_depth(name_func('max_depth')) 
+                   if max_depth is None else max_depth),
+        init=init,
+        random_state=_random_state(name_func('rstate'), random_state),
+        max_features=(_trees_max_features(name_func('max_features')) 
+                   if max_features is None else max_features),
+        warm_start=warm_start,
+        presort=presort
+    )
+    return hp_space
+
+
+################################################################
+##==== GradientBoosting classifier/regressor constructors ====##
+################################################################
+def gradient_boosting(name, loss=None, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.GradientBoostingClassifier model.
+
+    Args:
+        loss([str]): choose from ['deviance', 'exponential']
+    
+    See help(hpsklearn.components._grad_boosting_hp_space) for info on 
+    additional available GradientBoosting arguments.    
+    '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'gradient_boosting', msg)
 
-    rval = scope.sklearn_GradientBoostingClassifier(
-        loss=loss,
-        learning_rate=hp.lognormal(
-             _name('learning_rate'),
-             np.log(0.01),
-             np.log(10),
-             ) if learning_rate is None else learning_rate,
-        n_estimators=scope.int(hp.quniform(
-            _name('n_estimators'),
-            1, 50, 1)) if n_estimators is None else n_estimators,
-        max_depth=max_depth,
-        min_samples_split=hp.quniform(
-            _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
-            _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        subsample=hp.uniform(
-            _name('subsample'),
-            0, 1) if subsample is None else subsample,
-        max_features=hp.choice(
-            _name('max_features'),
-            ['sqrt', 'log2',
-             None]) if max_features is None else max_features,
-        init=init,
-        presort=presort,
-        random_state=_random_state(_name('rstate'), random_state),
-        verbose=verbose,
-        )
-    return rval
- 
+    hp_space = _grad_boosting_hp_space(_name, **kwargs)
+    hp_space['loss'] = (_grad_boosting_clf_loss(_name('loss')) 
+                        if loss is None else loss)
+    return scope.sklearn_GradientBoostingClassifier(**hp_space)
+
+
+def gradient_boosting_regression(name, loss=None, alpha=None, **kwargs):
+    '''
+    Return a pyll graph with hyperparamters that will construct
+    a sklearn.ensemble.GradientBoostingRegressor model.
+
+    Args:
+        loss([str]): choose from ['ls', 'lad', 'huber', 'quantile']
+        alpha([float]): alpha parameter for huber and quantile losses. 
+                        Must be within [0.0, 1.0].
+    
+    See help(hpsklearn.components._grad_boosting_hp_space) for info on 
+    additional available GradientBoosting arguments.    
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'gradient_boosting_reg', msg)
+
+    loss_alpha = _grad_boosting_reg_loss_alpha(_name('loss_alpha'))
+    hp_space = _grad_boosting_hp_space(_name, **kwargs)
+    hp_space['loss'] = loss_alpha[0] if loss is None else loss
+    hp_space['alpha'] = loss_alpha[1] if alpha is None else alpha
+    return scope.sklearn_GradientBoostingRegressor(**hp_space)
 
 
 ###########################################################
@@ -1131,9 +1242,10 @@ def any_classifier(name):
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
+        ada_boost(name + '.ada_boost'),
+        gradient_boosting(name + '.grad_boosting', loss='deviance'),
         sgd(name + '.sgd'),
     ])
-
 
 
 def any_sparse_classifier(name):
@@ -1151,6 +1263,8 @@ def any_regressor(name):
         knn_regression(name + '.knn'),
         random_forest_regression(name + '.random_forest'),
         extra_trees_regression(name + '.extra_trees'),
+        ada_boost_regression(name + '.ada_boost'),
+        gradient_boosting_regression(name + '.grad_boosting'),
         sgd_regression(name + '.sgd'),
     ])
 

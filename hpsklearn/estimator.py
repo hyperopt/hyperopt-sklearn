@@ -59,7 +59,7 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
             info('Fitting', pp_algo, 'to X of shape', Xfit.shape)
             if isinstance(pp_algo, PCA):
                 n_components = pp_algo.get_params()['n_components']
-                n_components = min(n_components, Xfit.shape[1])
+                n_components = min([n_components] + list(Xfit.shape))
                 pp_algo.set_params(n_components=n_components)
                 info('Limited PCA n_components at', n_components)
             pp_algo.fit(Xfit)
