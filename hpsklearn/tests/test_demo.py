@@ -42,6 +42,8 @@ def test_demo_iris():
     # /END Demo version of `estimator.fit()`
 
     print('Test accuracy:', estimator.score(X_test, y_test), file=sys.stderr)
+    print('====End of demo====', file=sys.stderr)
+
 
 def test_demo_boston():
 
@@ -80,5 +82,7 @@ def test_demo_boston():
     # /END Demo version of `estimator.fit()`
 
     print('Test R2:', estimator.score(X_test, y_test), file=sys.stderr)
+    print('====End of demo====', file=sys.stderr)
+
 
 # -- flake8 eof
