@@ -1,19 +1,21 @@
 import numpy as np
 from sklearn.cluster import KMeans
 
+
 class ColumnKMeans(object):
+
     def __init__(self,
-        n_clusters,
-        init='k-means++',
-        n_init=10,
-        max_iter=300,
-        tol=1e-4,
-        precompute_distances=True,
-        verbose=0,
-        random_state=None,
-        copy_x=True,
-        n_jobs=1,
-        ):
+                 n_clusters,
+                 init='k-means++',
+                 n_init=10,
+                 max_iter=300,
+                 tol=1e-4,
+                 precompute_distances=True,
+                 verbose=0,
+                 random_state=None,
+                 copy_x=True,
+                 n_jobs=1,
+                 ):
         self.n_clusters = n_clusters
         self.init = init
         self.n_init = n_init
@@ -30,7 +32,7 @@ class ColumnKMeans(object):
         rows, cols = X.shape
         self.col_models = []
         for jj in range(cols):
-            col_model=KMeans(
+            col_model = KMeans(
                 n_clusters=self.n_clusters,
                 init=self.init,
                 n_init=self.n_init,
@@ -41,14 +43,14 @@ class ColumnKMeans(object):
                 random_state=self.random_state,
                 copy_x=self.copy_x,
                 n_jobs=self.n_jobs,
-                )
+            )
             col_model.fit(X[:, jj:jj + 1])
             self.col_models.append(col_model)
 
     def transform(self, X):
         rows, cols = X.shape
         if self.output_dtype is None:
-            output_dtype = X.dtype # XXX
+            output_dtype = X.dtype  # XXX
         else:
             output_dtype = self.output_dtype
         rval = np.empty(
@@ -65,4 +67,3 @@ class ColumnKMeans(object):
         assert np.all(np.isfinite(rval))
 
         return rval.reshape((rows, cols * self.n_clusters))
-

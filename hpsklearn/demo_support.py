@@ -23,6 +23,7 @@ def plot_minvalid_vs_time(estimator, ax, ylim=None):
 
 
 class PlotHelper(object):
+
     def __init__(self, estimator, mintodate_ylim):
         self.estimator = estimator
         self.fig, self.axs = plt.subplots(1, 2)
@@ -41,4 +42,3 @@ class PlotHelper(object):
 
     def post_loop(self):
         display.clear_output()
-
