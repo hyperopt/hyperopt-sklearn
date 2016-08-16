@@ -5,6 +5,7 @@ import copy
 from functools import partial
 from multiprocessing import Process, Pipe
 import time
+from sklearn.base import BaseEstimator
 from sklearn.cross_validation import KFold, StratifiedKFold, LeaveOneOut, \
                                      ShuffleSplit, StratifiedShuffleSplit, \
                                      PredefinedSplit
@@ -362,7 +363,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
     _conn.send((rtype, rval))
 
 
-class hyperopt_estimator(object):
+class hyperopt_estimator(BaseEstimator):
 
     def __init__(self,
                  preprocessing=None,
@@ -493,16 +494,6 @@ class hyperopt_estimator(object):
     def info(self, *args):
         if self.verbose:
             print(' '.join(map(str, args)))
-
-    def set_max_evals(self, max_evals):
-        """Modify max_evals after estimator creation
-        """
-        self.max_evals = max_evals
-
-    def set_algo(self, algo):
-        """Change search algorithm after estimator creation
-        """
-        self.algo = algo
 
     def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
                  cv_shuffle=False, warm_start=False,

@@ -5,6 +5,7 @@ except:
     import unittest
 
 import numpy as np
+from hyperopt import rand, tpe
 from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn import components
 
@@ -45,11 +46,17 @@ class TestIter(unittest.TestCase):
         model = hyperopt_estimator(
             classifier=components.any_classifier('classifier'), 
             verbose=1, max_evals=5, trial_timeout=5.0)
+        params = model.get_params()
+        assert params['algo'] == rand.suggest
+        assert params['max_evals'] == 5
         model.fit(self.X, self.Y, warm_start=False)
         assert len(model.trials.trials) == 5
-        model.set_max_evals(10)
+        model.set_params(algo=tpe.suggest, max_evals=10)
+        params = model.get_params()
+        assert params['algo'] == tpe.suggest
+        assert params['max_evals'] == 10
         model.fit(self.X, self.Y, warm_start=True)
-        assert len(model.trials.trials) == 15
+        assert len(model.trials.trials) == 15  # 5 + 10 = 15.
 
 
 # class TestSpace(unittest.TestCase):
