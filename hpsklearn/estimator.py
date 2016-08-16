@@ -17,7 +17,6 @@ import hyperopt
 import scipy.sparse
 
 from . import components
-from .lagselectors import LagSelector
 
 # Constants for partial_fit
 
