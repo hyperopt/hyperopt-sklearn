@@ -190,7 +190,7 @@ def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
 
 
 def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
-             use_partial_fit, info, timeout, _conn, best_loss=None):
+             use_partial_fit, info, timeout, _conn, loss_fn=None, best_loss=None):
     '''Calculate the loss function
     '''
     try:
@@ -284,18 +284,24 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             cv_pred_pool = np.append(cv_pred_pool, learner.predict(XEXval))
             cv_n_iters = np.append(cv_n_iters, n_iters)
         else:  # all CV folds are exhausted.
-            if is_classif:
-                loss = 1 - accuracy_score(cv_y_pool, cv_pred_pool)
-                # -- squared standard error of mean
-                lossvar = (loss * (1 - loss)) / max(1, len(cv_y_pool) - 1)
-                info('OK trial with accuracy %.1f +- %.1f' % (
-                     100 * (1 - loss),
-                     100 * np.sqrt(lossvar))
-                )
+            if loss_fn is None:
+                if is_classif:
+                    loss = 1 - accuracy_score(cv_y_pool, cv_pred_pool)
+                    # -- squared standard error of mean
+                    lossvar = (loss * (1 - loss)) / max(1, len(cv_y_pool) - 1)
+                    info('OK trial with accuracy %.1f +- %.1f' % (
+                         100 * (1 - loss),
+                         100 * np.sqrt(lossvar))
+                    )
+                else:
+                    loss = 1 - r2_score(cv_y_pool, cv_pred_pool)
+                    lossvar = None  # variance of R2 is undefined.
+                    info('OK trial with R2 score %.2e' % (1 - loss))
             else:
-                loss = 1 - r2_score(cv_y_pool, cv_pred_pool)
-                lossvar = None  # variance of R2 is undefined.
-                info('OK trial with R2 score %.2e' % (1 - loss))
+                # Use a user specified loss function
+                loss = loss_fn(cv_y_pool, cv_pred_pool)
+                lossvar = None
+                info('OK trial with loss %.1f' % loss)
             t_done = time.time()
             rval = {
                 'loss': loss,
@@ -377,6 +383,7 @@ class hyperopt_estimator(BaseEstimator):
                  space=None,
                  algo=None,
                  max_evals=10,
+                 loss_fn=None,
                  verbose=False,
                  trial_timeout=None,
                  fit_increment=1,
@@ -412,6 +419,13 @@ class hyperopt_estimator(BaseEstimator):
             Fit() will evaluate up to this-many configurations. Does not apply
             to fit_iter, which continues to search indefinitely.
 
+        loss_fn: callable
+            A function that takes the arguments (y_target, y_prediction)
+            and computes a loss value to be minimized. If no function is
+            specified, '1.0 - accuracy_score(y_target, y_prediction)' is used
+            for classification and '1.0 - r2_score(y_target, y_prediction)'
+            is used for regression
+
         trial_timeout: float (seconds), or None for no timeout
             Kill trial evaluations after this many seconds.
 
@@ -438,6 +452,7 @@ class hyperopt_estimator(BaseEstimator):
             the training when the validation score stops improving.
         """
         self.max_evals = max_evals
+        self.loss_fn = loss_fn
         self.verbose = verbose
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
@@ -537,7 +552,8 @@ class hyperopt_estimator(BaseEstimator):
                      shuffle=cv_shuffle, random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
                      info=self.info,
-                     timeout=self.trial_timeout)
+                     timeout=self.trial_timeout,
+                     loss_fn=self.loss_fn)
 
         # Wrap up the cost function as a process with timeout control.
         def fn_with_timeout(*args, **kwargs):
