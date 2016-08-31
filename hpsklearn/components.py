@@ -384,6 +384,7 @@ def _svm_hp_space(
         shrinking=None,
         tol=None,
         max_iter=None,
+        probability=False,
         verbose=False,
         cache_size=_svm_default_cache_size):
     '''Generate SVM hyperparamters search space
@@ -428,6 +429,7 @@ def _svm_hp_space(
         tol=_svm_tol(name_func('tol')) if tol is None else tol,
         max_iter=(_svm_max_iter(name_func('maxiter'))
                   if max_iter is None else max_iter),
+        probability=probability,
         verbose=verbose,
         cache_size=cache_size)
     return hp_space
