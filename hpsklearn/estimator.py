@@ -326,8 +326,8 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             rtype = 'return'
 
     ##==== Cost function exception handling ====##
-    except (NonFiniteFeature,), exc:
-        print 'Failing trial due to NaN in', str(exc)
+    except (NonFiniteFeature,) as exc:
+        print('Failing trial due to NaN in', str(exc))
         t_done = time.time()
         rval = {
             'status': hyperopt.STATUS_FAIL,
