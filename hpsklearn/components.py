@@ -384,7 +384,6 @@ def _svm_hp_space(
         shrinking=None,
         tol=None,
         max_iter=None,
-        probability=False,
         verbose=False,
         cache_size=_svm_default_cache_size):
     '''Generate SVM hyperparamters search space
@@ -429,7 +428,6 @@ def _svm_hp_space(
         tol=_svm_tol(name_func('tol')) if tol is None else tol,
         max_iter=(_svm_max_iter(name_func('maxiter'))
                   if max_iter is None else max_iter),
-        probability=probability,
         verbose=verbose,
         cache_size=cache_size)
     return hp_space
@@ -437,9 +435,10 @@ def _svm_hp_space(
 def _svc_hp_space(name_func, random_state=None):
     '''Generate SVC specific hyperparamters
     '''
-    hp_space = {}
-    hp_space['random_state'] = _random_state(name_func('rstate'), 
-                                             random_state)
+    hp_space = dict(
+        random_state = _random_state(name_func('rstate'),random_state),
+        probability=False
+    )
     return hp_space
 
 def _svr_hp_space(name_func, epsilon=None):
@@ -526,7 +525,6 @@ def svr_kernel(name, kernel, epsilon=None, **kwargs):
 
     hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
     hp_space.update(_svr_hp_space(_name, epsilon))
-    del hp_space['probability']
     return scope.sklearn_SVR(**hp_space)
 
 def svr_linear(name, **kwargs):
