@@ -526,6 +526,7 @@ def svr_kernel(name, kernel, epsilon=None, **kwargs):
 
     hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
     hp_space.update(_svr_hp_space(_name, epsilon))
+    del hp_space['probability']
     return scope.sklearn_SVR(**hp_space)
 
 def svr_linear(name, **kwargs):
