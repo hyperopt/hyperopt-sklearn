@@ -432,12 +432,13 @@ def _svm_hp_space(
         cache_size=cache_size)
     return hp_space
 
-def _svc_hp_space(name_func, random_state=None):
+
+def _svc_hp_space(name_func, random_state=None, probability=False):
     '''Generate SVC specific hyperparamters
     '''
     hp_space = dict(
         random_state = _random_state(name_func('rstate'),random_state),
-        probability=False
+        probability=probability
     )
     return hp_space
 
@@ -453,7 +454,7 @@ def _svr_hp_space(name_func, epsilon=None):
 #########################################
 ##==== SVM classifier constructors ====##
 #########################################
-def svc_kernel(name, kernel, random_state=None, **kwargs):
+def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with a user specified kernel.
@@ -465,7 +466,7 @@ def svc_kernel(name, kernel, random_state=None, **kwargs):
         return '%s.%s_%s' % (name, kernel, msg)
 
     hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
-    hp_space.update(_svc_hp_space(_name, random_state))
+    hp_space.update(_svc_hp_space(_name, random_state, probability))
     return scope.sklearn_SVC(**hp_space)
 
 def svc_linear(name, **kwargs):
