@@ -148,5 +148,5 @@ setuptools.setup(
     license = 'BSD',
     package_data = package_data,
     include_package_data = True,
-    install_requires = ['numpy', 'scipy', 'nose', 'hyperopt', 'scikit-learn'],
+    install_requires = ['NumPy==1.11.0', 'scipy', 'nose', 'hyperopt', 'scikit-learn'],
 )
