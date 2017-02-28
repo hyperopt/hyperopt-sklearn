@@ -459,7 +459,10 @@ class hyperopt_estimator(BaseEstimator):
         self.fit_increment_dump_filename = fit_increment_dump_filename
         self.use_partial_fit = use_partial_fit
         if space is None:
-            if classifier is not None:
+            if classifier is None and regressor is None:
+                self.classification = True
+                classifier = components.any_classifier('classifier')
+            elif classifier is not None:
                 assert regressor is None
                 self.classification = True
             else:
