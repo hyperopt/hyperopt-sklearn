@@ -10,6 +10,7 @@ import sklearn.linear_model
 import sklearn.discriminant_analysis
 import sklearn.feature_extraction.text
 import sklearn.naive_bayes
+import sklearn.multiclass
 from functools import partial
 from hyperopt.pyll import scope, as_apply
 from hyperopt import hp
@@ -115,6 +116,18 @@ def sklearn_MultinomialNB(*args, **kwargs):
 @scope.define
 def sklearn_GaussianNB(*args, **kwargs):
     return sklearn.naive_bayes.GaussianNB(*args, **kwargs)
+
+@scope.define
+def sklearn_OneVsRestClassifier(*args, **kwargs):
+    return sklearn.multiclass.OneVsRestClassifier(*args, **kwargs)
+
+@scope.define
+def sklearn_OneVsOneClassifier(*args, **kwargs):
+    return sklearn.multiclass.OneVsOneClassifier(*args, **kwargs)
+
+@scope.define
+def sklearn_OutputCodeClassifier(*args, **kwargs):
+    return sklearn.multiclass.OutputCodeClassifier(*args, **kwargs)
 
 
 @scope.define
@@ -1233,6 +1246,51 @@ def quadratic_discriminant_analysis(name,
         priors=priors
         )
     return rval
+
+####################################
+##==== Multiclass classifiers ====##
+####################################
+def one_vs_rest(name,
+    estimator=None,
+    n_jobs=1):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'one_vs_rest', msg)
+
+    rval = scope.sklearn_OneVsRestClassifier(
+        estimator=any_classifier(_name('estimator')) if estimator is None else estimator,
+        n_jobs=n_jobs)
+
+    return rval
+
+def one_vs_one(name,
+    estimator=None,
+    n_jobs=1):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'one_vs_one', msg)
+
+    rval = scope.sklearn_OneVsOneClassifier(
+        estimator=any_classifier(_name('estimator')) if estimator is None else estimator,
+        n_jobs=n_jobs)
+
+    return rval
+
+def output_code(name,
+    estimator=None,
+    code_size=1.5,
+    n_jobs=1):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'output_code', msg)
+
+    rval = scope.sklearn_OutputCodeClassifier(
+        estimator=any_classifier(_name('estimator')) if estimator is None else estimator,
+        code_size=code_size,
+        n_jobs=n_jobs)
+
+    return rval
+
 
 
 ####################################################
