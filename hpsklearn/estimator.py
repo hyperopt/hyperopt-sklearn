@@ -83,6 +83,15 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
                     raise NonFiniteFeature(pp_algo)
         return (Xfit, Xval)
 
+    # If none of the EX stuff is used, skip over it
+    # (this is a quick fix for sparse data)
+    if EXfit_list is None and EXval_list is None and len(ex_pps_list) == 0:
+        Xfit, Xval = run_preprocs(en_pps, Xfit, Xval)
+        if Xval is None:
+            return Xfit
+        else:
+            return (Xfit, Xval)
+
     # import ipdb; ipdb.set_trace()
     transformed_XEX_list = []
     en_pps = list(en_pps)
