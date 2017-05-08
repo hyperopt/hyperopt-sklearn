@@ -16,7 +16,11 @@ from hyperopt.pyll import scope, as_apply
 from hyperopt import hp
 from .vkmeans import ColumnKMeans
 from . import lagselectors
-
+# Optional dependencies
+try:
+    import xgboost
+except ImportError:
+    xgboost = None
 
 ##########################################
 ##==== Wrappers for sklearn modules ====##
@@ -89,6 +93,18 @@ def sklearn_SGDClassifier(*args, **kwargs):
 @scope.define
 def sklearn_SGDRegressor(*args, **kwargs):
     return sklearn.linear_model.SGDRegressor(*args, **kwargs)
+
+@scope.define
+def sklearn_XGBClassifier(*args, **kwargs):
+    if xgboost is None:
+        raise ImportError('No module named xgboost')
+    return xgboost.XGBClassifier(*args, **kwargs)
+
+@scope.define
+def sklearn_XGBRegressor(*args, **kwargs):
+    if xgboost is None:
+        raise ImportError('No module named xgboost')
+    return xgboost.XGBRegressor(*args, **kwargs)
 
 # @scope.define
 # def sklearn_Ridge(*args, **kwargs):
@@ -196,9 +212,9 @@ def hp_bool(name):
 def _svm_gamma(name, n_features=1):
     '''Generator of default gamma values for SVMs.
     This setting is based on the following rationales:
-    1.  The gamma hyperparameter is basically an amplifier for the 
+    1.  The gamma hyperparameter is basically an amplifier for the
         original dot product or l2 norm.
-    2.  The original dot product or l2 norm shall be normalized by 
+    2.  The original dot product or l2 norm shall be normalized by
         the number of features first.
     '''
     # -- making these non-conditional variables
@@ -319,9 +335,9 @@ def _ada_boost_algo(name):
 
 def _grad_boosting_reg_loss_alpha(name):
     return hp.choice(name, [
-        ('ls', 0.9), 
-        ('lad', 0.9), 
-        ('huber', hp.uniform(name + '.alpha', 0.85, 0.95)), 
+        ('ls', 0.9),
+        ('lad', 0.9),
+        ('huber', hp.uniform(name + '.alpha', 0.85, 0.95)),
         ('quantile', 0.5)
     ])
 
@@ -404,12 +420,12 @@ def _svm_hp_space(
     if kernel in ['linear', 'rbf', 'sigmoid']:
         degree_ = 1
     else:
-        degree_ = (_svm_degree(name_func('degree')) 
+        degree_ = (_svm_degree(name_func('degree'))
                    if degree is None else degree)
     if kernel in ['linear']:
         gamma_ = 'auto'
     else:
-        gamma_ = (_svm_gamma(name_func('gamma'), n_features=1) 
+        gamma_ = (_svm_gamma(name_func('gamma'), n_features=1)
                   if gamma is None else gamma)
         gamma_ /= n_features  # make gamma independent of n_features.
     if kernel in ['linear', 'rbf']:
@@ -436,7 +452,7 @@ def _svm_hp_space(
         gamma=gamma_,
         coef0=coef0_,
         degree=degree_,
-        shrinking=(hp_bool(name_func('shrinking')) 
+        shrinking=(hp_bool(name_func('shrinking'))
                    if shrinking is None else shrinking),
         tol=_svm_tol(name_func('tol')) if tol is None else tol,
         max_iter=(_svm_max_iter(name_func('maxiter'))
@@ -459,7 +475,7 @@ def _svr_hp_space(name_func, epsilon=None):
     '''Generate SVR specific hyperparamters
     '''
     hp_space = {}
-    hp_space['epsilon'] = (_svm_epsilon(name_func('epsilon')) 
+    hp_space['epsilon'] = (_svm_epsilon(name_func('epsilon'))
                            if epsilon is None else epsilon)
     return hp_space
 
@@ -483,25 +499,25 @@ def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
     return scope.sklearn_SVC(**hp_space)
 
 def svc_linear(name, **kwargs):
-    '''Simply use the svc_kernel function with kernel fixed as linear to 
+    '''Simply use the svc_kernel function with kernel fixed as linear to
     return an SVC object.
     '''
     return svc_kernel(name, kernel='linear', **kwargs)
 
 def svc_rbf(name, **kwargs):
-    '''Simply use the svc_kernel function with kernel fixed as rbf to 
+    '''Simply use the svc_kernel function with kernel fixed as rbf to
     return an SVC object.
     '''
     return svc_kernel(name, kernel='rbf', **kwargs)
 
 def svc_poly(name, **kwargs):
-    '''Simply use the svc_kernel function with kernel fixed as poly to 
+    '''Simply use the svc_kernel function with kernel fixed as poly to
     return an SVC object.
     '''
     return svc_kernel(name, kernel='poly', **kwargs)
 
 def svc_sigmoid(name, **kwargs):
-    '''Simply use the svc_kernel function with kernel fixed as sigmoid to 
+    '''Simply use the svc_kernel function with kernel fixed as sigmoid to
     return an SVC object.
     '''
     return svc_kernel(name, kernel='sigmoid', **kwargs)
@@ -542,25 +558,25 @@ def svr_kernel(name, kernel, epsilon=None, **kwargs):
     return scope.sklearn_SVR(**hp_space)
 
 def svr_linear(name, **kwargs):
-    '''Simply use the svr_kernel function with kernel fixed as linear to 
+    '''Simply use the svr_kernel function with kernel fixed as linear to
     return an SVR object.
     '''
     return svr_kernel(name, kernel='linear', **kwargs)
 
 def svr_rbf(name, **kwargs):
-    '''Simply use the svr_kernel function with kernel fixed as rbf to 
+    '''Simply use the svr_kernel function with kernel fixed as rbf to
     return an SVR object.
     '''
     return svr_kernel(name, kernel='rbf', **kwargs)
 
 def svr_poly(name, **kwargs):
-    '''Simply use the svr_kernel function with kernel fixed as poly to 
+    '''Simply use the svr_kernel function with kernel fixed as poly to
     return an SVR object.
     '''
     return svr_kernel(name, kernel='poly', **kwargs)
 
 def svr_sigmoid(name, **kwargs):
-    '''Simply use the svr_kernel function with kernel fixed as sigmoid to 
+    '''Simply use the svr_kernel function with kernel fixed as sigmoid to
     return an SVR object.
     '''
     return svr_kernel(name, kernel='sigmoid', **kwargs)
@@ -641,7 +657,7 @@ def _knn_hp_space(
     hp_space = dict(
         n_neighbors=(_knn_neighbors(name_func('neighbors'))
                      if n_neighbors is None else n_neighbors),
-        weights=(_knn_weights(name_func('weights')) 
+        weights=(_knn_weights(name_func('weights'))
                  if weights is None else weights),
         algorithm=algorithm,
         leaf_size=leaf_size,
@@ -658,9 +674,9 @@ def knn(name, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.neighbors.KNeighborsClassifier model.
-    
-    See help(hpsklearn.components._knn_hp_space) for info on available KNN 
-    arguments.    
+
+    See help(hpsklearn.components._knn_hp_space) for info on available KNN
+    arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'knc', msg)
@@ -673,9 +689,9 @@ def knn_regression(name, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.neighbors.KNeighborsRegressor model.
-    
-    See help(hpsklearn.components._knn_hp_space) for info on available KNN 
-    arguments.    
+
+    See help(hpsklearn.components._knn_hp_space) for info on available KNN
+    arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'knr', msg)
@@ -702,7 +718,7 @@ def _trees_hp_space(
     '''Generate trees ensemble hyperparameters search space
     '''
     hp_space = dict(
-        n_estimators=(_trees_n_estimators(name_func('n_estimators')) 
+        n_estimators=(_trees_n_estimators(name_func('n_estimators'))
                       if n_estimators is None else n_estimators),
         max_features=(_trees_max_features(name_func('max_features'))
                       if max_features is None else max_features),
@@ -731,9 +747,9 @@ def random_forest(name, criterion=None, **kwargs):
 
     Args:
         criterion([str]): choose 'gini' or 'entropy'.
-    
-    See help(hpsklearn.components._trees_hp_space) for info on additional 
-    available random forest/extra trees arguments.    
+
+    See help(hpsklearn.components._trees_hp_space) for info on additional
+    available random forest/extra trees arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'rfc', msg)
@@ -751,9 +767,9 @@ def random_forest_regression(name, criterion='mse', **kwargs):
 
     Args:
         criterion([str]): 'mse' is the only choice.
-    
-    See help(hpsklearn.components._trees_hp_space) for info on additional 
-    available random forest/extra trees arguments.    
+
+    See help(hpsklearn.components._trees_hp_space) for info on additional
+    available random forest/extra trees arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'rfr', msg)
@@ -776,11 +792,11 @@ def _ada_boost_hp_space(
     '''
     hp_space = dict(
         base_estimator=base_estimator,
-        n_estimators=(_boosting_n_estimators(name_func('n_estimators')) 
+        n_estimators=(_boosting_n_estimators(name_func('n_estimators'))
                       if n_estimators is None else n_estimators),
-        learning_rate=(_ada_boost_learning_rate(name_func('learning_rate')) 
+        learning_rate=(_ada_boost_learning_rate(name_func('learning_rate'))
                        if learning_rate is None else learning_rate),
-        random_state=_random_state(name_func('rstate'), random_state) 
+        random_state=_random_state(name_func('rstate'), random_state)
     )
     return hp_space
 
@@ -795,15 +811,15 @@ def ada_boost(name, algorithm=None, **kwargs):
 
     Args:
         algorithm([str]): choose from ['SAMME', 'SAMME.R']
-    
-    See help(hpsklearn.components._ada_boost_hp_space) for info on 
-    additional available AdaBoost arguments.    
+
+    See help(hpsklearn.components._ada_boost_hp_space) for info on
+    additional available AdaBoost arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'ada_boost', msg)
 
     hp_space = _ada_boost_hp_space(_name, **kwargs)
-    hp_space['algorithm'] = (_ada_boost_algo(_name('algo')) if 
+    hp_space['algorithm'] = (_ada_boost_algo(_name('algo')) if
                              algorithm is None else algorithm)
     return scope.sklearn_AdaBoostClassifier(**hp_space)
 
@@ -815,15 +831,15 @@ def ada_boost_regression(name, loss=None, **kwargs):
 
     Args:
         loss([str]): choose from ['linear', 'square', 'exponential']
-    
-    See help(hpsklearn.components._ada_boost_hp_space) for info on 
-    additional available AdaBoost arguments.    
+
+    See help(hpsklearn.components._ada_boost_hp_space) for info on
+    additional available AdaBoost arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'ada_boost_reg', msg)
 
     hp_space = _ada_boost_hp_space(_name, **kwargs)
-    hp_space['loss'] = (_ada_boost_loss(_name('loss')) if 
+    hp_space['loss'] = (_ada_boost_loss(_name('loss')) if
                         loss is None else loss)
     return scope.sklearn_AdaBoostRegressor(**hp_space)
 
@@ -833,37 +849,37 @@ def ada_boost_regression(name, loss=None, **kwargs):
 ###########################################################
 def _grad_boosting_hp_space(
     name_func,
-    learning_rate=None, 
-    n_estimators=None, 
-    subsample=None, 
-    min_samples_split=None, 
-    min_samples_leaf=None, 
-    max_depth=None, 
-    init=None, 
-    random_state=None, 
-    max_features=None, 
-    verbose=0, 
-    max_leaf_nodes=None, 
-    warm_start=False, 
+    learning_rate=None,
+    n_estimators=None,
+    subsample=None,
+    min_samples_split=None,
+    min_samples_leaf=None,
+    max_depth=None,
+    init=None,
+    random_state=None,
+    max_features=None,
+    verbose=0,
+    max_leaf_nodes=None,
+    warm_start=False,
     presort='auto'):
     '''Generate GradientBoosting hyperparameters search space
     '''
     hp_space = dict(
-        learning_rate=(_grad_boosting_learning_rate(name_func('learning_rate')) 
+        learning_rate=(_grad_boosting_learning_rate(name_func('learning_rate'))
                        if learning_rate is None else learning_rate),
-        n_estimators=(_boosting_n_estimators(name_func('n_estimators')) 
+        n_estimators=(_boosting_n_estimators(name_func('n_estimators'))
                       if n_estimators is None else n_estimators),
-        subsample=(_grad_boosting_subsample(name_func('subsample')) 
+        subsample=(_grad_boosting_subsample(name_func('subsample'))
                    if subsample is None else subsample),
-        min_samples_split=(_trees_min_samples_split(name_func('min_samples_split')) 
+        min_samples_split=(_trees_min_samples_split(name_func('min_samples_split'))
                            if min_samples_split is None else min_samples_split),
-        min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf')) 
+        min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf'))
                           if min_samples_leaf is None else min_samples_leaf),
-        max_depth=(_trees_max_depth(name_func('max_depth')) 
+        max_depth=(_trees_max_depth(name_func('max_depth'))
                    if max_depth is None else max_depth),
         init=init,
         random_state=_random_state(name_func('rstate'), random_state),
-        max_features=(_trees_max_features(name_func('max_features')) 
+        max_features=(_trees_max_features(name_func('max_features'))
                    if max_features is None else max_features),
         warm_start=warm_start,
         presort=presort
@@ -881,15 +897,15 @@ def gradient_boosting(name, loss=None, **kwargs):
 
     Args:
         loss([str]): choose from ['deviance', 'exponential']
-    
-    See help(hpsklearn.components._grad_boosting_hp_space) for info on 
-    additional available GradientBoosting arguments.    
+
+    See help(hpsklearn.components._grad_boosting_hp_space) for info on
+    additional available GradientBoosting arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'gradient_boosting', msg)
 
     hp_space = _grad_boosting_hp_space(_name, **kwargs)
-    hp_space['loss'] = (_grad_boosting_clf_loss(_name('loss')) 
+    hp_space['loss'] = (_grad_boosting_clf_loss(_name('loss'))
                         if loss is None else loss)
     return scope.sklearn_GradientBoostingClassifier(**hp_space)
 
@@ -901,11 +917,11 @@ def gradient_boosting_regression(name, loss=None, alpha=None, **kwargs):
 
     Args:
         loss([str]): choose from ['ls', 'lad', 'huber', 'quantile']
-        alpha([float]): alpha parameter for huber and quantile losses. 
+        alpha([float]): alpha parameter for huber and quantile losses.
                         Must be within [0.0, 1.0].
-    
-    See help(hpsklearn.components._grad_boosting_hp_space) for info on 
-    additional available GradientBoosting arguments.    
+
+    See help(hpsklearn.components._grad_boosting_hp_space) for info on
+    additional available GradientBoosting arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'gradient_boosting_reg', msg)
@@ -927,9 +943,9 @@ def extra_trees(name, criterion=None, **kwargs):
 
     Args:
         criterion([str]): choose 'gini' or 'entropy'.
-    
-    See help(hpsklearn.components._trees_hp_space) for info on additional 
-    available random forest/extra trees arguments.    
+
+    See help(hpsklearn.components._trees_hp_space) for info on additional
+    available random forest/extra trees arguments.
     '''
 
     def _name(msg):
@@ -948,9 +964,9 @@ def extra_trees_regression(name, criterion='mse', **kwargs):
 
     Args:
         criterion([str]): 'mse' is the only choice.
-    
-    See help(hpsklearn.components._trees_hp_space) for info on additional 
-    available random forest/extra trees arguments.    
+
+    See help(hpsklearn.components._trees_hp_space) for info on additional
+    available random forest/extra trees arguments.
     '''
     def _name(msg):
         return '%s.%s_%s' % (name, 'etr', msg)
@@ -994,7 +1010,7 @@ def decision_tree(name,
         min_samples_leaf=hp.quniform(
             _name('min_samples_leaf'),
             1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
-        presort=presort, 
+        presort=presort,
         random_state=_random_state(_name('rstate'), random_state),
         )
     return rval
@@ -1124,6 +1140,133 @@ def sgd_regression(name,
 #         solver="auto" if solver is None else solver,
 #         )
 #     return rval
+
+
+###################################################
+##==== XGBoost hyperparameters search space ====##
+###################################################
+
+def _xgboost_max_depth(name):
+    return scope.int(hp.uniform(name, 1, 11))
+
+def _xgboost_learning_rate(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(0.5)) - 0.0001
+
+def _xgboost_n_estimators(name):
+    return scope.int(hp.quniform(name, 100, 6000, 200))
+
+def _xgboost_gamma(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(5)) - 0.0001
+
+def _xgboost_min_child_weight(name):
+    return scope.int(hp.loguniform(name, np.log(1), np.log(100)))
+
+def _xgboost_subsample(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _xgboost_colsample_bytree(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _xgboost_colsample_bylevel(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _xgboost_reg_alpha(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(1)) - 0.0001
+
+def _xgboost_reg_lambda(name):
+    return hp.loguniform(name, np.log(1), np.log(4))
+
+def _xgboost_hp_space(
+    name_func,
+    max_depth=None,
+    learning_rate=None,
+    n_estimators=None,
+    gamma=None,
+    min_child_weight=None,
+    max_delta_step=0,
+    subsample=None,
+    colsample_bytree=None,
+    colsample_bylevel=None,
+    reg_alpha=None,
+    reg_lambda=None,
+    scale_pos_weight=1,
+    base_score=0.5,
+    random_state=None):
+    '''Generate XGBoost hyperparameters search space
+    '''
+    hp_space = dict(
+        max_depth=(_xgboost_max_depth(name_func('max_depth'))
+                   if max_depth is None else max_depth),
+        learning_rate=(_xgboost_learning_rate(name_func('learning_rate'))
+                       if learning_rate is None else learning_rate),
+        n_estimators=(_xgboost_n_estimators(name_func('n_estimators'))
+                      if n_estimators is None else n_estimators),
+        gamma=(_xgboost_gamma(name_func('gamma'))
+               if gamma is None else gamma),
+        min_child_weight=(_xgboost_min_child_weight(name_func('min_child_weight'))
+                          if min_child_weight is None else min_child_weight),
+        max_delta_step=max_delta_step,
+        subsample=(_xgboost_subsample(name_func('subsample'))
+                   if subsample is None else subsample),
+        colsample_bytree=(_xgboost_colsample_bytree(name_func('colsample_bytree'))
+                          if colsample_bytree is None else colsample_bytree),
+        colsample_bylevel=(_xgboost_colsample_bylevel(name_func('colsample_bylevel'))
+                          if colsample_bylevel is None else colsample_bylevel),
+        reg_alpha=(_xgboost_reg_alpha(name_func('reg_alpha'))
+                   if reg_alpha is None else reg_alpha),
+        reg_lambda=(_xgboost_reg_lambda(name_func('reg_lambda'))
+                    if reg_lambda is None else reg_lambda),
+        scale_pos_weight=scale_pos_weight,
+        base_score=base_score,
+        seed=_random_state(name_func('rstate'), random_state)
+    )
+    return hp_space
+
+
+########################################################
+##==== XGBoost classifier/regressor constructors ====##
+########################################################
+def xgboost_classification(name, objective='binary:logistic', **kwargs):
+    '''
+    Return a pyll graph with hyperparameters that will construct
+    a xgboost.XGBClassifier model.
+
+    Args:
+        objective([str]): choose from ['binary:logistic', 'binary:logitraw']
+            or provide an hp.choice pyll node
+
+    See help(hpsklearn.components._xgboost_hp_space) for info on
+    additional available XGBoost arguments.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'xgboost', msg)
+
+    hp_space = _xgboost_hp_space(_name, **kwargs)
+    hp_space['objective'] = objective
+    return scope.sklearn_XGBClassifier(**hp_space)
+
+
+def xgboost_regression(name, objective='reg:linear', **kwargs):
+    '''
+    Return a pyll graph with hyperparameters that will construct
+    a xgboost.XGBRegressor model.
+
+    Args:
+        objective([str]): choose from [
+                'reg:linear',
+                'count:poisson'
+            ]
+            or provide an hp.choice pyll node
+
+    See help(hpsklearn.components._xgboost_hp_space) for info on
+    additional available XGBoost arguments.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'xgboost_reg', msg)
+
+    hp_space = _xgboost_hp_space(_name, **kwargs)
+    hp_space['objective'] = objective
+    return scope.sklearn_XGBRegressor(**hp_space)
 
 
 #################################################
@@ -1297,15 +1440,20 @@ def output_code(name,
 ##==== Various classifier/regressor selectors ====##
 ####################################################
 def any_classifier(name):
-    return hp.choice('%s' % name, [
+    classifiers = [
         svc(name + '.svc'),
         knn(name + '.knn'),
         random_forest(name + '.random_forest'),
         extra_trees(name + '.extra_trees'),
         ada_boost(name + '.ada_boost'),
         gradient_boosting(name + '.grad_boosting', loss='deviance'),
-        sgd(name + '.sgd'),
-    ])
+        sgd(name + '.sgd')
+    ]
+
+    if xgboost:
+        classifiers.append(xgboost_classification(name + '.xgboost'))
+
+    return hp.choice('%s' % name, classifiers)
 
 
 def any_sparse_classifier(name):
@@ -1318,15 +1466,20 @@ def any_sparse_classifier(name):
 
 
 def any_regressor(name):
-    return hp.choice('%s' % name, [
+    regressors = [
         svr(name + '.svr'),
         knn_regression(name + '.knn'),
         random_forest_regression(name + '.random_forest'),
         extra_trees_regression(name + '.extra_trees'),
         ada_boost_regression(name + '.ada_boost'),
         gradient_boosting_regression(name + '.grad_boosting'),
-        sgd_regression(name + '.sgd'),
-    ])
+        sgd_regression(name + '.sgd')
+    ]
+
+    if xgboost:
+        regressors.append(xgboost_regression(name + '.xgboost'))
+
+    return hp.choice('%s' % name, regressors)
 
 
 def any_sparse_regressor(name):
@@ -1349,7 +1502,7 @@ def pca(name, n_components=None, whiten=None, copy=True):
                 low=np.log(0.51),
                 high=np.log(30.5),
                 q=1.0)) if n_components is None else n_components,
-        # n_components=(hp.uniform(name + '.n_components', 0, 1) 
+        # n_components=(hp.uniform(name + '.n_components', 0, 1)
         #               if n_components is None else n_components),
         whiten=hp_bool(name + '.whiten') if whiten is None else whiten,
         copy=copy,
@@ -1371,7 +1524,7 @@ def standard_scaler(name, with_mean=None, with_std=None):
 def ts_lagselector(name, lower_lags=1, upper_lags=1):
     rval = scope.ts_LagSelector(
         lag_size=scope.int(
-            hp.quniform(name + '.lags', 
+            hp.quniform(name + '.lags',
                         lower_lags - .5, upper_lags + .5, 1))
     )
     return rval
@@ -1434,7 +1587,7 @@ def min_max_scaler(name, feature_range=None, copy=True):
 
 def normalizer(name, norm=None):
     rval = scope.sklearn_Normalizer(
-        norm=(hp.choice(name + '.norm', ['l1', 'l2']) 
+        norm=(hp.choice(name + '.norm', ['l1', 'l2'])
               if norm is None else norm),
     )
     return rval
