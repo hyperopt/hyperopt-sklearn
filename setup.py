@@ -121,14 +121,16 @@ if scripts is None: scripts = find_scripts()
 
 setuptools.setup(
     name = package_name,
-    version = '0.0.2',
+    version = '0.0.3',
     packages = packages,
     scripts = scripts,
-    url = 'http://jaberg.github.com/hyperopt-sklearn/',
+    url = 'http://hyperopt.github.com/hyperopt-sklearn/',
+    download_url = 'https://github.com/hyperopt/hyperopt-sklearn/archive/0.0.3.tar.gz',
     author = 'James Bergstra',
     author_email = 'anon@anon.com',
     description = 'Hyperparameter Optimization for sklearn',
     long_description = open('README.md').read(),
+    keywords = ['hyperopt', 'hyperparameter', 'sklearn'],
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Education',
