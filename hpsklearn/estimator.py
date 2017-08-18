@@ -230,7 +230,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 info('Will use stratified K-fold CV with K:', n_folds,
                      'and Shuffle:', shuffle)
                 try:
-                    cv_iter = StratifiedKFold(n_folds=n_folds,
+                    cv_iter = StratifiedKFold(n_splits=n_folds,
                                               shuffle=shuffle,
                                               random_state=random_state
                                              ).split(X, y)
@@ -243,7 +243,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 info('Will use K-fold CV with K:', n_folds,
                      'and Shuffle:', shuffle)
                 try:
-                    cv_iter = KFold(n_folds=n_folds,
+                    cv_iter = KFold(n_splits=n_folds,
                                     shuffle=shuffle,
                                     random_state=random_state).split(X)
                 except TypeError:
