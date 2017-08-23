@@ -6,11 +6,17 @@ from functools import partial
 from multiprocessing import Process, Pipe
 import time
 from sklearn.base import BaseEstimator
-from sklearn.cross_validation import KFold, StratifiedKFold, LeaveOneOut, \
-                                     ShuffleSplit, StratifiedShuffleSplit, \
-                                     PredefinedSplit
 from sklearn.metrics import accuracy_score, r2_score
 from sklearn.decomposition import PCA
+try:
+    from sklearn.model_selection import KFold, StratifiedKFold, LeaveOneOut, \
+                                        ShuffleSplit, StratifiedShuffleSplit, \
+                                        PredefinedSplit
+except ImportError:
+    # sklearn.cross_validation is deprecated in version 0.18 of sklearn
+    from sklearn.cross_validation import KFold, StratifiedKFold, LeaveOneOut, \
+                                         ShuffleSplit, StratifiedShuffleSplit, \
+                                         PredefinedSplit
 
 # For backwards compatibility with older versions of hyperopt.fmin
 import inspect
@@ -215,19 +221,36 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
         if n_folds is not None:
             if n_folds == -1:
                 info('Will use leave-one-out CV')
-                cv_iter = LeaveOneOut(len(y))
+                try:
+                    cv_iter = LeaveOneOut().split(X)
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = LeaveOneOut(len(y))
             elif is_classif:
                 info('Will use stratified K-fold CV with K:', n_folds,
                      'and Shuffle:', shuffle)
-                cv_iter = StratifiedKFold(y, n_folds=n_folds, 
-                                          shuffle=shuffle, 
-                                          random_state=random_state)
+                try:
+                    cv_iter = StratifiedKFold(n_splits=n_folds,
+                                              shuffle=shuffle,
+                                              random_state=random_state
+                                             ).split(X, y)
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = StratifiedKFold(y, n_folds=n_folds,
+                                              shuffle=shuffle,
+                                              random_state=random_state)
             else:
                 info('Will use K-fold CV with K:', n_folds,
                      'and Shuffle:', shuffle)
-                cv_iter = KFold(len(y), n_folds=n_folds, 
-                                shuffle=shuffle, 
-                                random_state=random_state)
+                try:
+                    cv_iter = KFold(n_splits=n_folds,
+                                    shuffle=shuffle,
+                                    random_state=random_state).split(X)
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = KFold(len(y), n_folds=n_folds,
+                                    shuffle=shuffle,
+                                    random_state=random_state)
         else:
             if not shuffle:  # always choose the last samples.
                 info('Will use the last', valid_size, 
@@ -235,17 +258,32 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 n_train = int(len(y) * (1 - valid_size))
                 valid_fold = np.ones(len(y), dtype=np.int)
                 valid_fold[:n_train] = -1  # "-1" indicates train fold.
-                cv_iter = PredefinedSplit(valid_fold)
+                try:
+                    cv_iter = PredefinedSplit(valid_fold).split()
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = PredefinedSplit(valid_fold)
             elif is_classif:
                 info('Will use stratified shuffle-and-split with validation \
                       portion:', valid_size)
-                cv_iter = StratifiedShuffleSplit(y, 1, test_size=valid_size, 
-                                                 random_state=random_state)
+                try:
+                    cv_iter = StratifiedShuffleSplit(1, test_size=valid_size,
+                                                     random_state=random_state
+                                                    ).split(X, y)
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = StratifiedShuffleSplit(y, 1, test_size=valid_size,
+                                                     random_state=random_state)
             else:
                 info('Will use shuffle-and-split with validation portion:', 
                      valid_size)
-                cv_iter = ShuffleSplit(len(y), 1, test_size=valid_size, 
-                                       random_state=random_state)
+                try:
+                    cv_iter = ShuffleSplit(n_splits=1, test_size=valid_size,
+                                           random_state=random_state).split(X)
+                except TypeError:
+                    # Older syntax before sklearn version 0.18
+                    cv_iter = ShuffleSplit(len(y), 1, test_size=valid_size,
+                                           random_state=random_state)
 
         # Use the above iterator for cross-validation prediction.
         cv_y_pool = np.array([])
