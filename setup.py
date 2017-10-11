@@ -151,6 +151,7 @@ setuptools.setup(
     package_data = package_data,
     include_package_data = True,
     install_requires = [
+        'networkx==1.11',
         'hyperopt',
         'nose',
         'NumPy==1.11.0',
