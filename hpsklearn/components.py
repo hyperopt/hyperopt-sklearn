@@ -1004,12 +1004,12 @@ def decision_tree(name,
             ['sqrt', 'log2',
              None]) if max_features is None else max_features,
         max_depth=max_depth,
-        min_samples_split=hp.quniform(
+        min_samples_split=scope.int(hp.quniform(
             _name('min_samples_split'),
-            1, 10, 1) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=hp.quniform(
+            1, 10, 1)) if min_samples_split is None else min_samples_split,
+        min_samples_leaf=scope.int(hp.quniform(
             _name('min_samples_leaf'),
-            1, 5, 1) if min_samples_leaf is None else min_samples_leaf,
+            1, 5, 1)) if min_samples_leaf is None else min_samples_leaf,
         presort=presort,
         random_state=_random_state(_name('rstate'), random_state),
         )
@@ -1025,7 +1025,8 @@ def sgd(name,
         alpha=None,  # default - 0.0001
         l1_ratio=None,  # default - 0.15, must be within [0, 1]
         fit_intercept=True,  # default - True
-        n_iter=5,  # default - 5
+        max_iter=None,
+        tol=None,
         shuffle=True,  # default - True
         random_state=None,  # default - None
         epsilon=None,
@@ -1057,7 +1058,9 @@ def sgd(name,
         l1_ratio=(_sgd_l1_ratio(_name('l1ratio'))
                   if l1_ratio is None else l1_ratio),
         fit_intercept=fit_intercept,
-        n_iter=n_iter,
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
+                  if max_iter is None else max_iter),
         learning_rate=(_sgdc_learning_rate(_name('learning_rate'))
                        if learning_rate is None else learning_rate),
         eta0=_sgd_eta0(_name('eta0')) if eta0 is None else eta0,
@@ -1077,7 +1080,8 @@ def sgd_regression(name,
                    alpha=None,  # default - 0.0001
                    l1_ratio=None,  # default - 0.15, must be within [0, 1]
                    fit_intercept=True,  # default - True
-                   n_iter=5,  # default - 5
+                   tol=None,
+                   max_iter=None,
                    shuffle=None,  # default - False
                    random_state=None,  # default - None
                    epsilon=None,  # default - 0.1
@@ -1102,7 +1106,9 @@ def sgd_regression(name,
         l1_ratio=(_sgd_l1_ratio(_name('l1ratio'))
                   if l1_ratio is None else l1_ratio),
         fit_intercept=fit_intercept,
-        n_iter=n_iter,
+        tol=_svm_tol(name_func('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(name_func('maxiter'))
+                  if max_iter is None else max_iter),
         # For regression, use the SVM epsilon instead of the SGD one.
         epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
         learning_rate=(_sgdr_learning_rate(_name('learning_rate'))
@@ -1305,7 +1311,8 @@ def passive_aggressive(name,
     loss=None,
     C=None,
     fit_intercept=False,
-    n_iter=None,
+    tol=None,
+    max_iter=None,                   
     n_jobs=1,
     shuffle=True,
     random_state=None,
@@ -1324,13 +1331,9 @@ def passive_aggressive(name,
             np.log(10),
             ) if C is None else C,
         fit_intercept=fit_intercept,
-        n_iter=scope.int(
-            hp.qloguniform(
-                _name('n_iter'),
-                np.log(1),
-                np.log(1000),
-                q=1,
-                )) if n_iter is None else n_iter,
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
+                  if max_iter is None else max_iter),
         n_jobs=n_jobs,
         random_state=_random_state(_name('rstate'), random_state),
         verbose=verbose
