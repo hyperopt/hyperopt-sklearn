@@ -1007,7 +1007,7 @@ def decision_tree(name,
         min_samples_split=scope.int(hp.quniform(
             _name('min_samples_split'),
             1, 10, 1)) if min_samples_split is None else min_samples_split,
-        min_samples_leaf=score.int(hp.quniform(
+        min_samples_leaf=scope.int(hp.quniform(
             _name('min_samples_leaf'),
             1, 5, 1)) if min_samples_leaf is None else min_samples_leaf,
         presort=presort,
