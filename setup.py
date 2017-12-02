@@ -153,7 +153,7 @@ setuptools.setup(
     install_requires = [
         'hyperopt',
         'nose',
-        'NumPy==1.11.0',
+        'numpy',
         'scikit-learn',
         'scipy',
     ],
