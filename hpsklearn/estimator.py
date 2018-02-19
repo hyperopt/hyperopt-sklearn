@@ -741,13 +741,16 @@ class hyperopt_estimator(BaseEstimator):
         adjusted_max_evals = (self.max_evals if not warm_start else 
                               len(self.trials.trials) + self.max_evals)
         while len(self.trials.trials) < adjusted_max_evals:
-            increment = min(self.fit_increment,
-                            adjusted_max_evals - len(self.trials.trials))
-            fit_iter.send(increment)
-            if filename is not None:
-                with open(filename, 'wb') as dump_file:
-                    self.info('---> dumping trials to', filename)
-                    pickle.dump(self.trials, dump_file)
+            try:
+                increment = min(self.fit_increment,
+                                adjusted_max_evals - len(self.trials.trials))
+                fit_iter.send(increment)
+                if filename is not None:
+                    with open(filename, 'wb') as dump_file:
+                        self.info('---> dumping trials to', filename)
+                        pickle.dump(self.trials, dump_file)
+            except KeyboardInterrupt:
+                break
 
         self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 
