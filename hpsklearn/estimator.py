@@ -115,12 +115,19 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
             transformed_XEX_list.append(dfit)
 
     if Xval is None:
-        XEXfit = np.concatenate(transformed_XEX_list, axis=1)
+        try:
+            XEXfit = np.concatenate(transformed_XEX_list, axis=1)
+        except ValueError:
+            XEXfit = scipy.sparse.hstack(transformed_XEX_list)
         return XEXfit
     else:
         XEXfit_list, XEXval_list = zip(*transformed_XEX_list)
-        XEXfit = np.concatenate(XEXfit_list, axis=1)
-        XEXval = np.concatenate(XEXval_list, axis=1)
+        try:
+            XEXfit = np.concatenate(XEXfit_list, axis=1)
+            XEXval = np.concatenate(XEXval_list, axis=1)
+        except ValueError:
+            XEXfit = scipy.sparse.hstack(XEXfit_list)
+            XEXval = scipy.sparse.hstack(XEXval_list)
         return (XEXfit, XEXval)
 
 def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
