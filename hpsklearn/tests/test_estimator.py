@@ -58,6 +58,34 @@ class TestIter(unittest.TestCase):
         model.fit(self.X, self.Y, warm_start=True)
         assert len(model.trials.trials) == 15  # 5 + 10 = 15.
 
+def test_sparse_input():
+    """
+    Ensure the estimator can handle sparse X matrices.
+    """
+
+    import scipy.sparse as ss
+
+    # Generate some random sparse data
+    nrows,ncols,nnz = 100,50,10
+    ntrue = nrows // 2
+    D,C,R = [],[],[]
+    for r in range(nrows):
+        feats = np.random.choice(range(ncols), size=nnz, replace=False)
+        D.extend([1]*nnz)
+        C.extend(feats)
+        R.extend([r]*nnz)
+    X = ss.csr_matrix( (D,(R,C)), shape=(nrows, ncols))
+    y = np.zeros( nrows )
+    y[:ntrue] = 1
+
+
+    # Try to fit an SGD model
+    cls = hyperopt_estimator(
+        classifier=components.sgd('sgd', loss='log'),
+        preprocessing=[],
+    )
+    cls.fit(X,y)
+
 
 # class TestSpace(unittest.TestCase):
 
