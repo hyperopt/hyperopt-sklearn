@@ -86,6 +86,40 @@ def test_sparse_input():
     )
     cls.fit(X,y)
 
+def test_continuous_loss_fn():
+    """
+    Demonstrate using a custom loss function with the continuous_loss_fn
+    option.
+    """
+
+    from sklearn.metrics import log_loss
+
+    # Generate some random data
+    X = np.hstack([
+        np.vstack([
+            np.random.normal(0,1,size=(1000,10)),
+            np.random.normal(1,1,size=(1000,10)),
+        ]),
+        np.random.normal(0,1,size=(2000,10)),
+    ])
+    y = np.zeros(2000)
+    y[:1000] = 1
+
+    def loss_function(targ, pred):
+        # hyperopt_estimator flattens the prediction when saving it.  This also
+        # affects multilabel classification.
+        pred = pred.reshape( (-1, 2) )
+        return log_loss(targ, pred[:,1])
+
+    # Try to fit an SGD model using log_loss as the loss function
+    cls = hyperopt_estimator(
+        classifier=components.sgd('sgd', loss='log'),
+        preprocessing=[],
+        loss_fn = loss_function,
+        continuous_loss_fn=True,
+    )
+    cls.fit(X,y,cv_shuffle=True)
+
 
 # class TestSpace(unittest.TestCase):
 

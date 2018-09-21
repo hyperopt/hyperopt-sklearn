@@ -205,7 +205,8 @@ def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
 
 
 def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
-             use_partial_fit, info, timeout, _conn, loss_fn=None, best_loss=None):
+             use_partial_fit, info, timeout, _conn, loss_fn=None,
+             continuous_loss_fn=False, best_loss=None):
     '''Calculate the loss function
     '''
     try:
@@ -328,7 +329,10 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 break
             cv_y_pool = np.append(cv_y_pool, yval)
             info('Scoring on X/EX validation of shape', XEXval.shape)
-            cv_pred_pool = np.append(cv_pred_pool, learner.predict(XEXval))
+            if continuous_loss_fn:
+                cv_pred_pool = np.append(cv_pred_pool, learner.predict_proba(XEXval))
+            else:
+                cv_pred_pool = np.append(cv_pred_pool, learner.predict(XEXval))
             cv_n_iters = np.append(cv_n_iters, n_iters)
         else:  # all CV folds are exhausted.
             if loss_fn is None:
@@ -431,6 +435,7 @@ class hyperopt_estimator(BaseEstimator):
                  algo=None,
                  max_evals=10,
                  loss_fn=None,
+                 continuous_loss_fn=False,
                  verbose=False,
                  trial_timeout=None,
                  fit_increment=1,
@@ -473,6 +478,13 @@ class hyperopt_estimator(BaseEstimator):
             for classification and '1.0 - r2_score(y_target, y_prediction)'
             is used for regression
 
+        continuous_loss_fn: boolean, default is False
+            When true, the loss function is passed the output of
+            predict_proba() as the second argument.  This is to facilitate the
+            use of continuous loss functions like cross entropy or AUC.  When
+            false, the loss function is given the output of predict().  If
+            true, `classifier` and `loss_fn` must also be specified.
+
         trial_timeout: float (seconds), or None for no timeout
             Kill trial evaluations after this many seconds.
 
@@ -500,6 +512,7 @@ class hyperopt_estimator(BaseEstimator):
         """
         self.max_evals = max_evals
         self.loss_fn = loss_fn
+        self.continuous_loss_fn = continuous_loss_fn
         self.verbose = verbose
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
@@ -565,6 +578,12 @@ class hyperopt_estimator(BaseEstimator):
         if 'rstate' not in inspect.getargspec(hyperopt.fmin).args:
             print("Warning: Using older version of hyperopt.fmin")
 
+        if self.continuous_loss_fn:
+            assert self.space['classifier'] is not None, \
+                "Can only use continuous_loss_fn with classifiers."
+            assert self.loss_fn is not None, \
+                "Must specify loss_fn if continuous_loss_fn is true."
+
     def info(self, *args):
         if self.verbose:
             print(' '.join(map(str, args)))
@@ -603,7 +622,8 @@ class hyperopt_estimator(BaseEstimator):
                      use_partial_fit=self.use_partial_fit,
                      info=self.info,
                      timeout=self.trial_timeout,
-                     loss_fn=self.loss_fn)
+                     loss_fn=self.loss_fn,
+                     continuous_loss_fn=self.continuous_loss_fn)
 
         # Wrap up the cost function as a process with timeout control.
         def fn_with_timeout(*args, **kwargs):
