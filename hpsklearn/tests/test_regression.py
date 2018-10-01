@@ -47,6 +47,8 @@ regressors = [
     components.random_forest_regression,
     components.extra_trees_regression,
     components.sgd_regression,
+    components.lasso,
+    components.elasticnet,
 ]
 
 
