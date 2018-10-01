@@ -1052,7 +1052,7 @@ def lasso(name,
         selection=hp.choice(_name('selection'), [
             'cyclic',
             'random',
-        ])
+        ]) if selection is None else selection,
     )
     return rval
 
@@ -1088,7 +1088,7 @@ def elasticnet(name,
         selection=hp.choice(_name('selection'), [
             'cyclic',
             'random',
-        ])
+        ]) if selection is None else selection,
     )
     return rval
 
