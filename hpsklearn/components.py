@@ -1182,8 +1182,8 @@ def sgd_regression(name,
         l1_ratio=(_sgd_l1_ratio(_name('l1ratio'))
                   if l1_ratio is None else l1_ratio),
         fit_intercept=fit_intercept,
-        tol=_svm_tol(name_func('tol')) if tol is None else tol,
-        max_iter=(_svm_max_iter(name_func('maxiter'))
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        max_iter=(_svm_max_iter(_name('maxiter'))
                   if max_iter is None else max_iter),
         # For regression, use the SVM epsilon instead of the SGD one.
         epsilon=_svm_epsilon(_name('epsilon')) if epsilon is None else epsilon,
