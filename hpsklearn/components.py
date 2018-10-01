@@ -85,6 +85,13 @@ def sklearn_ExtraTreesRegressor(*args, **kwargs):
 def sklearn_DecisionTreeClassifier(*args, **kwargs):
     return sklearn.tree.DecisionTreeClassifier(*args, **kwargs)
 
+@scope.define
+def sklearn_Lasso(*args, **kwargs):
+    return sklearn.linear_model.Lasso(*args, **kwargs)
+
+@scope.define
+def sklearn_ElasticNet(*args, **kwargs):
+    return sklearn.linear_model.ElasticNet(*args, **kwargs)
 
 @scope.define
 def sklearn_SGDClassifier(*args, **kwargs):
@@ -1015,6 +1022,75 @@ def decision_tree(name,
         )
     return rval
 
+###############################
+##==== Lasso constructor ====##
+###############################
+def lasso(name,
+        alpha=None, # default - 1.0
+        fit_intercept=True, # default - True
+        normalize=False, # default - False
+        precompute=False, # default - False
+        max_iter=None,
+        tol=None,
+        positive=False,
+        selection=None, # default - 'cyclic'
+        ):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'lasso', msg)
+
+    rval = scope.sklearn_Lasso(
+        alpha=(_sgd_alpha(_name('alpha'))
+               if alpha is None else alpha),
+        fit_intercept=fit_intercept,
+        normalize=normalize,
+        precompute=precompute,
+        max_iter=(_svm_max_iter(_name('maxiter'))
+                  if max_iter is None else max_iter),
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        positive=positive,
+        selection=hp.choice(_name('selection'), [
+            'cyclic',
+            'random',
+        ])
+    )
+    return rval
+
+####################################
+##==== ElasticNet constructor ====##
+####################################
+def elasticnet(name,
+        alpha=None, # default - 1.0
+        l1_ratio=None,
+        fit_intercept=True, # default - True
+        normalize=False, # default - False
+        precompute=False, # default - False
+        max_iter=None,
+        tol=None,
+        positive=False,
+        selection=None, # default - 'cyclic'
+        ):
+
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'elasticnet', msg)
+
+    rval = scope.sklearn_ElasticNet(
+        alpha=_sgd_alpha(_name('alpha')) if alpha is None else alpha,
+        l1_ratio=(_sgd_l1_ratio(_name('l1ratio'))
+                  if l1_ratio is None else l1_ratio),
+        fit_intercept=fit_intercept,
+        normalize=normalize,
+        precompute=precompute,
+        max_iter=(_svm_max_iter(_name('maxiter'))
+                  if max_iter is None else max_iter),
+        tol=_svm_tol(_name('tol')) if tol is None else tol,
+        positive=positive,
+        selection=hp.choice(_name('selection'), [
+            'cyclic',
+            'random',
+        ])
+    )
+    return rval
 
 ###################################################
 ##==== SGD classifier/regressor constructors ====##
