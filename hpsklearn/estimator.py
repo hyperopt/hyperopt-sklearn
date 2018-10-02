@@ -362,7 +362,9 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 'ex_preprocs': ex_pps_list,
                 'status': hyperopt.STATUS_OK,
                 'duration': t_done - t_start,
-                'iterations': cv_n_iters.max(),
+                'iterations': (cv_n_iters.max()
+                    if (hasattr(learner, "partial_fit") and use_partial_fit)
+                    else None),
             }
             rtype = 'return'
         # The for loop exit with break, one fold did not finish running.
