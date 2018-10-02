@@ -136,3 +136,25 @@ def test_continuous_loss_fn():
 #         model.fit(self.X, self.Y)
 
 # -- flake8 eof
+
+def test_crossvalidation():
+    """
+    Demonstrate performing a k-fold CV using the fit() method.
+    """
+    # Generate some random data
+    X = np.hstack([
+        np.vstack([
+            np.random.normal(0,1,size=(1000,10)),
+            np.random.normal(1,1,size=(1000,10)),
+        ]),
+        np.random.normal(0,1,size=(2000,10)),
+    ])
+    y = np.zeros(2000)
+    y[:1000] = 1
+
+    # Try to fit a model
+    cls = hyperopt_estimator(
+        classifier=components.random_forest('forest'),
+        preprocessing=[],
+    )
+    cls.fit(X,y,cv_shuffle=True, n_folds=5)
