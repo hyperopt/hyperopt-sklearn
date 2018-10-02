@@ -154,7 +154,7 @@ def test_crossvalidation():
 
     # Try to fit a model
     cls = hyperopt_estimator(
-        classifier=components.random_forest('forest'),
+        classifier=components.sgd('sgd', loss='log'),
         preprocessing=[],
     )
     cls.fit(X,y,cv_shuffle=True, n_folds=5)
