@@ -1783,12 +1783,12 @@ def colkmeans(name,
     )
     return rval
 
-def gaussianrandomprojection(name,
+def gaussian_random_projection(name,
                              n_components=None,
                              eps=None,
                              random_state=None):
     def _name(msg):
-        return '%s.%s_%s' % (name, 'gaussianrandomprojection', msg)
+        return '%s.%s_%s' % (name, 'gaussian_random_projection', msg)
 
     if eps is None and n_components=='auto':
         eps = hp.loguniform(_name('eps'), np.log(1e-7), np.log(1))
@@ -1805,14 +1805,14 @@ def gaussianrandomprojection(name,
     )
     return rval
 
-def sparserandomprojection(name,
+def sparse_random_projection(name,
                            n_components=None,
                            density=None,
                            eps=None,
                            dense_output=None,
                            random_state=None):
     def _name(msg):
-        return '%s.%s_%s' % (name, 'sparserandomprojection', msg)
+        return '%s.%s_%s' % (name, 'sparse_random_projection', msg)
 
     if eps is None and n_components=='auto':
         eps = hp.loguniform(_name('eps'), np.log(1e-7), np.log(1))
