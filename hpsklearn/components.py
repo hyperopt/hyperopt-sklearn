@@ -186,6 +186,14 @@ def sklearn_ColumnKMeans(*args, **kwargs):
     return ColumnKMeans(*args, **kwargs)
 
 @scope.define
+def sklearn_GaussianRandomProjection(*args, **kwargs):
+    return sklearn.random_projection.GaussianRandomProjection(*args, **kwargs)
+
+@scope.define
+def sklearn_SparseRandomProjection(*args, **kwargs):
+    return sklearn.random_projection.SparseRandomProjection(*args, **kwargs)
+
+@scope.define
 def patience_param(x):
     """
     Mark a hyperparameter as having a simple monotonic increasing
@@ -1775,9 +1783,53 @@ def colkmeans(name,
     )
     return rval
 
-# XXX: todo GaussianRandomProjection
-# XXX: todo SparseRandomProjection
+def gaussian_random_projection(name,
+                             n_components=None,
+                             eps=None,
+                             random_state=None):
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'gaussian_random_projection', msg)
 
+    if eps is None and n_components=='auto':
+        eps = hp.loguniform(_name('eps'), np.log(1e-7), np.log(1))
+
+    rval = scope.sklearn_GaussianRandomProjection(
+        n_components=scope.int(
+            hp.qloguniform(
+                _name('n_components'),
+                low=np.log(0.51),
+                high=np.log(999.5),
+                q=1.0)) if n_components is None else n_components,
+        eps=eps,
+        random_state=random_state,
+    )
+    return rval
+
+def sparse_random_projection(name,
+                           n_components=None,
+                           density=None,
+                           eps=None,
+                           dense_output=None,
+                           random_state=None):
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'sparse_random_projection', msg)
+
+    if eps is None and n_components=='auto':
+        eps = hp.loguniform(_name('eps'), np.log(1e-7), np.log(1))
+
+    rval = scope.sklearn_SparseRandomProjection(
+        n_components=scope.int(
+            hp.qloguniform(
+                _name('n_components'),
+                low=np.log(0.51),
+                high=np.log(999.5),
+                q=1.0)) if n_components is None else n_components,
+        density=hp.uniform(_name('density'), 1e-6, 1) if density is None else density,
+        eps=eps,
+        dense_output=dense_output,
+        random_state=random_state,
+    )
+    return rval
 
 ####################################
 ##==== Preprocessor selectors ====##

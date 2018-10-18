@@ -79,6 +79,8 @@ preprocessors = [
     components.normalizer,
     #components.ts_lagselector,  # handled in test_ts.py
     #components.tfidf,  # handled separately
+    components.sparse_random_projection,
+    components.gaussian_random_projection,
 ]
 
 
