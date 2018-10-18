@@ -4,9 +4,10 @@ except:
     import unittest
 
 import numpy as np
-from hyperopt import rand, tpe
+from hyperopt import rand, tpe, hp
 from hpsklearn.estimator import hyperopt_estimator
 from hpsklearn import components
+from hyperopt.pyll import scope
 
 
 class TestPreprocessing(unittest.TestCase):
@@ -54,6 +55,60 @@ class TestPreprocessing(unittest.TestCase):
         model.fit(X, Y)
         model.score(X, Y)
 
+    def test_gaussian_random_projection(self):
+        # restrict n_components to be less than or equal to data dimension
+        # to prevent sklearn warnings from printing during tests
+        n_components = scope.int(hp.quniform(
+            'preprocessing.n_components', low=1, high=8, q=1
+        ))
+        model = hyperopt_estimator(
+            classifier=components.gaussian_nb('classifier'),
+            preprocessing=[
+                components.gaussian_random_projection(
+                    'preprocessing',
+                    n_components=n_components,
+                )
+            ],
+            algo=rand.suggest,
+            trial_timeout=5.0,
+            max_evals=5,
+        )
+
+        X_train = np.random.randn(1000, 8)
+        Y_train = (self.X_train[:, 0] > 0).astype('int')
+        X_test = np.random.randn(1000, 8)
+        Y_test = (self.X_test[:, 0] > 0).astype('int')
+
+        model.fit(X_train, Y_train)
+        model.score(X_test, Y_test)
+
+    def test_sparse_random_projection(self):
+        # restrict n_components to be less than or equal to data dimension
+        # to prevent sklearn warnings from printing during tests
+        n_components = scope.int(hp.quniform(
+            'preprocessing.n_components', low=1, high=8, q=1
+        ))
+        model = hyperopt_estimator(
+            classifier=components.gaussian_nb('classifier'),
+            preprocessing=[
+                components.sparse_random_projection(
+                    'preprocessing',
+                    n_components=n_components,
+                )
+            ],
+            algo=rand.suggest,
+            trial_timeout=5.0,
+            max_evals=5,
+        )
+
+        X_train = np.random.randn(1000, 8)
+        Y_train = (self.X_train[:, 0] > 0).astype('int')
+        X_test = np.random.randn(1000, 8)
+        Y_test = (self.X_test[:, 0] > 0).astype('int')
+
+        model.fit(X_train, Y_train)
+        model.score(X_test, Y_test)
+
 def create_function(pre_fn):
     def test_preprocessing(self):
         model = hyperopt_estimator(
@@ -79,8 +134,8 @@ preprocessors = [
     components.normalizer,
     #components.ts_lagselector,  # handled in test_ts.py
     #components.tfidf,  # handled separately
-    components.sparse_random_projection,
-    components.gaussian_random_projection,
+    #components.sparse_random_projection,  # handled separately
+    #components.gaussian_random_projection,  # handled separately
 ]
 
 
