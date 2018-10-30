@@ -8,6 +8,9 @@ See how to use hyperopt-sklearn through [examples](http://hyperopt.github.io/hyp
 or older
 [notebooks](http://nbviewer.ipython.org/github/hyperopt/hyperopt-sklearn/tree/master/notebooks)
 
+More examples can be found in the Example Usage section of the SciPy paper
+
+Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. http://conference.scipy.org/proceedings/scipy2014/pdfs/komer.pdf
 
 ## Installation
 
@@ -38,6 +41,23 @@ print(estim.score(X_test, y_test))
 # <<show score here>>
 ```
 
+Each component comes with a default search space.
+The search space for each parameter can be changed or set constant by passing in keyword arguments.
+In the following example the `penalty` parameter is held constant during the search, and the `loss` and `alpha` parameters have their search space modified from the default.
+
+```
+from hpsklearn import HyperoptEstimator, sgd
+from hyperopt import hp
+import numpy as np
+
+sgd_penalty = 'l2'
+sgd_loss = hp.pchoice(’loss’, [(0.50, ’hinge’), (0.25, ’log’), (0.25, ’huber’)])
+sgd_alpha = hp.loguniform(’alpha’, low=np.log(1e-5), high=np.log(1))
+
+estim = HyperoptEstimator(classifier=sgd(’my_sgd’, penalty=sgd_penalty, loss=sgd_loss, alpha=sgd_alpha))
+estim.fit(X_train, y_train)
+```
+
 Complete example using the Iris dataset:
 
 ```
@@ -56,10 +76,10 @@ y = iris.target
 test_size = int(0.2 * len(y))
 np.random.seed(13)
 indices = np.random.permutation(len(X))
-X_train = X[ indices[:-test_size]]
-y_train = y[ indices[:-test_size]]
-X_test = X[ indices[-test_size:]]
-y_test = y[ indices[-test_size:]]
+X_train = X[indices[:-test_size]]
+y_train = y[indices[:-test_size]]
+X_test = X[indices[-test_size:]]
+y_test = y[indices[-test_size:]]
 
 # Instantiate a HyperoptEstimator with the search space and number of evaluations
 
@@ -71,11 +91,11 @@ estim = HyperoptEstimator(classifier=any_classifier('my_clf'),
 
 # Search the hyperparameter space based on the data
 
-estim.fit( X_train, y_train )
+estim.fit(X_train, y_train)
 
 # Show the results
 
-print( estim.score( X_test, y_test ) )
+print(estim.score(X_test, y_test))
 # 1.0
 
 print( estim.best_model() )
@@ -106,10 +126,10 @@ y = digits.target
 test_size = int(0.2 * len(y))
 np.random.seed(13)
 indices = np.random.permutation(len(X))
-X_train = X[ indices[:-test_size]]
-y_train = y[ indices[:-test_size]]
-X_test = X[ indices[-test_size:]]
-y_test = y[ indices[-test_size:]]
+X_train = X[indices[:-test_size]]
+y_train = y[indices[:-test_size]]
+X_test = X[indices[-test_size:]]
+y_test = y[indices[-test_size:]]
 
 # Instantiate a HyperoptEstimator with the search space and number of evaluations
 
@@ -125,10 +145,10 @@ estim.fit( X_train, y_train )
 
 # Show the results
 
-print( estim.score( X_test, y_test ) )
+print(estim.score(X_test, y_test))
 # 0.962785714286 
 
-print( estim.best_model() )
+print(estim.best_model())
 # {'learner': ExtraTreesClassifier(bootstrap=True, class_weight=None, criterion='entropy',
 #           max_depth=None, max_features=0.959202875857,
 #           max_leaf_nodes=None, min_impurity_decrease=0.0,
@@ -176,10 +196,6 @@ passive_aggressive
 linear_discriminant_analysis
 quadratic_discriminant_analysis
 
-rbm
-
-colkmeans
-
 one_vs_rest
 one_vs_one
 output_code
@@ -226,6 +242,10 @@ normalizer
 ts_lagselector
 
 tfidf
+
+rbm
+
+colkmeans
 
 ```
 
