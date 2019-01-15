@@ -729,7 +729,8 @@ class hyperopt_estimator(BaseEstimator):
             valid_size=.2, n_folds=None, 
             cv_shuffle=False, warm_start=False,
             random_state=np.random.RandomState(),
-            weights=None):
+            weights=None,
+            refit=True):
         """
         Search the space of learners and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
@@ -750,6 +751,8 @@ class hyperopt_estimator(BaseEstimator):
                                     from an existing sequence of trials.
             random_state: The random state used to seed the cross-validation 
                           shuffling.
+            refit ([boolean], default True): If true, refit the best model on
+                                             the whole data set.
 
         Notes:
             For classification problems, will always use the stratified version 
@@ -783,7 +786,8 @@ class hyperopt_estimator(BaseEstimator):
             except KeyboardInterrupt:
                 break
 
-        self.retrain_best_model_on_full_data(X, y, EX_list, weights)
+        if refit:
+            self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 
     def predict(self, X, EX_list=None):
         """
