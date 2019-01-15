@@ -444,6 +444,7 @@ class hyperopt_estimator(BaseEstimator):
                  fit_increment_dump_filename=None,
                  seed=None,
                  use_partial_fit=False,
+                 refit=True,
                  ):
         """
         Parameters
@@ -511,6 +512,9 @@ class hyperopt_estimator(BaseEstimator):
             batches here. The partial fit is used to iteratively update 
             parameters on the whole train set. Early stopping is used to kill 
             the training when the validation score stops improving.
+
+        refit: boolean, default True
+            Refit the best model on the whole data set.
         """
         self.max_evals = max_evals
         self.loss_fn = loss_fn
@@ -520,6 +524,7 @@ class hyperopt_estimator(BaseEstimator):
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
         self.use_partial_fit = use_partial_fit
+        self.refit = refit
         if space is None:
             if classifier is None and regressor is None:
                 self.classification = True
@@ -729,8 +734,7 @@ class hyperopt_estimator(BaseEstimator):
             valid_size=.2, n_folds=None, 
             cv_shuffle=False, warm_start=False,
             random_state=np.random.RandomState(),
-            weights=None,
-            refit=True):
+            weights=None):
         """
         Search the space of learners and preprocessing steps for a good
         predictive model of y <- X. Store the best model for predictions.
@@ -751,8 +755,6 @@ class hyperopt_estimator(BaseEstimator):
                                     from an existing sequence of trials.
             random_state: The random state used to seed the cross-validation 
                           shuffling.
-            refit ([boolean], default True): If true, refit the best model on
-                                             the whole data set.
 
         Notes:
             For classification problems, will always use the stratified version 
@@ -786,7 +788,7 @@ class hyperopt_estimator(BaseEstimator):
             except KeyboardInterrupt:
                 break
 
-        if refit:
+        if self.refit:
             self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 
     def predict(self, X, EX_list=None):
