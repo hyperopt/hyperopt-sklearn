@@ -224,6 +224,13 @@ _svm_default_cache_size = 512
 def hp_bool(name):
     return hp.choice(name, [False, True])
 
+def _trees_classweight(name):
+    return hp.choice(name, ['balanced', 'balanced_subsample','None'])
+
+def _classweight(name):
+    return hp.choice(name, ['balanced','None'])
+
+
 def _svm_gamma(name, n_features=1):
     '''Generator of default gamma values for SVMs.
     This setting is based on the following rationales:
