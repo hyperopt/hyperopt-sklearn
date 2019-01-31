@@ -1565,16 +1565,6 @@ def simple_classifier(name):
 
     return hp.choice('%s' % name, classifiers)
 
-def only_svc(name):
-    classifiers = [
-        svc(name + '.svc'),
-    ]
-
-    return hp.choice('%s' % name, classifiers)
-
-
-
-
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         liblinear_svc(name + '.linear_svc'),
