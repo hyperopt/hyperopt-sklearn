@@ -224,10 +224,10 @@ _svm_default_cache_size = 512
 def hp_bool(name):
     return hp.choice(name, [False, True])
 
-def _trees_classweight(name):
+def _trees_class_weight(name):
     return hp.choice(name, ['balanced', 'balanced_subsample','None'])
 
-def _classweight(name):
+def _class_weight(name):
     return hp.choice(name, ['balanced','None'])
 
 
@@ -430,6 +430,7 @@ def _svm_hp_space(
         n_features=1,
         C=None,
         gamma=None,
+        class_weight=None,
         coef0=None,
         degree=None,
         shrinking=None,
@@ -479,6 +480,8 @@ def _svm_hp_space(
         tol=_svm_tol(name_func('tol')) if tol is None else tol,
         max_iter=(_svm_max_iter(name_func('maxiter'))
                   if max_iter is None else max_iter),
+        class_weight=(_class_weight(name_func('class_weight'))
+                  if class_weight is None else class_weight),
         verbose=verbose,
         cache_size=cache_size)
     return hp_space
@@ -730,6 +733,7 @@ def _trees_hp_space(
         n_estimators=None,
         max_features=None,
         max_depth=None,
+        class_weight=None,
         min_samples_split=None,
         min_samples_leaf=None,
         bootstrap=None,
@@ -746,6 +750,8 @@ def _trees_hp_space(
                       if max_features is None else max_features),
         max_depth=(_trees_max_depth(name_func('max_depth'))
                    if max_depth is None else max_depth),
+        class_weight=(_trees_class_weight(name_func('class_weight'))
+                   if class_weight is None else class_weight),
         min_samples_split=(_trees_min_samples_split(name_func('min_samples_split'))
                            if min_samples_split is None else min_samples_split),
         min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf'))
