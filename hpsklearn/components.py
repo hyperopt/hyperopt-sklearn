@@ -225,11 +225,10 @@ def hp_bool(name):
     return hp.choice(name, [False, True])
 
 def _trees_class_weight(name):
-    return hp.choice(name, ['balanced', 'balanced_subsample','None'])
+    return hp.choice(name, ['balanced', 'balanced_subsample', None])
 
 def _class_weight(name):
-    return hp.choice(name, ['balanced','None'])
-
+    return hp.choice(name, ['balanced', None])
 
 def _svm_gamma(name, n_features=1):
     '''Generator of default gamma values for SVMs.
@@ -417,10 +416,6 @@ def _random_state(name, random_state):
     else:
         return random_state
 
-def _class_weight(name):
-    return hp.choice(name, [None, 'balanced'])
-
-
 ##############################################
 ##==== SVM hyperparameters search space ====##
 ##############################################
@@ -480,8 +475,6 @@ def _svm_hp_space(
         tol=_svm_tol(name_func('tol')) if tol is None else tol,
         max_iter=(_svm_max_iter(name_func('maxiter'))
                   if max_iter is None else max_iter),
-        class_weight=(_class_weight(name_func('class_weight'))
-                  if class_weight is None else class_weight),
         verbose=verbose,
         cache_size=cache_size)
     return hp_space
@@ -492,7 +485,9 @@ def _svc_hp_space(name_func, random_state=None, probability=False):
     '''
     hp_space = dict(
         random_state = _random_state(name_func('rstate'),random_state),
-        probability=probability
+        probability=probability,
+        class_weight=(_class_weight(name_func('class_weight'))
+            if class_weight is None else class_weight)
     )
     return hp_space
 
@@ -750,8 +745,6 @@ def _trees_hp_space(
                       if max_features is None else max_features),
         max_depth=(_trees_max_depth(name_func('max_depth'))
                    if max_depth is None else max_depth),
-        class_weight=(_trees_class_weight(name_func('class_weight'))
-                   if class_weight is None else class_weight),
         min_samples_split=(_trees_min_samples_split(name_func('min_samples_split'))
                            if min_samples_split is None else min_samples_split),
         min_samples_leaf=(_trees_min_samples_leaf(name_func('min_samples_leaf'))
@@ -785,6 +778,8 @@ def random_forest(name, criterion=None, **kwargs):
     hp_space = _trees_hp_space(_name, **kwargs)
     hp_space['criterion'] = (_trees_criterion(_name('criterion'))
                              if criterion is None else criterion)
+    hp_space['class_weight']=(_trees_class_weight(name_func('class_weight'))
+                   if class_weight is None else class_weight)
     return scope.sklearn_RandomForestClassifier(**hp_space)
 
 
