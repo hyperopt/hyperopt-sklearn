@@ -480,7 +480,7 @@ def _svm_hp_space(
     return hp_space
 
 
-def _svc_hp_space(name_func, random_state=None, probability=False):
+def _svc_hp_space(name_func, random_state=None, class_weight=None, probability=False):
     '''Generate SVC specific hyperparamters
     '''
     hp_space = dict(
@@ -761,7 +761,7 @@ def _trees_hp_space(
 #############################################################
 ##==== Random forest classifier/regressor constructors ====##
 #############################################################
-def random_forest(name, criterion=None, **kwargs):
+def random_forest(name, criterion=None, class_weight=None, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.ensemble.RandomForestClassifier model.
