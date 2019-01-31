@@ -500,7 +500,7 @@ def _svr_hp_space(name_func, epsilon=None):
 #########################################
 ##==== SVM classifier constructors ====##
 #########################################
-def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
+def svc_kernel(name, kernel, class_weight = None,random_state=None, probability=False, **kwargs):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with a user specified kernel.
@@ -513,6 +513,9 @@ def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
 
     hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
     hp_space.update(_svc_hp_space(_name, random_state, probability))
+    hp_space['class_weight']=(_class_weight(_name('class_weight'))
+                   if class_weight is None else class_weight)
+
     return scope.sklearn_SVC(**hp_space)
 
 def svc_linear(name, **kwargs):
