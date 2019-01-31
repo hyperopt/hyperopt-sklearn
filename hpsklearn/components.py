@@ -425,7 +425,6 @@ def _svm_hp_space(
         n_features=1,
         C=None,
         gamma=None,
-        class_weight=None,
         coef0=None,
         degree=None,
         shrinking=None,
@@ -480,15 +479,13 @@ def _svm_hp_space(
     return hp_space
 
 
-def _svc_hp_space(name_func, random_state=None, class_weight=None, probability=False):
+def _svc_hp_space(name_func, random_state=None, probability=False):
     '''Generate SVC specific hyperparamters
     '''
     hp_space = dict(
         random_state = _random_state(name_func('rstate'),random_state),
-        probability=probability,
-        class_weight=(_class_weight(name_func('class_weight'))
-            if class_weight is None else class_weight)
-    )
+        probability=probability    )
+    
     return hp_space
 
 def _svr_hp_space(name_func, epsilon=None):
@@ -778,7 +775,7 @@ def random_forest(name, criterion=None, class_weight=None, **kwargs):
     hp_space = _trees_hp_space(_name, **kwargs)
     hp_space['criterion'] = (_trees_criterion(_name('criterion'))
                              if criterion is None else criterion)
-    hp_space['class_weight']=(_trees_class_weight(name_func('class_weight'))
+    hp_space['class_weight']=(_trees_class_weight(_name('class_weight'))
                    if class_weight is None else class_weight)
     return scope.sklearn_RandomForestClassifier(**hp_space)
 
