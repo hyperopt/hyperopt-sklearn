@@ -956,7 +956,7 @@ def gradient_boosting_regression(name, loss=None, alpha=None, **kwargs):
 ###########################################################
 ##==== Extra trees classifier/regressor constructors ====##
 ###########################################################
-def extra_trees(name, criterion=None, **kwargs):
+def extra_trees(name, criterion=None, class_weight=None, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.ensemble.ExtraTreesClassifier model.
@@ -974,6 +974,8 @@ def extra_trees(name, criterion=None, **kwargs):
     hp_space = _trees_hp_space(_name, **kwargs)
     hp_space['criterion'] = (_trees_criterion(_name('criterion'))
                              if criterion is None else criterion)
+    hp_space['class_weight']=(_trees_class_weight(_name('class_weight'))
+                              if class_weight is None else class_weight)
     return scope.sklearn_ExtraTreesClassifier(**hp_space)
 
 
@@ -1250,6 +1252,9 @@ def _xgboost_learning_rate(name):
 def _xgboost_n_estimators(name):
     return scope.int(hp.quniform(name, 100, 6000, 200))
 
+def _xgboost_scale_pos_weight(name):
+    return hp.loguniform(name, np.log10(0.001), np.log10(1000))
+
 def _xgboost_gamma(name):
     return hp.loguniform(name, np.log(0.0001), np.log(5)) - 0.0001
 
@@ -1284,7 +1289,7 @@ def _xgboost_hp_space(
     colsample_bylevel=None,
     reg_alpha=None,
     reg_lambda=None,
-    scale_pos_weight=1,
+    scale_pos_weight=None,
     base_score=0.5,
     random_state=None):
     '''Generate XGBoost hyperparameters search space
@@ -1311,7 +1316,8 @@ def _xgboost_hp_space(
                    if reg_alpha is None else reg_alpha),
         reg_lambda=(_xgboost_reg_lambda(name_func('reg_lambda'))
                     if reg_lambda is None else reg_lambda),
-        scale_pos_weight=scale_pos_weight,
+        scale_pos_weight=(_xgboost_scale_pos_weight(name_func('scale_pos_weight'))
+               if scale_pos_weight is None else scale_pos_weight),
         base_score=base_score,
         seed=_random_state(name_func('rstate'), random_state)
     )
