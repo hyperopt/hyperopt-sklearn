@@ -1556,15 +1556,6 @@ def any_classifier(name):
 
     return hp.choice('%s' % name, classifiers)
 
-def simple_classifier(name):
-    classifiers = [
-        svc(name + '.svc'),
-        random_forest(name + '.random_forest'),
-        extra_trees(name + '.extra_trees')    
-    ]
-
-    return hp.choice('%s' % name, classifiers)
-
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
         liblinear_svc(name + '.linear_svc'),
