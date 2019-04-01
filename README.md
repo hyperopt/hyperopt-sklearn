@@ -23,7 +23,7 @@ Installation from a git clone using pip is supported:
 
 If you are familiar with sklearn, adding the hyperparameter search with hyperopt-sklearn is only a one line change from the standard pipeline.
 
-```
+```python
 from hpsklearn import HyperoptEstimator, svc
 from sklearn import svm
 
@@ -45,7 +45,7 @@ Each component comes with a default search space.
 The search space for each parameter can be changed or set constant by passing in keyword arguments.
 In the following example the `penalty` parameter is held constant during the search, and the `loss` and `alpha` parameters have their search space modified from the default.
 
-```
+```python
 from hpsklearn import HyperoptEstimator, sgd
 from hyperopt import hp
 import numpy as np
@@ -60,7 +60,7 @@ estim.fit(X_train, y_train)
 
 Complete example using the Iris dataset:
 
-```
+```python
 from hpsklearn import HyperoptEstimator, any_classifier
 from sklearn.datasets import load_iris
 from hyperopt import tpe
@@ -110,7 +110,7 @@ print( estim.best_model() )
 
 Here's an example using MNIST and being more specific on the classifier and preprocessing.
 
-```
+```python
 from hpsklearn import HyperoptEstimator, extra_trees
 from sklearn.datasets import fetch_mldata
 from hyperopt import tpe
