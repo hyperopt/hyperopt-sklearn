@@ -1021,7 +1021,7 @@ def decision_tree(name,
         max_depth=max_depth,
         min_samples_split=scope.int(hp.quniform(
             _name('min_samples_split'),
-            1, 10, 1)) if min_samples_split is None else min_samples_split,
+            2, 10, 1)) if min_samples_split is None else min_samples_split,
         min_samples_leaf=scope.int(hp.quniform(
             _name('min_samples_leaf'),
             1, 5, 1)) if min_samples_leaf is None else min_samples_leaf,
