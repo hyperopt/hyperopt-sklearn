@@ -1855,6 +1855,21 @@ def any_text_preprocessing(name):
         [tfidf(name + '.tfidf')],
     ])
 
+def any_sparse_preprocessing(name):
+    """
+    Preprocessors that support sparse input.
+    * missing pca
+    * missing min_max_scaler
+    * missing one_hot_encoder (because it's also not in any_preprocessing)
+    * standard_scaler has with_mean=False, at the recommendation of the sklearn
+      error message
+    """
+    return hp.choice('%s' % name, [
+        [standard_scaler(name + '.standard_scaler', with_mean=False)],
+        [normalizer(name + '.normalizer')],
+        []
+    ])
+
 
 ##############################################################
 ##==== Generic hyperparameters search space constructor ====##

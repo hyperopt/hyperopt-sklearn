@@ -251,6 +251,7 @@ colkmeans
 
 For a simple generic search space across many preprocessing algorithms, use `any_preprocessing`.
 If you are working with raw text data, use `any_text_preprocessing`.
+If you are working with sparse input, use `any_sparse_preprocessing`.
 Currently only TFIDF is used for text, but more may be added in the future.
 Note that the `preprocessing` parameter in `HyperoptEstimator` is expecting a list, since various preprocessing steps can be chained together.
 The generic search space functions `any_preprocessing` and `any_text_preprocessing` already return a list, but the others do not so they should be wrapped in a list.

@@ -82,7 +82,7 @@ def test_sparse_input():
     # Try to fit an SGD model
     cls = hyperopt_estimator(
         classifier=components.sgd('sgd', loss='log'),
-        preprocessing=[],
+        preprocessing=components.any_sparse_preprocessing('preproc'),
     )
     cls.fit(X,y)
 
