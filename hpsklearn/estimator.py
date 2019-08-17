@@ -532,6 +532,7 @@ class hyperopt_estimator(BaseEstimator):
         self._best_learner = None
         self._best_loss = None
         self._best_iters = None
+	self.n_jobs = n_jobs
         if space is None:
             if classifier is None and regressor is None:
                 self.classification = True
