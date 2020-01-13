@@ -119,6 +119,18 @@ if xgboost is not None:
         create_function(components.xgboost_classification)
     )
 
+try:
+    import lightgbm
+except ImportError:
+    lightgbm = None
+
+if lightgbm is not None:
+    setattr(
+        TestClassification,
+        'test_{0}'.format(clf.__name__),
+        create_function(components.lightgbm_classification)
+    )
+
 if __name__ == '__main__':
     unittest.main()
 

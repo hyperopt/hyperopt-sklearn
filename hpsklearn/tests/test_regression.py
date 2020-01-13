@@ -73,6 +73,19 @@ if xgboost is not None:
         create_function(components.xgboost_regression)
     )
 
+# Only test the xgboost regressor if the optional dependency is installed
+try:
+    import lightgbm
+except ImportError:
+    lightgbm = None
+
+if lightgbm is not None:
+    setattr(
+        TestRegression,
+        'test_{0}'.format(clf.__name__),
+        create_function(components.lightgbm_regression)
+    )
+
 if __name__ == '__main__':
     unittest.main()
 

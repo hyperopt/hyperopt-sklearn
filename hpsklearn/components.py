@@ -21,6 +21,10 @@ try:
     import xgboost
 except ImportError:
     xgboost = None
+try:
+    import lightgbm
+except ImportError:
+    lightgbm = None
 
 ##########################################
 ##==== Wrappers for sklearn modules ====##
