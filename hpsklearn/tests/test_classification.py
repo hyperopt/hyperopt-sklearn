@@ -119,6 +119,7 @@ if xgboost is not None:
         create_function(components.xgboost_classification)
     )
 
+# Only test the lightgbm classifier if the optional dependency is installed
 try:
     import lightgbm
 except ImportError:
