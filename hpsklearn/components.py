@@ -1382,6 +1382,9 @@ def xgboost_regression(name, objective='reg:linear', **kwargs):
 def _lightgbm_max_depth(name):
     return scope.int(hp.uniform(name, 1, 11))
 
+def _lightgbm_num_leaves(name):
+    return scope.int(hp.uniform(name, 1, 121))
+
 def _lightgbm_learning_rate(name):
     return hp.loguniform(name, np.log(0.0001), np.log(0.5)) - 0.0001
 
@@ -1410,30 +1413,30 @@ def _lightgbm_reg_lambda(name):
     return hp.loguniform(name, np.log(1), np.log(4))
 
 def _lightgbm_boosting_type(name):
-    return hp.choice(name, ['gbdt', 'dart', 'goss', 'rf'])
+    return hp.choice(name, ['gbdt', 'dart', 'goss'])
 
 def _lightgbm_hp_space(
     name_func,
     max_depth=None,
+    num_leaves=None,
     learning_rate=None,
     n_estimators=None,
-    gamma=None,
     min_child_weight=None,
     max_delta_step=0,
     subsample=None,
     colsample_bytree=None,
-    colsample_bylevel=None,
     reg_alpha=None,
     reg_lambda=None,
     boosting_type=None,
     scale_pos_weight=1,
-    base_score=0.5,
     random_state=None):
     '''Generate LightGBM hyperparameters search space
     '''
     hp_space = dict(
         max_depth=(_lightgbm_max_depth(name_func('max_depth'))
                    if max_depth is None else max_depth),
+        num_leaves=min((_lightgbm_num_leaves(name_func('num_leaves'))
+        if num_leaves is None else num_leaves), 2**max_depth),
         learning_rate=(_lightgbm_learning_rate(name_func('learning_rate'))
                        if learning_rate is None else learning_rate),
         n_estimators=(_lightgbm_n_estimators(name_func('n_estimators'))
@@ -1480,6 +1483,7 @@ def lightgbm_classification(name, objective='binary', **kwargs):
         return '%s.%s_%s' % (name, 'lightgbm', msg)
 
     hp_space = _lightgbm_hp_space(_name, **kwargs)
+    import pdb; pdb.set_trace()
     hp_space['objective'] = objective
     return scope.sklearn_LGBMClassifier(**hp_space)
 
