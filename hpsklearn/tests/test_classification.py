@@ -115,7 +115,7 @@ except ImportError:
 if xgboost is not None:
     setattr(
         TestClassification,
-        'test_{0}'.format(clf.__name__),
+        'test_xgboost_classification',
         create_function(components.xgboost_classification)
     )
 
@@ -128,7 +128,7 @@ except ImportError:
 if lightgbm is not None:
     setattr(
         TestClassification,
-        'test_{0}'.format(clf.__name__),
+        'test_lightgbm_classification',
         create_function(components.lightgbm_classification)
     )
 
