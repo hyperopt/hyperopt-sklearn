@@ -1383,7 +1383,7 @@ def _lightgbm_max_depth(name):
     return scope.int(hp.uniform(name, 1, 11))
 
 def _lightgbm_num_leaves(name):
-    return scope.int(hp.uniform(name, 1, 121))
+    return scope.int(hp.uniform(name, 2, 121))
 
 def _lightgbm_learning_rate(name):
     return hp.loguniform(name, np.log(0.0001), np.log(0.5)) - 0.0001
@@ -1435,14 +1435,12 @@ def _lightgbm_hp_space(
     hp_space = dict(
         max_depth=(_lightgbm_max_depth(name_func('max_depth'))
                    if max_depth is None else max_depth),
-        num_leaves=min((_lightgbm_num_leaves(name_func('num_leaves'))
-        if num_leaves is None else num_leaves), 2**max_depth),
+        num_leaves=(_lightgbm_num_leaves(name_func('num_leaves'))
+                    if num_leaves is None else num_leaves),
         learning_rate=(_lightgbm_learning_rate(name_func('learning_rate'))
                        if learning_rate is None else learning_rate),
         n_estimators=(_lightgbm_n_estimators(name_func('n_estimators'))
                       if n_estimators is None else n_estimators),
-        gamma=(_lightgbm_gamma(name_func('gamma'))
-               if gamma is None else gamma),
         min_child_weight=(_lightgbm_min_child_weight(name_func('min_child_weight'))
                           if min_child_weight is None else min_child_weight),
         max_delta_step=max_delta_step,
@@ -1450,8 +1448,6 @@ def _lightgbm_hp_space(
                    if subsample is None else subsample),
         colsample_bytree=(_lightgbm_colsample_bytree(name_func('colsample_bytree'))
                           if colsample_bytree is None else colsample_bytree),
-        colsample_bylevel=(_lightgbm_colsample_bylevel(name_func('colsample_bylevel'))
-                          if colsample_bylevel is None else colsample_bylevel),
         reg_alpha=(_lightgbm_reg_alpha(name_func('reg_alpha'))
                    if reg_alpha is None else reg_alpha),
         reg_lambda=(_lightgbm_reg_lambda(name_func('reg_lambda'))
@@ -1459,7 +1455,6 @@ def _lightgbm_hp_space(
         boosting_type=(_lightgbm_boosting_type(name_func('boosting_type'))
                     if boosting_type is None else boosting_type),
         scale_pos_weight=scale_pos_weight,
-        base_score=base_score,
         seed=_random_state(name_func('rstate'), random_state)
     )
     return hp_space
@@ -1483,7 +1478,6 @@ def lightgbm_classification(name, objective='binary', **kwargs):
         return '%s.%s_%s' % (name, 'lightgbm', msg)
 
     hp_space = _lightgbm_hp_space(_name, **kwargs)
-    import pdb; pdb.set_trace()
     hp_space['objective'] = objective
     return scope.sklearn_LGBMClassifier(**hp_space)
 
