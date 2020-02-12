@@ -604,15 +604,12 @@ class hyperopt_estimator(BaseEstimator):
         assert weights is None
         increment = self.fit_increment if increment is None else increment
 
-        # len does not work on sparse matrices, so using shape[0] instead
-        # shape[0] does not work on lists, so using len() for those
-        if scipy.sparse.issparse(X):
-            data_length = X.shape[0]
-        else:
-            data_length = len(X)
-        if type(X) is list:
+        # Convert list, pandas series, or other array-like to ndarray
+        # do not convert sparse matrices
+        if not scipy.sparse.issparse(X) and not isinstance(X, np.ndarray):
             X = np.array(X)
-        if type(y) is list:
+
+        if not scipy.sparse.issparse(y) and not isinstance(y, np.ndarray):
             y = np.array(y)
 
         if not warm_start:
