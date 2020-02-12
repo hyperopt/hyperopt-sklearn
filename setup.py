@@ -48,6 +48,7 @@ setup(
         'scipy',
     ],
     extras_require = {
-        'xgboost':  ['xgboost==0.6a2']
+        'xgboost':  ['xgboost==0.6a2'],
+        'lightgbm': ['lightgbm==2.3.1']
     }
 )

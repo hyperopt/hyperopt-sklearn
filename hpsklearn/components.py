@@ -21,6 +21,10 @@ try:
     import xgboost
 except ImportError:
     xgboost = None
+try:
+    import lightgbm
+except ImportError:
+    lightgbm = None
 
 ##########################################
 ##==== Wrappers for sklearn modules ====##
@@ -112,6 +116,19 @@ def sklearn_XGBRegressor(*args, **kwargs):
     if xgboost is None:
         raise ImportError('No module named xgboost')
     return xgboost.XGBRegressor(*args, **kwargs)
+
+@scope.define
+def sklearn_LGBMClassifier(*args, **kwargs):
+    if lightgbm is None:
+        raise ImportError('No module named lightgbm')
+    return lightgbm.LGBMClassifier(*args, **kwargs)
+
+@scope.define
+def sklearn_LGBMRegressor(*args, **kwargs):
+    if lightgbm is None:
+        raise ImportError('No module named lightgbm')
+    return lightgbm.LGBMRegressor(*args, **kwargs)
+
 
 # @scope.define
 # def sklearn_Ridge(*args, **kwargs):
@@ -1312,7 +1329,6 @@ def _xgboost_hp_space(
     )
     return hp_space
 
-
 ########################################################
 ##==== XGBoost classifier/regressor constructors ====##
 ########################################################
@@ -1357,6 +1373,134 @@ def xgboost_regression(name, objective='reg:linear', **kwargs):
     hp_space = _xgboost_hp_space(_name, **kwargs)
     hp_space['objective'] = objective
     return scope.sklearn_XGBRegressor(**hp_space)
+
+
+###################################################
+##==== LightGBM hyperparameters search space ====##
+###################################################
+
+def _lightgbm_max_depth(name):
+    return scope.int(hp.uniform(name, 1, 11))
+
+def _lightgbm_num_leaves(name):
+    return scope.int(hp.uniform(name, 1, 121))
+
+def _lightgbm_learning_rate(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(0.5)) - 0.0001
+
+def _lightgbm_n_estimators(name):
+    return scope.int(hp.quniform(name, 100, 6000, 200))
+
+def _lightgbm_gamma(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(5)) - 0.0001
+
+def _lightgbm_min_child_weight(name):
+    return scope.int(hp.loguniform(name, np.log(1), np.log(100)))
+
+def _lightgbm_subsample(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _lightgbm_colsample_bytree(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _lightgbm_colsample_bylevel(name):
+    return hp.uniform(name, 0.5, 1)
+
+def _lightgbm_reg_alpha(name):
+    return hp.loguniform(name, np.log(0.0001), np.log(1)) - 0.0001
+
+def _lightgbm_reg_lambda(name):
+    return hp.loguniform(name, np.log(1), np.log(4))
+
+def _lightgbm_boosting_type(name):
+    return hp.choice(name, ['gbdt', 'dart', 'goss'])
+
+def _lightgbm_hp_space(
+    name_func,
+    max_depth=None,
+    num_leaves=None,
+    learning_rate=None,
+    n_estimators=None,
+    min_child_weight=None,
+    max_delta_step=0,
+    subsample=None,
+    colsample_bytree=None,
+    reg_alpha=None,
+    reg_lambda=None,
+    boosting_type=None,
+    scale_pos_weight=1,
+    random_state=None):
+    '''Generate LightGBM hyperparameters search space
+    '''
+    hp_space = dict(
+        max_depth=(_lightgbm_max_depth(name_func('max_depth'))
+                   if max_depth is None else max_depth),
+        num_leaves=min((_lightgbm_num_leaves(name_func('num_leaves'))
+        if num_leaves is None else num_leaves), 2**max_depth),
+        learning_rate=(_lightgbm_learning_rate(name_func('learning_rate'))
+                       if learning_rate is None else learning_rate),
+        n_estimators=(_lightgbm_n_estimators(name_func('n_estimators'))
+                      if n_estimators is None else n_estimators),
+        gamma=(_lightgbm_gamma(name_func('gamma'))
+               if gamma is None else gamma),
+        min_child_weight=(_lightgbm_min_child_weight(name_func('min_child_weight'))
+                          if min_child_weight is None else min_child_weight),
+        max_delta_step=max_delta_step,
+        subsample=(_lightgbm_subsample(name_func('subsample'))
+                   if subsample is None else subsample),
+        colsample_bytree=(_lightgbm_colsample_bytree(name_func('colsample_bytree'))
+                          if colsample_bytree is None else colsample_bytree),
+        colsample_bylevel=(_lightgbm_colsample_bylevel(name_func('colsample_bylevel'))
+                          if colsample_bylevel is None else colsample_bylevel),
+        reg_alpha=(_lightgbm_reg_alpha(name_func('reg_alpha'))
+                   if reg_alpha is None else reg_alpha),
+        reg_lambda=(_lightgbm_reg_lambda(name_func('reg_lambda'))
+                    if reg_lambda is None else reg_lambda),
+        boosting_type=(_lightgbm_boosting_type(name_func('boosting_type'))
+                    if boosting_type is None else boosting_type),
+        scale_pos_weight=scale_pos_weight,
+        base_score=base_score,
+        seed=_random_state(name_func('rstate'), random_state)
+    )
+    return hp_space
+
+########################################################
+##==== LightGBM classifier/regressor constructors ====##
+########################################################
+def lightgbm_classification(name, objective='binary', **kwargs):
+    '''
+    Return a pyll graph with hyperparameters that will construct
+    a lightgbm.LGBMClassifier model.
+
+    Args:
+        objective([str]): choose from ['binary', 'multiclass']
+            or provide an hp.choice pyll node
+
+    See help(hpsklearn.components._lightgbm_hp_space) for info on
+    additional available LightGBM arguments.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'lightgbm', msg)
+
+    hp_space = _lightgbm_hp_space(_name, **kwargs)
+    import pdb; pdb.set_trace()
+    hp_space['objective'] = objective
+    return scope.sklearn_LGBMClassifier(**hp_space)
+
+
+def lightgbm_regression(name, **kwargs):
+    '''
+    Return a pyll graph with hyperparameters that will construct
+    a lightgbm.LightGBMRegressor model.
+    
+    See help(hpsklearn.components._lightgbm_hp_space) for info on
+    additional available LightGBM arguments.
+    '''
+    def _name(msg):
+        return '%s.%s_%s' % (name, 'lightgbm_reg', msg)
+
+    hp_space = _lightgbm_hp_space(_name, **kwargs)
+    return scope.sklearn_LGBMRegressor(objective='regression', **hp_space)
 
 
 #################################################
