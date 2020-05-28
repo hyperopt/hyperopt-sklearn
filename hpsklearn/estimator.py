@@ -57,7 +57,8 @@ class NonFiniteFeature(Exception):
     """
 
 def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None, 
-                          EXfit_list=None, ex_pps_list=[], EXval_list=None):
+                          EXfit_list=None, ex_pps_list=[], EXval_list=None,
+                          fit_preproc=True):
     '''Transform endogenous and exogenous datasets and combine them into a 
     single dataset for training and testing.
     '''
@@ -72,7 +73,8 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
                 n_components = min([n_components] + list(Xfit.shape))
                 pp_algo.set_params(n_components=n_components)
                 info('Limited PCA n_components at', n_components)
-            pp_algo.fit(Xfit)
+            if fit_preproc:
+                pp_algo.fit(Xfit)
             info('Transforming Xfit', Xfit.shape)
             Xfit = pp_algo.transform(Xfit)
             # np.isfinite() does not work on sparse matrices
@@ -788,7 +790,7 @@ class hyperopt_estimator(BaseEstimator):
         if self.refit:
             self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 
-    def predict(self, X, EX_list=None):
+    def predict(self, X, EX_list=None, fit_preproc=False):
         """
         Use the best model found by previous fit() to make a prediction.
         """
@@ -804,11 +806,12 @@ class hyperopt_estimator(BaseEstimator):
             X = np.array(X)
         XEX = transform_combine_XEX(
             X, self.info, en_pps=self._best_preprocs, 
-            EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs
+            EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs,
+            fit_preproc=fit_preproc,
         )
         return self._best_learner.predict(XEX)
 
-    def score(self, X, y, EX_list=None):
+    def score(self, X, y, EX_list=None, fit_preproc=False):
         """
         Return the score (accuracy or R2) of the learner on 
         a given set of data
@@ -825,7 +828,8 @@ class hyperopt_estimator(BaseEstimator):
             X = np.array(X)
         XEX = transform_combine_XEX(
             X, self.info, en_pps=self._best_preprocs, 
-            EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs
+            EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs,
+            fit_preproc=fit_preproc,
         )
         return self._best_learner.score(XEX, y)
 
