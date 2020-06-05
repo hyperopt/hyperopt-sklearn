@@ -527,6 +527,11 @@ class hyperopt_estimator(BaseEstimator):
         self.fit_increment_dump_filename = fit_increment_dump_filename
         self.use_partial_fit = use_partial_fit
         self.refit = refit
+        self._best_preprocs = ()
+        self._best_ex_preprocs = ()
+        self._best_learner = None
+        self._best_loss = None
+        self._best_iters = None
         if space is None:
             if classifier is None and regressor is None:
                 self.classification = True
@@ -787,6 +792,13 @@ class hyperopt_estimator(BaseEstimator):
             except KeyboardInterrupt:
                 break
 
+        if self._best_learner is None:
+            raise RuntimeError(
+                "All trials failed or timed out. "
+                "Result of last trial: "
+                "{}".format(self.trials.trials[-1]['result'])
+            )
+
         if self.refit:
             self.retrain_best_model_on_full_data(X, y, EX_list, weights)
 
@@ -794,6 +806,13 @@ class hyperopt_estimator(BaseEstimator):
         """
         Use the best model found by previous fit() to make a prediction.
         """
+        if self._best_learner is None:
+            raise RuntimeError(
+                "Attempting to use a model that has not been fit. "
+                "Ensure fit() has been called and at least one trial "
+                "has completed without failing or timing out."
+            )
+
         if EX_list is not None:
             assert isinstance(EX_list, (list, tuple))
             assert len(EX_list) == self.n_ex_pps
@@ -816,6 +835,13 @@ class hyperopt_estimator(BaseEstimator):
         Return the score (accuracy or R2) of the learner on 
         a given set of data
         """
+        if self._best_learner is None:
+            raise RuntimeError(
+                "Attempting to use a model that has not been fit. "
+                "Ensure fit() has been called and at least one trial "
+                "has completed without failing or timing out."
+            )
+
         if EX_list is not None:
             assert isinstance(EX_list, (list, tuple))
             assert len(EX_list) == self.n_ex_pps
