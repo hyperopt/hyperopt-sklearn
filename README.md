@@ -61,7 +61,7 @@ estim.fit(X_train, y_train)
 Complete example using the Iris dataset:
 
 ```python
-from hpsklearn import HyperoptEstimator, any_classifier
+from hpsklearn import HyperoptEstimator, any_classifier, any_preprocessing
 from sklearn.datasets import load_iris
 from hyperopt import tpe
 import numpy as np
