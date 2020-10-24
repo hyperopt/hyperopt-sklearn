@@ -56,10 +56,10 @@ class NonFiniteFeature(Exception):
     """
     """
 
-def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None, 
+def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
                           EXfit_list=None, ex_pps_list=[], EXval_list=None,
                           fit_preproc=True):
-    '''Transform endogenous and exogenous datasets and combine them into a 
+    '''Transform endogenous and exogenous datasets and combine them into a
     single dataset for training and testing.
     '''
 
@@ -136,7 +136,7 @@ def transform_combine_XEX(Xfit, info, en_pps=[], Xval=None,
 
 def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
                            max_iters=None, best_loss=None,
-                           XEXval=None, yval=None, 
+                           XEXval=None, yval=None,
                            timeout=None, t_start=None):
     '''Do partial fitting until the convergence criterion is met
     '''
@@ -199,7 +199,7 @@ def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
             validation_scores.append(learner.score(XEXval, yval))
             if max(validation_scores) == validation_scores[-1]:
                 best_learner = copy.deepcopy(learner)
-            info('VSCORE', validation_scores[-1])    
+            info('VSCORE', validation_scores[-1])
     if XEXval is None:
         return (learner, n_iters)
     else:
@@ -208,7 +208,7 @@ def pfit_until_convergence(learner, is_classif, XEXfit, yfit, info,
 
 def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
              use_partial_fit, info, timeout, _conn, loss_fn=None,
-             continuous_loss_fn=False, best_loss=None):
+             continuous_loss_fn=False, best_loss=None, n_jobs=1):
     '''Calculate the loss function
     '''
     try:
@@ -265,7 +265,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                                     random_state=random_state)
         else:
             if not shuffle:  # always choose the last samples.
-                info('Will use the last', valid_size, 
+                info('Will use the last', valid_size,
                      'portion of samples for validation')
                 n_train = int(len(y) * (1 - valid_size))
                 valid_fold = np.ones(len(y), dtype=np.int)
@@ -287,7 +287,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                     cv_iter = StratifiedShuffleSplit(y, 1, test_size=valid_size,
                                                      random_state=random_state)
             else:
-                info('Will use shuffle-and-split with validation portion:', 
+                info('Will use shuffle-and-split with validation portion:',
                      valid_size)
                 try:
                     cv_iter = ShuffleSplit(n_splits=1, test_size=valid_size,
@@ -305,23 +305,23 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             Xfit, Xval = X[train_index], X[valid_index]
             yfit, yval = y[train_index], y[valid_index]
             if EX_list is not None:
-                _EX_list = [ (EX[train_index], EX[valid_index]) 
+                _EX_list = [ (EX[train_index], EX[valid_index])
                              for EX in EX_list ]
                 EXfit_list, EXval_list = zip(*_EX_list)
             else:
                 EXfit_list = None
-                EXval_list = None        
+                EXval_list = None
             XEXfit, XEXval = transform_combine_XEX(
-                Xfit, info, preprocessings, Xval, 
+                Xfit, info, preprocessings, Xval,
                 EXfit_list, ex_pps_list, EXval_list
             )
             learner = copy.deepcopy(untrained_learner)
-            info('Training learner', learner, 'on X/EX of dimension', 
+            info('Training learner', learner, 'on X/EX of dimension',
                  XEXfit.shape)
             if hasattr(learner, "partial_fit") and use_partial_fit:
                 learner, n_iters = pfit_until_convergence(
-                    learner, is_classif, XEXfit, yfit, info, 
-                    best_loss=best_loss, XEXval=XEXval, yval=yval, 
+                    learner, is_classif, XEXfit, yfit, info,
+                    best_loss=best_loss, XEXval=XEXval, yval=yval,
                     timeout=timeout, t_start=t_start
                 )
             else:
@@ -329,6 +329,9 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 n_iters = None
             if learner is None:
                 break
+            elif hasattr(learner, 'n_jobs'):
+                # https://github.com/hyperopt/hyperopt-sklearn/issues/82#issuecomment-430963445
+                learner.n_jobs = n_jobs
             cv_y_pool = np.append(cv_y_pool, yval)
             info('Scoring on X/EX validation of shape', XEXval.shape)
             if continuous_loss_fn:
@@ -447,6 +450,7 @@ class hyperopt_estimator(BaseEstimator):
                  seed=None,
                  use_partial_fit=False,
                  refit=True,
+                 n_jobs=1
                  ):
         """
         Parameters
@@ -454,12 +458,12 @@ class hyperopt_estimator(BaseEstimator):
 
         preprocessing: pyll.Apply node, default is None
             This should evaluate to a list of sklearn-style preprocessing
-            modules (may include hyperparameters). When None, a random 
+            modules (may include hyperparameters). When None, a random
             preprocessing module will be used.
 
         ex_preprocs: pyll.Apply node, default is None
-            This should evaluate to a list of lists of sklearn-style 
-            preprocessing modules for each exogenous dataset. When None, no 
+            This should evaluate to a list of lists of sklearn-style
+            preprocessing modules for each exogenous dataset. When None, no
             preprocessing will be applied to exogenous data.
 
         classifier: pyll.Apply node
@@ -504,19 +508,23 @@ class hyperopt_estimator(BaseEstimator):
             fit()  Saves after every `fit_increment` trial evaluations.
 
         seed: numpy.random.RandomState or int or None
-            If int, the integer will be used to seed a RandomState instance 
-            for use in hyperopt.fmin. Use None to make sure each run is 
+            If int, the integer will be used to seed a RandomState instance
+            for use in hyperopt.fmin. Use None to make sure each run is
             independent. Default is None.
 
         use_partial_fit : boolean
-            If the learner support partial fit, it can be used for online 
-            learning. However, the whole train set is not split into mini 
-            batches here. The partial fit is used to iteratively update 
-            parameters on the whole train set. Early stopping is used to kill 
+            If the learner support partial fit, it can be used for online
+            learning. However, the whole train set is not split into mini
+            batches here. The partial fit is used to iteratively update
+            parameters on the whole train set. Early stopping is used to kill
             the training when the validation score stops improving.
 
         refit: boolean, default True
             Refit the best model on the whole data set.
+
+        n_jobs: integer, default 1
+            Use multiple CPU cores when training estimators which support
+            multiprocessing.
         """
         self.max_evals = max_evals
         self.loss_fn = loss_fn
@@ -532,7 +540,7 @@ class hyperopt_estimator(BaseEstimator):
         self._best_learner = None
         self._best_loss = None
         self._best_iters = None
-	self.n_jobs = n_jobs
+        self.n_jobs = n_jobs
         if space is None:
             if classifier is None and regressor is None:
                 self.classification = True
@@ -583,7 +591,7 @@ class hyperopt_estimator(BaseEstimator):
             self.algo = algo
 
         if seed is not None:
-            self.rstate = (np.random.RandomState(seed) 
+            self.rstate = (np.random.RandomState(seed)
                            if isinstance(seed, int) else seed)
         else:
             self.rstate = np.random.RandomState()
@@ -603,7 +611,7 @@ class hyperopt_estimator(BaseEstimator):
         if self.verbose:
             print(' '.join(map(str, args)))
 
-    def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None, 
+    def fit_iter(self, X, y, EX_list=None, valid_size=.2, n_folds=None,
                  cv_shuffle=False, warm_start=False,
                  random_state=np.random.RandomState(),
                  weights=None, increment=None):
@@ -628,14 +636,15 @@ class hyperopt_estimator(BaseEstimator):
         # self._best_loss = float('inf')
         # This is where the cost function is used.
         fn = partial(_cost_fn,
-                     X=X, y=y, EX_list=EX_list, 
-                     valid_size=valid_size, n_folds=n_folds, 
+                     X=X, y=y, EX_list=EX_list,
+                     valid_size=valid_size, n_folds=n_folds,
                      shuffle=cv_shuffle, random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
                      info=self.info,
                      timeout=self.trial_timeout,
                      loss_fn=self.loss_fn,
-                     continuous_loss_fn=self.continuous_loss_fn)
+                     continuous_loss_fn=self.continuous_loss_fn,
+                     n_jobs=self.n_jobs)
 
         # Wrap up the cost function as a process with timeout control.
         def fn_with_timeout(*args, **kwargs):
@@ -682,7 +691,7 @@ class hyperopt_estimator(BaseEstimator):
             new_increment = yield self.trials
             if new_increment is not None:
                 increment = new_increment
-            
+
             #FIXME: temporary workaround for rstate issue #35
             #       latest hyperopt.fmin() on master does not match PyPI
             if 'rstate' in inspect.getargspec(hyperopt.fmin).args:
@@ -720,11 +729,11 @@ class hyperopt_estimator(BaseEstimator):
             assert isinstance(EX_list, (list, tuple))
             assert len(EX_list) == self.n_ex_pps
         XEX = transform_combine_XEX(
-            X, self.info, en_pps=self._best_preprocs, 
+            X, self.info, en_pps=self._best_preprocs,
             EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs
         )
 
-        self.info('Training learner', self._best_learner, 
+        self.info('Training learner', self._best_learner,
                   'on X/EX of dimension', XEX.shape)
         if hasattr(self._best_learner, 'partial_fit') and \
                 self.use_partial_fit:
@@ -735,8 +744,8 @@ class hyperopt_estimator(BaseEstimator):
         else:
             self._best_learner.fit(XEX, y)
 
-    def fit(self, X, y, EX_list=None, 
-            valid_size=.2, n_folds=None, 
+    def fit(self, X, y, EX_list=None,
+            valid_size=.2, n_folds=None,
             cv_shuffle=False, warm_start=False,
             random_state=np.random.RandomState(),
             weights=None):
@@ -745,24 +754,24 @@ class hyperopt_estimator(BaseEstimator):
         predictive model of y <- X. Store the best model for predictions.
 
         Args:
-            EX_list ([list]): List of exogenous datasets. Each must has the 
+            EX_list ([list]): List of exogenous datasets. Each must has the
                               same number of samples as X.
-            valid_size ([float]): The portion of the dataset used as the 
-                                  validation set. If cv_shuffle is False, 
+            valid_size ([float]): The portion of the dataset used as the
+                                  validation set. If cv_shuffle is False,
                                   always use the last samples as validation.
             n_folds ([int]): When n_folds is not None, use K-fold cross-
                              validation when n_folds > 2. Or, use leave-one-out
                              cross-validation when n_folds = -1.
-            cv_shuffle ([boolean]): Whether do sample shuffling before 
-                                    splitting the data into train and valid 
+            cv_shuffle ([boolean]): Whether do sample shuffling before
+                                    splitting the data into train and valid
                                     sets or not.
-            warm_start ([boolean]): If warm_start, the estimator will start 
+            warm_start ([boolean]): If warm_start, the estimator will start
                                     from an existing sequence of trials.
-            random_state: The random state used to seed the cross-validation 
+            random_state: The random state used to seed the cross-validation
                           shuffling.
 
         Notes:
-            For classification problems, will always use the stratified version 
+            For classification problems, will always use the stratified version
             of the K-fold cross-validation or shuffle-and-split.
         """
         if EX_list is not None:
@@ -779,7 +788,7 @@ class hyperopt_estimator(BaseEstimator):
                                  weights=weights,
                                  increment=self.fit_increment)
         next(fit_iter)
-        adjusted_max_evals = (self.max_evals if not warm_start else 
+        adjusted_max_evals = (self.max_evals if not warm_start else
                               len(self.trials.trials) + self.max_evals)
         while len(self.trials.trials) < adjusted_max_evals:
             try:
@@ -825,7 +834,7 @@ class hyperopt_estimator(BaseEstimator):
         else:
             X = np.array(X)
         XEX = transform_combine_XEX(
-            X, self.info, en_pps=self._best_preprocs, 
+            X, self.info, en_pps=self._best_preprocs,
             EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs,
             fit_preproc=fit_preproc,
         )
@@ -833,7 +842,7 @@ class hyperopt_estimator(BaseEstimator):
 
     def score(self, X, y, EX_list=None, fit_preproc=False):
         """
-        Return the score (accuracy or R2) of the learner on 
+        Return the score (accuracy or R2) of the learner on
         a given set of data
         """
         if self._best_learner is None:
@@ -854,7 +863,7 @@ class hyperopt_estimator(BaseEstimator):
         else:
             X = np.array(X)
         XEX = transform_combine_XEX(
-            X, self.info, en_pps=self._best_preprocs, 
+            X, self.info, en_pps=self._best_preprocs,
             EXfit_list=EX_list, ex_pps_list=self._best_ex_preprocs,
             fit_preproc=fit_preproc,
         )
