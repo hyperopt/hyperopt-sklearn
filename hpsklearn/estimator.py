@@ -225,6 +225,10 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             preprocessings = argd['model']['preprocessing']
             ex_pps_list = argd['model']['ex_preprocs']
         learner = classifier if classifier is not None else regressor
+        # Set n_jobs parameter if available for given learner
+        if hasattr(learner, 'n_jobs'):
+            # https://github.com/hyperopt/hyperopt-sklearn/issues/82#issuecomment-430963445
+            learner.n_jobs = n_jobs
         is_classif = classifier is not None
         untrained_learner = copy.deepcopy(learner)
         # -- N.B. modify argd['preprocessing'] in-place
@@ -329,9 +333,6 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
                 n_iters = None
             if learner is None:
                 break
-            elif hasattr(learner, 'n_jobs'):
-                # https://github.com/hyperopt/hyperopt-sklearn/issues/82#issuecomment-430963445
-                learner.n_jobs = n_jobs
             cv_y_pool = np.append(cv_y_pool, yval)
             info('Scoring on X/EX validation of shape', XEXval.shape)
             if continuous_loss_fn:

@@ -98,7 +98,7 @@ estim.fit(X_train, y_train)
 print(estim.score(X_test, y_test))
 # 1.0
 
-print( estim.best_model() )
+print(estim.best_model())
 # {'learner': ExtraTreesClassifier(bootstrap=False, class_weight=None, criterion='gini',
 #           max_depth=3, max_features='log2', max_leaf_nodes=None,
 #           min_impurity_decrease=0.0, min_impurity_split=None,
