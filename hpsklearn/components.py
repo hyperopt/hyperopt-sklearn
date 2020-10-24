@@ -1298,7 +1298,8 @@ def _xgboost_hp_space(
     reg_lambda=None,
     scale_pos_weight=1,
     base_score=0.5,
-    random_state=None):
+    random_state=None,
+    n_jobs=-1):
     '''Generate XGBoost hyperparameters search space
     '''
     hp_space = dict(
@@ -1325,7 +1326,7 @@ def _xgboost_hp_space(
                     if reg_lambda is None else reg_lambda),
         scale_pos_weight=scale_pos_weight,
         base_score=base_score,
-        seed=_random_state(name_func('rstate'), random_state)
+        seed=_random_state(name_func('rstate'), random_state=random_state, n_jobs=n_jobs)
     )
     return hp_space
 
