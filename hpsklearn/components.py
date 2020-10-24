@@ -1326,7 +1326,8 @@ def _xgboost_hp_space(
                     if reg_lambda is None else reg_lambda),
         scale_pos_weight=scale_pos_weight,
         base_score=base_score,
-        seed=_random_state(name_func('rstate'), random_state=random_state, n_jobs=n_jobs)
+        seed=_random_state(name_func('rstate'), random_state=random_state),
+        n_jobs=n_jobs
     )
     return hp_space
 
