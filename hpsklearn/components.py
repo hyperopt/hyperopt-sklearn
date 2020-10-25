@@ -892,8 +892,7 @@ def _grad_boosting_hp_space(
     max_features=None,
     verbose=0,
     max_leaf_nodes=None,
-    warm_start=False,
-    presort='auto'):
+    warm_start=False):
     '''Generate GradientBoosting hyperparameters search space
     '''
     hp_space = dict(
@@ -914,7 +913,6 @@ def _grad_boosting_hp_space(
         max_features=(_trees_max_features(name_func('max_features'))
                    if max_features is None else max_features),
         warm_start=warm_start,
-        presort=presort
     )
     return hp_space
 
@@ -1018,7 +1016,6 @@ def decision_tree(name,
                   max_depth=None,
                   min_samples_split=None,
                   min_samples_leaf=None,
-                  presort=False,
                   random_state=None):
 
     def _name(msg):
@@ -1042,7 +1039,6 @@ def decision_tree(name,
         min_samples_leaf=scope.int(hp.quniform(
             _name('min_samples_leaf'),
             1, 5, 1)) if min_samples_leaf is None else min_samples_leaf,
-        presort=presort,
         random_state=_random_state(_name('rstate'), random_state),
         )
     return rval
@@ -1298,7 +1294,8 @@ def _xgboost_hp_space(
     reg_lambda=None,
     scale_pos_weight=1,
     base_score=0.5,
-    random_state=None):
+    random_state=None,
+    n_jobs=-1):
     '''Generate XGBoost hyperparameters search space
     '''
     hp_space = dict(
@@ -1325,7 +1322,8 @@ def _xgboost_hp_space(
                     if reg_lambda is None else reg_lambda),
         scale_pos_weight=scale_pos_weight,
         base_score=base_score,
-        seed=_random_state(name_func('rstate'), random_state)
+        seed=_random_state(name_func('rstate'), random_state=random_state),
+        n_jobs=n_jobs
     )
     return hp_space
 
