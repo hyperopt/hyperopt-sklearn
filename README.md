@@ -14,10 +14,15 @@ Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparame
 
 ## Installation
 
-Installation from a git clone using pip is supported:
+Installation from the GitHub repository is supported using pip:
 
-    git clone git@github.com:hyperopt/hyperopt-sklearn.git
-    (cd hyperopt-sklearn && pip install -e .)
+    pip install git+https://github.com/hyperopt/hyperopt-sklearn
+    
+Optionally you can install a specific tag, branch or commit:
+
+    pip install git+https://github.com/hyperopt/hyperopt-sklearn@0.0.3
+    pip install git+https://github.com/hyperopt/hyperopt-sklearn@master
+    pip install git+https://github.com/hyperopt/hyperopt-sklearn@fd718c44fc440bd6e2718ec1442b1af58cafcb18
 
 ## Usage
 
