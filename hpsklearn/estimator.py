@@ -527,78 +527,85 @@ class hyperopt_estimator(BaseEstimator):
             Use multiple CPU cores when training estimators which support
             multiprocessing.
         """
-        self.max_evals = max_evals
-        self.loss_fn = loss_fn
-        self.continuous_loss_fn = continuous_loss_fn
-        self.verbose = verbose
-        self.trial_timeout = trial_timeout
-        self.fit_increment = fit_increment
-        self.fit_increment_dump_filename = fit_increment_dump_filename
-        self.use_partial_fit = use_partial_fit
-        self.refit = refit
+         self.preprocessing = preprocessing
+         self.ex_preprocs = ex_preprocs
+         self.classifier = classifier
+         self.regressor = regressor
+         self.space = space
+         self.algo = algo
+         self.max_evals = max_evals
+         self.loss_fn = loss_fn
+         self.continuous_loss_fn = continuous_loss_fn
+         self.verbose = verbose
+         self.trial_timeout = trial_timeout
+         self.fit_increment = fit_increment
+         self.fit_increment_dump_filename = fit_increment_dump_filename
+         self.seed = seed
+         self.use_partial_fit = use_partial_fit
+         self.refit = refit
+         self.n_jobs = n_jobsb
+    
+    def _init(self):
         self._best_preprocs = ()
         self._best_ex_preprocs = ()
         self._best_learner = None
         self._best_loss = None
         self._best_iters = None
-        self.n_jobs = n_jobs
-        if space is None:
-            if classifier is None and regressor is None:
+        if self.space is None:
+            if self.classifier is None and self.regressor is None:
                 self.classification = True
-                classifier = components.any_classifier('classifier')
-            elif classifier is not None:
-                assert regressor is None
+                self.classifier = self.components.any_classifier('classifier')
+            elif self.classifier is not None:
+                assert self.regressor is None
                 self.classification = True
             else:
-                assert regressor is not None
+                assert self.regressor is not None
                 self.classification = False
                 # classifier = components.any_classifier('classifier')
-            if preprocessing is None:
-                preprocessing = components.any_preprocessing('preprocessing')
+            if self.preprocessing is None:
+                self.preprocessing = self.components.any_preprocessing('preprocessing')
             else:
                 # assert isinstance(preprocessing, (list, tuple))
                 pass
-            if ex_preprocs is None:
-                ex_preprocs = []
+            if self.ex_preprocs is None:
+                self.ex_preprocs = []
             else:
-                assert isinstance(ex_preprocs, (list, tuple))
+                assert isinstance(self.ex_preprocs, (list, tuple))
                 # assert all(
                 #     isinstance(pps, (list, tuple)) for pps in ex_preprocs
                 # )
-            self.n_ex_pps = len(ex_preprocs)
+            self.n_ex_pps = len(self.ex_preprocs)
             self.space = hyperopt.pyll.as_apply({
-                'classifier': classifier,
-                'regressor': regressor,
-                'preprocessing': preprocessing,
-                'ex_preprocs': ex_preprocs
+                'classifier': self.classifier,
+                'regressor': self.regressor,
+                'preprocessing': self.preprocessing,
+                'ex_preprocs': self.ex_preprocs
             })
         else:
-            assert classifier is None
-            assert regressor is None
-            assert preprocessing is None
-            assert ex_preprocs is None
+            assert self.classifier is None
+            assert self.regressor is None
+            assert self.preprocessing is None
+            assert self.ex_preprocs is None
             # self.space = hyperopt.pyll.as_apply(space)
-            self.space = space
-            evaled_space = space.eval()
+            evaled_space = self.space.eval()
             if 'ex_preprocs' in evaled_space:
                 self.n_ex_pps = len(evaled_space['ex_preprocs'])
             else:
                 self.n_ex_pps = 0
                 self.ex_preprocs = []
 
-        if algo is None:
+        if self.algo is None:
             self.algo = hyperopt.rand.suggest
         else:
             self.algo = algo
 
-        if seed is not None:
-            self.rstate = (np.random.RandomState(seed)
-                           if isinstance(seed, int) else seed)
+        if self.seed is not None:
+            self.rstate = (np.random.RandomState(self.seed)
+                           if isinstance(self.seed, int) else self.seed)
         else:
             self.rstate = np.random.RandomState()
 
         # Backwards compatibility with older version of hyperopt
-        self.seed = seed
         if 'rstate' not in inspect.getargspec(hyperopt.fmin).args:
             print("Warning: Using older version of hyperopt.fmin")
 
