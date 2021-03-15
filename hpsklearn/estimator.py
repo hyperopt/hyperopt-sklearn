@@ -527,31 +527,33 @@ class hyperopt_estimator(BaseEstimator):
             Use multiple CPU cores when training estimators which support
             multiprocessing.
         """
-         self.preprocessing = preprocessing
-         self.ex_preprocs = ex_preprocs
-         self.classifier = classifier
-         self.regressor = regressor
-         self.space = space
-         self.algo = algo
-         self.max_evals = max_evals
-         self.loss_fn = loss_fn
-         self.continuous_loss_fn = continuous_loss_fn
-         self.verbose = verbose
-         self.trial_timeout = trial_timeout
-         self.fit_increment = fit_increment
-         self.fit_increment_dump_filename = fit_increment_dump_filename
-         self.seed = seed
-         self.use_partial_fit = use_partial_fit
-         self.refit = refit
-         self.n_jobs = n_jobsb
-    
+        self.preprocessing = preprocessing
+        self.ex_preprocs = ex_preprocs
+        self.classifier = classifier
+        self.regressor = regressor
+        self.space = space
+        self.algo = algo
+        self.max_evals = max_evals
+        self.loss_fn = loss_fn
+        self.continuous_loss_fn = continuous_loss_fn
+        self.verbose = verbose
+        self.trial_timeout = trial_timeout
+        self.fit_increment = fit_increment
+        self.fit_increment_dump_filename = fit_increment_dump_filename
+        self.seed = seed
+        self.use_partial_fit = use_partial_fit
+        self.refit = refit
+        self.n_jobs = n_jobs
+
     def _init(self):
         self._best_preprocs = ()
         self._best_ex_preprocs = ()
         self._best_learner = None
         self._best_loss = None
         self._best_iters = None
+
         if self.space is None:
+        
             if self.classifier is None and self.regressor is None:
                 self.classification = True
                 self.classifier = self.components.any_classifier('classifier')
@@ -562,11 +564,13 @@ class hyperopt_estimator(BaseEstimator):
                 assert self.regressor is not None
                 self.classification = False
                 # classifier = components.any_classifier('classifier')
+
             if self.preprocessing is None:
                 self.preprocessing = self.components.any_preprocessing('preprocessing')
             else:
                 # assert isinstance(preprocessing, (list, tuple))
                 pass
+            
             if self.ex_preprocs is None:
                 self.ex_preprocs = []
             else:
@@ -574,6 +578,7 @@ class hyperopt_estimator(BaseEstimator):
                 # assert all(
                 #     isinstance(pps, (list, tuple)) for pps in ex_preprocs
                 # )
+            
             self.n_ex_pps = len(self.ex_preprocs)
             self.space = hyperopt.pyll.as_apply({
                 'classifier': self.classifier,
@@ -596,8 +601,6 @@ class hyperopt_estimator(BaseEstimator):
 
         if self.algo is None:
             self.algo = hyperopt.rand.suggest
-        else:
-            self.algo = algo
 
         if self.seed is not None:
             self.rstate = (np.random.RandomState(self.seed)
@@ -782,6 +785,9 @@ class hyperopt_estimator(BaseEstimator):
             For classification problems, will always use the stratified version
             of the K-fold cross-validation or shuffle-and-split.
         """
+        # init estimator
+        self._init()
+
         if EX_list is not None:
             assert isinstance(EX_list, (list, tuple))
             assert len(EX_list) == self.n_ex_pps
@@ -884,7 +890,3 @@ class hyperopt_estimator(BaseEstimator):
         return {'learner': self._best_learner,
                 'preprocs': self._best_preprocs,
                 'ex_preprocs': self._best_ex_preprocs}
-
-
-
-
