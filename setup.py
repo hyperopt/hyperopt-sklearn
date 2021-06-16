@@ -41,6 +41,7 @@ setup(
     platforms = ['Linux', 'OS-X', 'Windows'],
     license = 'BSD',
     install_requires = [
+        'networkx==1.11',
         'hyperopt',
         'nose',
         'numpy',
