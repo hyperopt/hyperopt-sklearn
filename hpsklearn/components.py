@@ -241,6 +241,12 @@ _svm_default_cache_size = 512
 def hp_bool(name):
     return hp.choice(name, [False, True])
 
+def _trees_class_weight(name):
+    return hp.choice(name, ['balanced', 'balanced_subsample', None])
+
+def _class_weight(name):
+    return hp.choice(name, ['balanced', None])
+
 def _svm_gamma(name, n_features=1):
     '''Generator of default gamma values for SVMs.
     This setting is based on the following rationales:
@@ -427,10 +433,6 @@ def _random_state(name, random_state):
     else:
         return random_state
 
-def _class_weight(name):
-    return hp.choice(name, [None, 'balanced'])
-
-
 ##############################################
 ##==== SVM hyperparameters search space ====##
 ##############################################
@@ -499,8 +501,8 @@ def _svc_hp_space(name_func, random_state=None, probability=False):
     '''
     hp_space = dict(
         random_state = _random_state(name_func('rstate'),random_state),
-        probability=probability
-    )
+        probability=probability    )
+    
     return hp_space
 
 def _svr_hp_space(name_func, epsilon=None):
@@ -515,7 +517,7 @@ def _svr_hp_space(name_func, epsilon=None):
 #########################################
 ##==== SVM classifier constructors ====##
 #########################################
-def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
+def svc_kernel(name, kernel, class_weight = None,random_state=None, probability=False, **kwargs):
     """
     Return a pyll graph with hyperparamters that will construct
     a sklearn.svm.SVC model with a user specified kernel.
@@ -528,6 +530,9 @@ def svc_kernel(name, kernel, random_state=None, probability=False, **kwargs):
 
     hp_space = _svm_hp_space(_name, kernel=kernel, **kwargs)
     hp_space.update(_svc_hp_space(_name, random_state, probability))
+    hp_space['class_weight']=(_class_weight(_name('class_weight'))
+                   if class_weight is None else class_weight)
+
     return scope.sklearn_SVC(**hp_space)
 
 def svc_linear(name, **kwargs):
@@ -740,6 +745,7 @@ def _trees_hp_space(
         n_estimators=None,
         max_features=None,
         max_depth=None,
+        class_weight=None,
         min_samples_split=None,
         min_samples_leaf=None,
         bootstrap=None,
@@ -772,7 +778,7 @@ def _trees_hp_space(
 #############################################################
 ##==== Random forest classifier/regressor constructors ====##
 #############################################################
-def random_forest(name, criterion=None, **kwargs):
+def random_forest(name, criterion=None, class_weight=None, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.ensemble.RandomForestClassifier model.
@@ -789,6 +795,8 @@ def random_forest(name, criterion=None, **kwargs):
     hp_space = _trees_hp_space(_name, **kwargs)
     hp_space['criterion'] = (_trees_criterion(_name('criterion'))
                              if criterion is None else criterion)
+    hp_space['class_weight']=(_trees_class_weight(_name('class_weight'))
+                   if class_weight is None else class_weight)
     return scope.sklearn_RandomForestClassifier(**hp_space)
 
 
@@ -966,7 +974,7 @@ def gradient_boosting_regression(name, loss=None, alpha=None, **kwargs):
 ###########################################################
 ##==== Extra trees classifier/regressor constructors ====##
 ###########################################################
-def extra_trees(name, criterion=None, **kwargs):
+def extra_trees(name, criterion=None, class_weight=None, **kwargs):
     '''
     Return a pyll graph with hyperparamters that will construct
     a sklearn.ensemble.ExtraTreesClassifier model.
@@ -984,6 +992,8 @@ def extra_trees(name, criterion=None, **kwargs):
     hp_space = _trees_hp_space(_name, **kwargs)
     hp_space['criterion'] = (_trees_criterion(_name('criterion'))
                              if criterion is None else criterion)
+    hp_space['class_weight']=(_trees_class_weight(_name('class_weight'))
+                              if class_weight is None else class_weight)
     return scope.sklearn_ExtraTreesClassifier(**hp_space)
 
 
@@ -1258,6 +1268,9 @@ def _xgboost_learning_rate(name):
 def _xgboost_n_estimators(name):
     return scope.int(hp.quniform(name, 100, 6000, 200))
 
+def _xgboost_scale_pos_weight(name):
+    return hp.loguniform(name, np.log10(0.001), np.log10(1000))
+
 def _xgboost_gamma(name):
     return hp.loguniform(name, np.log(0.0001), np.log(5)) - 0.0001
 
@@ -1292,7 +1305,7 @@ def _xgboost_hp_space(
     colsample_bylevel=None,
     reg_alpha=None,
     reg_lambda=None,
-    scale_pos_weight=1,
+    scale_pos_weight=None,
     base_score=0.5,
     random_state=None,
     n_jobs=-1):
@@ -1320,7 +1333,8 @@ def _xgboost_hp_space(
                    if reg_alpha is None else reg_alpha),
         reg_lambda=(_xgboost_reg_lambda(name_func('reg_lambda'))
                     if reg_lambda is None else reg_lambda),
-        scale_pos_weight=scale_pos_weight,
+        scale_pos_weight=(_xgboost_scale_pos_weight(name_func('scale_pos_weight'))
+               if scale_pos_weight is None else scale_pos_weight),
         base_score=base_score,
         seed=_random_state(name_func('rstate'), random_state=random_state),
         n_jobs=n_jobs
@@ -1677,7 +1691,6 @@ def any_classifier(name):
         classifiers.append(xgboost_classification(name + '.xgboost'))
 
     return hp.choice('%s' % name, classifiers)
-
 
 def any_sparse_classifier(name):
     return hp.choice('%s' % name, [
