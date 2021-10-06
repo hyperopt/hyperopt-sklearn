@@ -93,6 +93,11 @@ def _bagging_hp_space(
         random_state=None,
         verbose: int = False,
 ):
+    """
+    Hyper parameter search space for
+     bagging classifier
+     bagging regressor
+    """
     hp_space = dict(
         base_estimator=base_estimator,
         n_estimators=(n_estimators or _bagging_n_estimators(name_func("n_estimators"))),
