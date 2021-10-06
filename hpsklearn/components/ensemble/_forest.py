@@ -168,14 +168,14 @@ def _forest_hp_space(
         max_features: typing.Union[str, float] = None,
         max_leaf_nodes: int = None,
         min_impurity_decrease: float = None,
-        bootstrap=None,
-        oob_score=False,
-        n_jobs=1,
+        bootstrap: bool = None,
+        oob_score: bool = False,
+        n_jobs: int = 1,
         random_state=None,
-        verbose=False,
-        warm_start=False,
-        ccp_alpha=0.0,
-        max_samples=None
+        verbose: int = False,
+        warm_start: bool = False,
+        ccp_alpha: float = 0.0,
+        max_samples: float = None
 ):
     """
     Hyper parameter search space for
@@ -301,19 +301,6 @@ def extra_trees_regressor(name: str, criterion: str = None, **kwargs):
     return scope.sklearn_ExtraTreesRegressor(**hp_space)
 
 
-def _forest_regressors(name):
-    """
-    All _forest regressors
-
-    Args:
-        name: name | str
-    """
-    return [
-        random_forest_regressor(name + ".random_forest"),
-        extra_trees_regressor(name + ".extra_trees")
-    ]
-
-
 def _forest_classifiers(name):
     """
     All _forest classifiers
@@ -324,4 +311,17 @@ def _forest_classifiers(name):
     return [
         random_forest_classifier(name + ".random_forest"),
         extra_trees_classifier(name + ".extra_trees")
+    ]
+
+
+def _forest_regressors(name):
+    """
+    All _forest regressors
+
+    Args:
+        name: name | str
+    """
+    return [
+        random_forest_regressor(name + ".random_forest"),
+        extra_trees_regressor(name + ".extra_trees")
     ]
