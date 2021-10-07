@@ -52,6 +52,13 @@ def _gb_n_estimators(name):
     return scope.int(hp.qloguniform(name, np.log(10.5), np.log(1000.5), 1))
 
 
+def _gb_criterion(name):
+    """
+    Declaration search space 'criterion' parameter
+    """
+    return hp.choice(name, ["friedman_mse", "squared_error", "absolute_error"])
+
+
 def _gb_min_samples_split(name):
     """
     Declaration search space 'min_samples_split' parameter
@@ -150,7 +157,7 @@ def _gb_hp_space(
         name_func,
         learning_rate: float = None,
         n_estimators: int = None,
-        subsample: float = None,
+        subsample: float = 1.0,
         criterion: str = None,
         min_samples_split: float = None,
         min_samples_leaf: float = None,
@@ -163,10 +170,10 @@ def _gb_hp_space(
         verbose: int = False,
         max_leaf_nodes: int = None,
         warm_start: bool = False,
-        validation_fraction: float = None,
+        validation_fraction: float = 0.1,
         n_iter_no_change: int = None,
-        tol: float = None,
-        ccp_alpha: float = None
+        tol: float = 1e-4,
+        ccp_alpha: float = 0.0
 ):
     """
     Hyper parameter search space for
@@ -177,7 +184,7 @@ def _gb_hp_space(
         learning_rate=(learning_rate or _gb_learning_rate(name_func("learning_rate"))),
         n_estimators=(n_estimators or _gb_n_estimators(name_func("n_estimators"))),
         subsample=subsample,
-        criterion=criterion,
+        criterion=(criterion or _gb_criterion(name_func("criterion"))),
         min_samples_split=(min_samples_split or _gb_min_samples_split(name_func("min_samples_split"))),
         min_samples_leaf=(min_samples_leaf or _gb_min_samples_leaf(name_func("min_samples_leaf"))),
         min_weight_fraction_leaf=(min_weight_fraction_leaf
