@@ -14,14 +14,14 @@ def sklearn_IsolationForest(*args, **kwargs):
     return ensemble.IsolationForest(*args, **kwargs)
 
 
-def _iforest_n_estimators(name):
+def _iforest_n_estimators(name: str):
     """
     Declaration search space 'n_estimators' parameter
     """
     return scope.int(hp.qloguniform(name, np.log(9.5), np.log(3000.5), 1))
 
 
-def _iforest_max_features(name):
+def _iforest_max_features(name: str):
     """
     Declaration search space 'max_features' parameter
     """
@@ -32,14 +32,14 @@ def _iforest_max_features(name):
     ])
 
 
-def _iforest_bootstrap(name):
+def _iforest_bootstrap(name: str):
     """
     Declaration search space 'bootstrap' parameter
     """
     return hp.choice(name, [True, False])
 
 
-def _iforest_random_state(name):
+def _iforest_random_state(name: str):
     """
     Declaration search space 'random_state' parameter
     """

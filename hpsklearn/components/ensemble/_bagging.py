@@ -16,7 +16,7 @@ def sklearn_BaggingRegressor(*args, **kwargs):
     return ensemble.BaggingRegressor(*args, **kwargs)
 
 
-def _bagging_n_estimators(name):
+def _bagging_n_estimators(name: str):
     """
     Declaration search space 'n_estimators' parameter
     """
@@ -30,7 +30,7 @@ def _bagging_n_estimators(name):
     ])
 
 
-def _bagging_max_samples(name):
+def _bagging_max_samples(name: str):
     """
     Declaration search space 'max_samples' parameter
     """
@@ -41,7 +41,7 @@ def _bagging_max_samples(name):
     ])
 
 
-def _bagging_max_features(name):
+def _bagging_max_features(name: str):
     """
     Declaration search space 'max_features' parameter
     """
@@ -52,21 +52,21 @@ def _bagging_max_features(name):
     ])
 
 
-def _bagging_bootstrap(name):
+def _bagging_bootstrap(name: str):
     """
     Declaration search space 'bootstrap' parameter
     """
     return hp.choice(name, [True, False])
 
 
-def _bagging_bootstrap_features(name):
+def _bagging_bootstrap_features(name: str):
     """
     Declaration search space 'bootstrap_features' parameter
     """
     return hp.choice(name, [True, False])
 
 
-def _bagging_random_state(name):
+def _bagging_random_state(name: str):
     """
     Declaration search space 'random_state' parameter
     """

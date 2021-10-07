@@ -17,35 +17,35 @@ def sklearn_AdaBoostRegressor(*args, **kwargs):
     return ensemble.AdaBoostRegressor(*args, **kwargs)
 
 
-def _weight_boosting_n_estimators(name):
+def _weight_boosting_n_estimators(name: str):
     """
     Declaration search space 'n_estimators' parameter
     """
     return scope.int(hp.qloguniform(name, np.log(10.5), np.log(1000.5), 1))
 
 
-def _weight_boosting_learning_rate(name):
+def _weight_boosting_learning_rate(name: str):
     """
     Declaration search space 'learning_rate' parameter
     """
     return hp.lognormal(name, np.log(0.01), np.log(10.0))
 
 
-def _weight_boosting_algorithm(name):
+def _weight_boosting_algorithm(name: str):
     """
     Declaration search space 'algorithm' parameter
     """
     return hp.choice(name, ["SAMME", "SAMME.R"])
 
 
-def _weight_boosting_loss(name):
+def _weight_boosting_loss(name: str):
     """
     Declaration search space 'loss' parameter
     """
     return hp.choice(name, ["linear", "square", "exponential"])
 
 
-def _weight_boosting_random_state(name):
+def _weight_boosting_random_state(name: str):
     """
     Declaration search space 'random_state' parameter
     """

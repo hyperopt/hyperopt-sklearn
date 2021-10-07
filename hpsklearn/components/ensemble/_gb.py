@@ -19,14 +19,14 @@ def sklearn_GradientBoostingRegressor(*args, **kwargs):
     return ensemble.GradientBoostingRegressor(*args, **kwargs)
 
 
-def _gb_clf_loss(name):
+def _gb_clf_loss(name: str):
     """
     Declaration search space 'loss' parameter for _gb classifier
     """
     return hp.choice(name, ["deviance", "exponential"])
 
 
-def _gb_reg_loss_alpha(name):
+def _gb_reg_loss_alpha(name: str):
     """
     Declaration search space 'loss' and 'alpha' parameters for _gb regressor
     """
@@ -38,28 +38,28 @@ def _gb_reg_loss_alpha(name):
     ])
 
 
-def _gb_learning_rate(name):
+def _gb_learning_rate(name: str):
     """
     Declaration search space 'learning_rate' parameter
     """
     return hp.lognormal(name, np.log(0.01), np.log(10.0))
 
 
-def _gb_n_estimators(name):
+def _gb_n_estimators(name: str):
     """
     Declaration search space 'n_estimators' parameter
     """
     return scope.int(hp.qloguniform(name, np.log(10.5), np.log(1000.5), 1))
 
 
-def _gb_criterion(name):
+def _gb_criterion(name: str):
     """
     Declaration search space 'criterion' parameter
     """
     return hp.choice(name, ["friedman_mse", "squared_error", "absolute_error"])
 
 
-def _gb_min_samples_split(name):
+def _gb_min_samples_split(name: str):
     """
     Declaration search space 'min_samples_split' parameter
     """
@@ -69,7 +69,7 @@ def _gb_min_samples_split(name):
     ])
 
 
-def _gb_min_samples_leaf(name):
+def _gb_min_samples_leaf(name: str):
     """
     Declaration search space 'min_samples_leaf' parameter
     """
@@ -79,14 +79,14 @@ def _gb_min_samples_leaf(name):
     ])
 
 
-def _gb_min_weight_fraction_leaf(name):
+def _gb_min_weight_fraction_leaf(name: str):
     """
     Declaration search space 'min_weight_fraction_leaf' parameter
     """
     return 0.0
 
 
-def _gb_max_depth(name):
+def _gb_max_depth(name: str):
     """
     Declaration search space 'max_depth' parameter
     """
@@ -98,7 +98,7 @@ def _gb_max_depth(name):
     ])
 
 
-def _gb_min_impurity_decrease(name):
+def _gb_min_impurity_decrease(name: str):
     """
     Declaration search space 'min_impurity_decrease' parameter
     """
@@ -110,14 +110,14 @@ def _gb_min_impurity_decrease(name):
     ])
 
 
-def _gb_random_state(name):
+def _gb_random_state(name: str):
     """
     Declaration search space 'random_state' parameter
     """
     return hp.randint(name, 5)
 
 
-def _gb_max_features(name):
+def _gb_max_features(name: str):
     """
     Declaration search space 'max_features' parameter
     """
@@ -129,7 +129,7 @@ def _gb_max_features(name):
     ])
 
 
-def _gb_max_leaf_nodes(name):
+def _gb_max_leaf_nodes(name: str):
     """
     Declaration search space 'max_leaf_nodes' parameter
     """

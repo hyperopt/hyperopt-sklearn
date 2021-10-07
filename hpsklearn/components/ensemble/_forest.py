@@ -29,7 +29,7 @@ def sklearn_ExtraTreesRegressor(*args, **kwargs):
     return ensemble.ExtraTreesRegressor(*args, **kwargs)
 
 
-def _forest_classifier_criterion(name):
+def _forest_classifier_criterion(name: str):
     """
     Declaration of search space 'criterion' parameter for
      random forest classifier
@@ -38,7 +38,7 @@ def _forest_classifier_criterion(name):
     return hp.choice(name, ["gini", "entropy"])
 
 
-def _random_forest_regressor_criterion(name):
+def _random_forest_regressor_criterion(name: str):
     """
     Declaration of search space 'criterion' parameter for
      random forest regressor
@@ -49,7 +49,7 @@ def _random_forest_regressor_criterion(name):
     return hp.choice(name, ["squared_error", "absolute_error"])
 
 
-def _extra_trees_regressor_criterion(name):
+def _extra_trees_regressor_criterion(name: str):
     """
     Declaration of search space 'criterion' parameter for
      extra trees regressor
@@ -57,14 +57,14 @@ def _extra_trees_regressor_criterion(name):
     return hp.choice(name, ["squared_error", "absolute_error"])
 
 
-def _forest_n_estimators(name):
+def _forest_n_estimators(name: str):
     """
     Declaration search space 'n_estimators' parameter
     """
     return scope.int(hp.qloguniform(name, np.log(9.5), np.log(3000.5), 1))
 
 
-def _forest_max_depth(name):
+def _forest_max_depth(name: str):
     """
     Declaration search space 'max_depth' parameter
     """
@@ -76,7 +76,7 @@ def _forest_max_depth(name):
     ])
 
 
-def _forest_min_samples_split(name):
+def _forest_min_samples_split(name: str):
     """
     Declaration search space 'min_samples_split' parameter
     """
@@ -86,7 +86,7 @@ def _forest_min_samples_split(name):
     ])
 
 
-def _forest_min_samples_leaf(name):
+def _forest_min_samples_leaf(name: str):
     """
     Declaration search space 'min_samples_leaf' parameter
     """
@@ -96,14 +96,14 @@ def _forest_min_samples_leaf(name):
     ])
 
 
-def _forest_min_weight_fraction_leaf(name):
+def _forest_min_weight_fraction_leaf(name: str):
     """
     Declaration search space 'min_weight_fraction_leaf' parameter
     """
     return 0.0
 
 
-def _forest_max_features(name):
+def _forest_max_features(name: str):
     """
     Declaration search space 'max_features' parameter
     """
@@ -115,7 +115,7 @@ def _forest_max_features(name):
     ])
 
 
-def _forest_max_leaf_nodes(name):
+def _forest_max_leaf_nodes(name: str):
     """
     Declaration search space 'max_leaf_nodes' parameter
     """
@@ -127,7 +127,7 @@ def _forest_max_leaf_nodes(name):
     ])
 
 
-def _forest_min_impurity_decrease(name):
+def _forest_min_impurity_decrease(name: str):
     """
     Declaration search space 'min_impurity_decrease' parameter
     """
@@ -139,14 +139,14 @@ def _forest_min_impurity_decrease(name):
     ])
 
 
-def _forest_bootstrap(name):
+def _forest_bootstrap(name: str):
     """
     Declaration search space 'bootstrap' parameter
     """
     return hp.choice(name, [True, False])
 
 
-def _forest_random_state(name):
+def _forest_random_state(name: str):
     """
     Declaration search space 'random_state' parameter
     """
