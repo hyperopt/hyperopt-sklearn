@@ -256,7 +256,7 @@ def gradient_boosting_regression(name: str, loss: str = None, alpha: float = Non
 
     loss_alpha = _gb_reg_loss_alpha(_name("loss_alpha"))
     hp_space = _gb_hp_space(_name, **kwargs)
-    hp_space["loss"] = loss_alpha[0] if loss is None else loss
-    hp_space["alpha"] = loss_alpha[1] if alpha is None else alpha
+    hp_space["loss"] = loss or loss_alpha[0]
+    hp_space["alpha"] = alpha or loss_alpha[1]
 
     return scope.sklearn_GradientBoostingRegressor(**hp_space)
