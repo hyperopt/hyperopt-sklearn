@@ -157,7 +157,8 @@ def _forest_random_state(name):
           validation_test=lambda param: isinstance(param, str) and param not in ["auto", "sqrt", "log2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'sqrt', 'log2'].")
 @validate(params=["n_estimators", "max_depth", "min_samples_split",
-                  "min_samples_leaf", "max_features", "max_leaf_nodes"],
+                  "min_samples_leaf", "max_features", "max_leaf_nodes",
+                  "min_impurity_decrease"],
           validation_test=lambda param: isinstance(param, float) and not param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["ccp_alpha"],
