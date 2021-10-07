@@ -7,22 +7,15 @@ import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
+from hpsklearn.components.utils import \
+    StandardClassifierTest, \
+    StandardRegressorTest
 
 
-class TestGradientBoostingClassification(unittest.TestCase):
+class TestGradientBoostingClassification(StandardClassifierTest):
     """
     Class for _gb classification testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = (self.X_train[:, 0] > 0).astype('int')
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = (self.X_test[:, 0] > 0).astype('int')
-
     def test_gb_classifier(self):
         """
         Instantiate gradient boosting classifier hyperopt estimator model
@@ -41,20 +34,10 @@ class TestGradientBoostingClassification(unittest.TestCase):
     test_gb_classifier.__name__ = f"test_{gradient_boosting_classifier.__name__}"
 
 
-class TestGradientBoostingRegression(unittest.TestCase):
+class TestGradientBoostingRegression(StandardRegressorTest):
     """
     Class for _gb regression testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = self.X_train[:, 0] * 2
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = self.X_test[:, 0] * 2
-
     def test_gb_regressor(self):
         """
         Instantiate gradient boosting regressor hyperopt estimator model

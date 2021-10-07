@@ -34,7 +34,7 @@ class TestIsolationForest(unittest.TestCase):
          fit and score model
         """
         model = hyperopt_estimator(
-            regressor=isolation_forest(name="classifier"),
+            regressor=isolation_forest(name="i_forest"),
             preprocessing=[],
             algo=rand.suggest,
             trial_timeout=10.0,

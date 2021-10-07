@@ -3,26 +3,18 @@ from .._bagging import \
     bagging_regressor
 
 import unittest
-import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
+from hpsklearn.components.utils import \
+    StandardClassifierTest, \
+    StandardRegressorTest
 
 
-class TestBaggingClassification(unittest.TestCase):
+class TestBaggingClassification(StandardClassifierTest):
     """
     Class for _bagging classification testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = (self.X_train[:, 0] > 0).astype('int')
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = (self.X_test[:, 0] > 0).astype('int')
-
     def test_bagging_classifier(self):
         """
         Instantiate bagging classifier hyperopt estimator model
@@ -41,20 +33,10 @@ class TestBaggingClassification(unittest.TestCase):
     test_bagging_classifier.__name__ = f"test_{bagging_classifier.__name__}"
 
 
-class TestBaggingRegression(unittest.TestCase):
+class TestBaggingRegression(StandardRegressorTest):
     """
     Class for _bagging regression testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = self.X_train[:, 0] * 2
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = self.X_test[:, 0] * 2
-
     def test_bagging_regressor(self):
         """
         Instantiate bagging regressor hyperopt estimator model

@@ -9,37 +9,21 @@ import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
+from hpsklearn.components.utils import \
+    StandardClassifierTest, \
+    StandardRegressorTest
 
 
-class TestForestClassification(unittest.TestCase):
+class TestForestClassification(StandardClassifierTest):
     """
     Class for _forest classification testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = (self.X_train[:, 0] > 0).astype('int')
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = (self.X_test[:, 0] > 0).astype('int')
 
 
-class TestForestRegression(unittest.TestCase):
+class TestForestRegression(StandardRegressorTest):
     """
     Class for _forest regression testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = self.X_train[:, 0] * 2
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = self.X_test[:, 0] * 2
-
     def test_poisson_function(self):
         """
         Instantiate random forest regressor hyperopt estimator model

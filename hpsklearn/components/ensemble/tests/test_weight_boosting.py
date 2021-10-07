@@ -7,22 +7,15 @@ import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
+from hpsklearn.components.utils import \
+    StandardClassifierTest, \
+    StandardRegressorTest
 
 
-class TestWeightBoostingClassification(unittest.TestCase):
+class TestWeightBoostingClassification(StandardClassifierTest):
     """
     Class for _weight_boosting classification testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = (self.X_train[:, 0] > 0).astype('int')
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = (self.X_test[:, 0] > 0).astype('int')
-
     def test_adaboost_classifier(self):
         """
         Instantiate adaboost classifier hyperopt estimator model
@@ -41,20 +34,10 @@ class TestWeightBoostingClassification(unittest.TestCase):
     test_adaboost_classifier.__name__ = f"test_{ada_boost_classifier.__name__}"
 
 
-class TestWeightBoostingRegression(unittest.TestCase):
+class TestWeightBoostingRegression(StandardRegressorTest):
     """
     Class for _weight_boosting regression testing
     """
-    def setUp(self):
-        """
-        Setup of randomly generated data
-        """
-        np.random.seed(123)
-        self.X_train = np.random.randn(1000, 2)
-        self.Y_train = self.X_train[:, 0] * 2
-        self.X_test = np.random.randn(1000, 2)
-        self.Y_test = self.X_test[:, 0] * 2
-
     def test_adaboost_regressor(self):
         """
         Instantiate adaboost regressor hyperopt estimator model
