@@ -7,3 +7,10 @@ from ._forest import \
 from ._bagging import \
     bagging_classifier, \
     bagging_regressor
+
+from ._iforest import \
+    isolation_forest
+
+from ._weight_boosting import \
+    ada_boost_classifier, \
+    ada_boost_regressor
