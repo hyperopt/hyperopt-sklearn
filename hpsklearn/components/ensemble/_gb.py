@@ -219,6 +219,7 @@ def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
     See help(hpsklearn.components._gb._gb_hp_space) for info on
     additional available GradientBoosting arguments.
     """
+
     def _name(msg):
         return f"{name}.gbc_{msg}"
 
@@ -231,6 +232,10 @@ def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
 @validate(params=["alpha"],
           validation_test=lambda param: isinstance(param, float) and not 0 <= param <= 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0]")
+@validate(params=["loss"],
+          validation_test=lambda param: isinstance(param, str) and param not in ("squared_error", "absolute_error",
+                                                                                 "huber" or "quantile"),
+          msg="Invalid parameter '%s' with value '%s'. Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'")
 def gradient_boosting_regression(name: str, loss: str = None, alpha: float = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
