@@ -14,3 +14,7 @@ from ._iforest import \
 from ._weight_boosting import \
     ada_boost_classifier, \
     ada_boost_regressor
+
+from ._gb import \
+    gradient_boosting_classifier, \
+    gradient_boosting_regression
