@@ -53,7 +53,7 @@ def _weight_boosting_random_state(name: str):
 
 
 @validate(params=["n_estimators", "learning_rate"],
-          validation_test=lambda param: isinstance(param, float) and not param > 0,
+          validation_test=lambda param: isinstance(param, float) and param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 def _weight_boosting_hp_space(
         name_func,

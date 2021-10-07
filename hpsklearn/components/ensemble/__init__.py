@@ -18,3 +18,7 @@ from ._weight_boosting import \
 from ._gb import \
     gradient_boosting_classifier, \
     gradient_boosting_regression
+
+from ._hist_gradient_boosting import \
+    hist_gradient_boosting_classifier, \
+    hist_gradient_boosting_regressor

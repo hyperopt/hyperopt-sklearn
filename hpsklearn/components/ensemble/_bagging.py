@@ -74,10 +74,10 @@ def _bagging_random_state(name: str):
 
 
 @validate(params=["max_samples", "max_features"],
-          validation_test=lambda param: isinstance(param, float) and not param > 0,
+          validation_test=lambda param: isinstance(param, float) and param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["n_estimators"],
-          validation_test=lambda param: isinstance(param, int) and not param > 1,
+          validation_test=lambda param: isinstance(param, int) and param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 def _bagging_hp_space(
         name_func,

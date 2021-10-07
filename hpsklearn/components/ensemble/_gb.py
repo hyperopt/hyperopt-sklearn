@@ -142,15 +142,15 @@ def _gb_max_leaf_nodes(name: str):
 
 
 @validate(params=["max_features"],
-          validation_test=lambda param: isinstance(param, str) and param not in ["auto", "sqrt", "log2"],
+          validation_test=lambda param: isinstance(param, str) and param in ["auto", "sqrt", "log2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'sqrt', 'log2'].")
 @validate(params=["n_estimators", "max_depth", "min_samples_split",
                   "min_samples_leaf", "min_weight_fraction_leaf",
                   "min_impurity_decrease", "max_features", "max_leaf_nodes"],
-          validation_test=lambda param: isinstance(param, float) and not param > 0,
+          validation_test=lambda param: isinstance(param, float) and param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["ccp_alpha", "learning_rate"],
-          validation_test=lambda param: isinstance(param, float) and not 0 <= param <= 1,
+          validation_test=lambda param: isinstance(param, float) and 0 <= param <= 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0].")
 def _gb_hp_space(
         name_func,
@@ -207,6 +207,9 @@ def _gb_hp_space(
     return hp_space
 
 
+@validate(params=["loss"],
+          validation_test=lambda param: isinstance(param, str) and param in ("deviance", "exponential"),
+          msg="Invalid parameter '%s' with value '%s'. Choose 'deviance' or 'exponential'.")
 def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -230,12 +233,13 @@ def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
 
 
 @validate(params=["alpha"],
-          validation_test=lambda param: isinstance(param, float) and not 0 <= param <= 1,
+          validation_test=lambda param: isinstance(param, float) and 0 <= param <= 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0]")
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param not in ("squared_error", "absolute_error",
-                                                                                 "huber" or "quantile"),
-          msg="Invalid parameter '%s' with value '%s'. Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'")
+          validation_test=lambda param: isinstance(param, str) and param in ("squared_error", "absolute_error",
+                                                                             "huber" or "quantile"),
+          msg="Invalid parameter '%s' with value '%s'. "
+              "Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'.")
 def gradient_boosting_regression(name: str, loss: str = None, alpha: float = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct

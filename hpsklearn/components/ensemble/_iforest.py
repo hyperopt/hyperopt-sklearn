@@ -47,7 +47,7 @@ def _iforest_random_state(name: str):
 
 
 @validate(params=["contamination"],
-          validation_test=lambda param: isinstance(param, float) and not 0 < param <= .5,
+          validation_test=lambda param: isinstance(param, float) and 0 < param <= .5,
           msg="Invalid parameter '%s' with value '%s'. Parameter value should be in the range (0, 0.5].")
 def _iforest_hp_space(
         name_func,
