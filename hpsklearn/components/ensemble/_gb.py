@@ -151,8 +151,7 @@ def _gb_max_leaf_nodes(name: str):
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["ccp_alpha", "learning_rate"],
           validation_test=lambda param: isinstance(param, float) and not 0 <= param <= 1,
-          msg="Invalid parameter '%s' with value '%s'. "
-              "Parameter value must be Parameter value must be within [0.0, 1.0].")
+          msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0].")
 def _gb_hp_space(
         name_func,
         learning_rate: float = None,
