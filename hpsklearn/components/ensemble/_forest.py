@@ -107,7 +107,12 @@ def _forest_max_features(name):
     """
     Declaration search space 'max_features' parameter
     """
-    return hp.choice(name, ["auto", "sqrt", "log2"])
+    return hp.pchoice(name, [
+        (0.2, "sqrt"),  # most common choice.
+        (0.1, "log2"),  # less common choice.
+        (0.1, None),  # all features, less common choice.
+        (0.6, hp.uniform(name + ".frac", 0., 1.))
+    ])
 
 
 def _forest_max_leaf_nodes(name):
