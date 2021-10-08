@@ -21,7 +21,7 @@ class TestBaggingClassification(StandardClassifierTest):
          fit and score model
         """
         model = hyperopt_estimator(
-            regressor=bagging_classifier(name="classifier"),
+            classifier=bagging_classifier(name="classifier"),
             preprocessing=[],
             algo=rand.suggest,
             trial_timeout=10.0,

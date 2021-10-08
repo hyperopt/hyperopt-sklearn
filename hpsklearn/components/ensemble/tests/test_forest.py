@@ -66,7 +66,7 @@ def create_classifier_function(clf_fn):
     """
     def test_classifier(self):
         model = hyperopt_estimator(
-            regressor=clf_fn("classifier"),
+            classifier=clf_fn("classifier"),
             preprocessing=[],
             algo=rand.suggest,
             trial_timeout=10.0,

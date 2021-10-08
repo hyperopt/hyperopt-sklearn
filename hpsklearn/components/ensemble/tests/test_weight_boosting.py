@@ -3,7 +3,6 @@ from .._weight_boosting import \
     ada_boost_regressor
 
 import unittest
-import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
@@ -22,7 +21,7 @@ class TestWeightBoostingClassification(StandardClassifierTest):
          fit and score model
         """
         model = hyperopt_estimator(
-            regressor=ada_boost_classifier(name="classifier"),
+            classifier=ada_boost_classifier(name="classifier"),
             preprocessing=[],
             algo=rand.suggest,
             trial_timeout=10.0,

@@ -23,7 +23,7 @@ class TestHistGradientBoostingClassification(StandardClassifierTest):
          fit and score model
         """
         model = hyperopt_estimator(
-            regressor=hist_gradient_boosting_classifier(name="classifier"),
+            classifier=hist_gradient_boosting_classifier(name="classifier"),
             preprocessing=[],
             algo=rand.suggest,
             trial_timeout=10.0,

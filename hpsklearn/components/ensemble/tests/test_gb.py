@@ -3,7 +3,6 @@ from .._gb import \
     gradient_boosting_regression
 
 import unittest
-import numpy as np
 
 from hyperopt import rand
 from hpsklearn.estimator import hyperopt_estimator
