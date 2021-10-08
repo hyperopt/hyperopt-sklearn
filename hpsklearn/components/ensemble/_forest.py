@@ -1,4 +1,4 @@
-from ._base import validate
+from hpsklearn.components._base import validate
 
 from hyperopt.pyll import scope
 from hyperopt import hp
