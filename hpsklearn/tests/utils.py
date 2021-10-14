@@ -31,3 +31,12 @@ class StandardRegressorTest(unittest.TestCase):
         self.Y_train = self.X_train[:, 0] * 2
         self.X_test = np.random.randn(1000, 2)
         self.Y_test = self.X_test[:, 0] * 2
+
+
+class StandardPreprocessingTest(StandardClassifierTest):
+    """
+    Standard class for preprocessing testing
+
+    The required data is the same as the data
+     required for standard classification testing.
+    """
