@@ -1,1 +1,1 @@
-from ._estimator import hyperopt_estimator
+from .estimator import hyperopt_estimator
