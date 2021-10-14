@@ -1,14 +1,13 @@
-from .._bagging import \
-    bagging_classifier, \
-    bagging_regressor
-
 import unittest
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
-from hpsklearn.components.utils import \
+
+from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest
+from hpsklearn import hyperopt_estimator, \
+    bagging_classifier, \
+    bagging_regressor
 
 
 class TestBaggingClassification(StandardClassifierTest):
@@ -20,10 +19,23 @@ class TestBaggingClassification(StandardClassifierTest):
         Instantiate bagging classifier hyperopt estimator model
          fit and score model
         """
+        from hyperopt import pyll
         model = hyperopt_estimator(
             classifier=bagging_classifier(name="classifier"),
             preprocessing=[],
             algo=rand.suggest,
+            # space=pyll.as_apply({
+            #     "classifier": bagging_classifier(name="classifier"),
+            #     "regressor": None,
+            #     "preprocessing": None,
+            #     "ex_preprocs": [],
+            # }),
+            # space={
+            #     "classifier": bagging_classifier(name="classifier"),
+            #     "regressor": None,
+            #     "preprocessing": None,
+            #     "ex_preprocs": [],
+            # },
             trial_timeout=10.0,
             max_evals=5,
         )

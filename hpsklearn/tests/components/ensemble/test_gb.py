@@ -1,12 +1,12 @@
-from .._gb import \
-    gradient_boosting_classifier, \
-    gradient_boosting_regression
-
 import unittest
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
-from hpsklearn.components.utils import \
+
+from hpsklearn import \
+    hyperopt_estimator, \
+    gradient_boosting_classifier, \
+    gradient_boosting_regression
+from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest
 

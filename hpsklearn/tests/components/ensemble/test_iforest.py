@@ -1,10 +1,8 @@
-from .._iforest import isolation_forest
-
 import unittest
 import numpy as np
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
+from hpsklearn import hyperopt_estimator, isolation_forest
 from sklearn.metrics import accuracy_score
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split

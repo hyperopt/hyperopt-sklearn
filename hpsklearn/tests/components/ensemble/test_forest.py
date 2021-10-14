@@ -1,15 +1,15 @@
-from .._forest import \
-    random_forest_classifier, \
-    random_forest_regressor, \
-    extra_trees_classifier, \
-    extra_trees_regressor
-
 import unittest
 import numpy as np
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
-from hpsklearn.components.utils import \
+
+from hpsklearn import \
+    hyperopt_estimator, \
+    random_forest_classifier, \
+    random_forest_regressor, \
+    extra_trees_classifier, \
+    extra_trees_regressor
+from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest
 

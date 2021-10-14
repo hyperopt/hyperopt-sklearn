@@ -1,13 +1,13 @@
-from .._hist_gradient_boosting import \
-    hist_gradient_boosting_classifier, \
-    hist_gradient_boosting_regressor
-
 import unittest
 import numpy as np
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
-from hpsklearn.components.utils import \
+
+from hpsklearn import \
+    hyperopt_estimator, \
+    hist_gradient_boosting_classifier, \
+    hist_gradient_boosting_regressor
+from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest
 

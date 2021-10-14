@@ -1,12 +1,12 @@
-from .._weight_boosting import \
-    ada_boost_classifier, \
-    ada_boost_regressor
-
 import unittest
 
 from hyperopt import rand
-from hpsklearn.estimator import hyperopt_estimator
-from hpsklearn.components.utils import \
+
+from hpsklearn import \
+    hyperopt_estimator, \
+    ada_boost_classifier, \
+    ada_boost_regressor
+from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest
 
