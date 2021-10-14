@@ -56,7 +56,7 @@ def _gb_criterion(name: str):
     """
     Declaration search space 'criterion' parameter
     """
-    return hp.choice(name, ["friedman_mse", "squared_error", "absolute_error"])
+    return hp.choice(name, ["friedman_mse", "squared_error"])
 
 
 def _gb_min_samples_split(name: str):
