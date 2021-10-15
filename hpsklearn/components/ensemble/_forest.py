@@ -38,6 +38,15 @@ def _forest_classifier_criterion(name: str):
     return hp.choice(name, ["gini", "entropy"])
 
 
+def _forest_class_weight(name: str):
+    """
+    Declaration of search space 'class_weight' parameter for
+     random forest classifier
+     extra trees classifier
+    """
+    return hp.choice(name, ["balanced", "balanced_subsample", None])
+
+
 def _random_forest_regressor_criterion(name: str):
     """
     Declaration of search space 'criterion' parameter for
@@ -219,7 +228,10 @@ def _forest_hp_space(
     return hp_space
 
 
-def random_forest_classifier(name: str, criterion: str = None, **kwargs):
+def random_forest_classifier(name: str,
+                             criterion: str = None,
+                             class_weight: typing.Union[dict, list] = None,
+                             **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.RandomForestClassifier model.
@@ -227,6 +239,7 @@ def random_forest_classifier(name: str, criterion: str = None, **kwargs):
     Args:
         name: name | str
         criterion: choose 'gini' or 'entropy' | str
+        class_weight: weights associated with class | dict, list of dicts
 
     See help(hpsklearn.components.ensemble._forest._forest_hp_space)
     for info on additional available random forest/extra trees arguments.
@@ -237,6 +250,7 @@ def random_forest_classifier(name: str, criterion: str = None, **kwargs):
 
     hp_space = _forest_hp_space(_name, **kwargs)
     hp_space["criterion"] = (criterion or _forest_classifier_criterion(_name("criterion")))
+    hp_space["class_weight"] = (class_weight or _forest_class_weight(_name("class_weight")))
 
     return scope.sklearn_RandomForestClassifier(**hp_space)
 
@@ -263,7 +277,10 @@ def random_forest_regressor(name: str, criterion: str = None, **kwargs):
     return scope.sklearn_RandomForestRegressor(**hp_space)
 
 
-def extra_trees_classifier(name: str, criterion: str = None, **kwargs):
+def extra_trees_classifier(name: str,
+                           criterion: str = None,
+                           class_weight: typing.Union[dict, list] = None,
+                           **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.ExtraTreesClassifier model.
@@ -271,6 +288,7 @@ def extra_trees_classifier(name: str, criterion: str = None, **kwargs):
     Args:
         name: name | str
         criterion: 'gini', 'entropy' | str
+        class_weight: weights associated with class | dict, list of dicts
 
     See help(hpsklearn.components.ensemble._forest._forest_hp_space)
     for info on additional available random forest/extra trees arguments.
@@ -281,6 +299,7 @@ def extra_trees_classifier(name: str, criterion: str = None, **kwargs):
 
     hp_space = _forest_hp_space(_name, **kwargs)
     hp_space["criterion"] = (criterion or _forest_classifier_criterion(_name("criterion")))
+    hp_space["class_weight"] = (class_weight or _forest_class_weight(_name("class_weight")))
 
     return scope.sklearn_ExtraTreesClassifier(**hp_space)
 
