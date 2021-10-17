@@ -1,3 +1,6 @@
+import functools
+
+
 def validate(params, validation_test, msg):
     """
     Validation decorator for parameter checks
@@ -5,6 +8,7 @@ def validate(params, validation_test, msg):
      allows for multiple usages per function
     """
     def inner(func):
+        @functools.wraps(func)
         def wrapper(*args, **kwargs):
             """
             Iterate over keyword arguments
