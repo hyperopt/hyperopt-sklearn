@@ -25,3 +25,13 @@ from .naive_bayes import \
     complement_nb, \
     gaussian_nb, \
     multinomial_nb
+
+from .linear_model import \
+    linear_regression, \
+    bayesian_ridge, \
+    ard_regression, \
+    lars, \
+    lasso_lars, \
+    lars_cv, \
+    lasso_lars_cv, \
+    lasso_lars_ic
