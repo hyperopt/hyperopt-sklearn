@@ -65,7 +65,7 @@ def _bayes_hp_space(
     """
     hp_space = dict(
         n_iter=n_iter or _bayes_n_iter(name_func("n_iter")),
-        tol=tol or _bayes_tol(name_func("tol")),
+        tol=_bayes_tol(name_func("tol")) if tol is None else tol,
         alpha_1=alpha_1 or _bayes_alpha_lambda(name_func("alpha_1")),
         alpha_2=alpha_2 or _bayes_alpha_lambda(name_func("alpha_2")),
         lambda_1=lambda_1 or _bayes_alpha_lambda(name_func("lambda_1")),

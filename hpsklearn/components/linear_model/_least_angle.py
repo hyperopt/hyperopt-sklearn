@@ -116,6 +116,9 @@ def _least_angle_hp_space(
     return hp_space
 
 
+@validate(params=["cv"],
+          validation_test=lambda param: isinstance(param, float)  and param > 0,
+          msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def _least_angle_cv_shared_space(
         hp_space: dict,
         _name: callable,
