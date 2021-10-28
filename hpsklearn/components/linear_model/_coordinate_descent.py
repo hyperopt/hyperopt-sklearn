@@ -81,7 +81,7 @@ def _coordinate_descent_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.qloguniform(name, low=np.log(1e7), high=np.log(1e9), q=1)
+    return hp.uniform(name, low=800, high=1200)
 
 
 def _coordinate_descent_tol(name: str):
