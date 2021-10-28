@@ -21,3 +21,16 @@ from ._coordinate_descent import \
     multi_task_elastic_net, \
     multi_task_lasso_cv, \
     multi_task_elastic_net_cv
+
+from ._glm import \
+    poisson_regressor, \
+    gamma_regressor, \
+    tweedie_regressor
+
+from ._huber import \
+    huber_regressor
+
+from ._stochastic_gradient import \
+    sgd_classifier, \
+    sgd_regressor, \
+    sgd_one_class_svm

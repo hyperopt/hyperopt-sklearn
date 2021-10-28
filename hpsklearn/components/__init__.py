@@ -42,4 +42,11 @@ from .linear_model import \
     multi_task_lasso, \
     multi_task_elastic_net, \
     multi_task_lasso_cv, \
-    multi_task_elastic_net_cv
+    multi_task_elastic_net_cv, \
+    poisson_regressor, \
+    gamma_regressor, \
+    tweedie_regressor, \
+    huber_regressor, \
+    sgd_classifier, \
+    sgd_regressor, \
+    sgd_one_class_svm
