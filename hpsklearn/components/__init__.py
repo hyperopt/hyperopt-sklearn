@@ -49,4 +49,10 @@ from .linear_model import \
     huber_regressor, \
     sgd_classifier, \
     sgd_regressor, \
-    sgd_one_class_svm
+    sgd_one_class_svm, \
+    ridge, \
+    ridge_cv, \
+    ridge_classifier, \
+    ridge_classifier_cv, \
+    logistic_regression, \
+    logistic_regression_cv

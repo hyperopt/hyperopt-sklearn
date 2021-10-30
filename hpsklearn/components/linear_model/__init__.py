@@ -34,3 +34,13 @@ from ._stochastic_gradient import \
     sgd_classifier, \
     sgd_regressor, \
     sgd_one_class_svm
+
+from ._ridge import \
+    ridge, \
+    ridge_cv, \
+    ridge_classifier, \
+    ridge_classifier_cv
+
+from ._logistic import \
+    logistic_regression, \
+    logistic_regression_cv
