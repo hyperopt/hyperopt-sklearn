@@ -154,7 +154,7 @@ def _stochastic_gradient_n_iter_no_change(name: str):
               "Value must be in ['constant', 'optimal', 'invscaling', 'adaptive'].")
 @validate(params=["n_iter_no_change"],
           validation_test=lambda param: isinstance(param, int) and param > 0,
-          msg="Invalid parameter '%s' with value '%s'. Value must be 1 or higher.")
+          msg="Invalid parameter '%s' with value '%s'. Value must be 0 or higher.")
 def _stochastic_gradient_hp_space(
         name_func,
         loss: str = None,
