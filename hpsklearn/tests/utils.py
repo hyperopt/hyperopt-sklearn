@@ -1,9 +1,11 @@
-import typing
 import unittest
 import numpy as np
 
 from hyperopt import rand
 from hpsklearn import hyperopt_estimator
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
 
 
 class StandardClassifierTest(unittest.TestCase):
@@ -52,6 +54,26 @@ class MultiTaskRegressorTest(unittest.TestCase):
         self.Y_train = self.X_train * 2
         self.X_test = np.random.randn(1000, 2)
         self.Y_test = self.X_test * 2
+
+
+class IrisTest(unittest.TestCase):
+    """
+    Standard class for testing with iris dataset
+    """
+
+    def setUp(self):
+        """
+        Setup of iris dataset
+        """
+        rng = np.random.default_rng(seed=123)
+        iris = load_iris()
+        perm = rng.permutation(iris.target.size)
+        iris.data = iris.data[perm]
+        iris.target = iris.target[perm]
+
+        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(
+            iris.data, iris.target
+        )
 
 
 class StandardPreprocessingTest(StandardClassifierTest):

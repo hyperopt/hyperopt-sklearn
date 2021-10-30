@@ -1,31 +1,15 @@
 import unittest
-import numpy as np
 
 from hyperopt import rand
 from hpsklearn import hyperopt_estimator, isolation_forest
 from sklearn.metrics import accuracy_score
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
+from hpsklearn.tests.utils import IrisTest
 
 
-class TestIsolationForest(unittest.TestCase):
+class TestIsolationForest(IrisTest):
     """
     Class for _iforest testing
     """
-    def setUp(self):
-        """
-        Setup of iris dataset
-        """
-        rng = np.random.default_rng(seed=123)
-        iris = load_iris()
-        perm = rng.permutation(iris.target.size)
-        iris.data = iris.data[perm]
-        iris.target = iris.target[perm]
-
-        self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(
-            iris.data, iris.target
-        )
-
     def test_isolation_forest(self):
         """
         Instantiate isolation forest classifier hyperopt estimator model
