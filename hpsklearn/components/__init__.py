@@ -55,4 +55,8 @@ from .linear_model import \
     ridge_classifier, \
     ridge_classifier_cv, \
     logistic_regression, \
-    logistic_regression_cv
+    logistic_regression_cv, \
+    orthogonal_matching_pursuit, \
+    orthogonal_matching_pursuit_cv, \
+    passive_aggressive_classifier, \
+    passive_aggressive_regressor

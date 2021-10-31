@@ -44,3 +44,11 @@ from ._ridge import \
 from ._logistic import \
     logistic_regression, \
     logistic_regression_cv
+
+from ._omp import \
+    orthogonal_matching_pursuit, \
+    orthogonal_matching_pursuit_cv
+
+from ._passive_aggressive import \
+    passive_aggressive_classifier, \
+    passive_aggressive_regressor
