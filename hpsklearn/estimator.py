@@ -336,7 +336,7 @@ def _cost_fn(argd, X, y, EX_list, valid_size, n_folds, shuffle, random_state,
             cv_y_pool = np.append(cv_y_pool, yval)
             info('Scoring on X/EX validation of shape', XEXval.shape)
             if continuous_loss_fn:
-                cv_pred_pool = np.append(cv_pred_pool, learner.predict_proba(XEXval))
+                cv_pred_pool = np.append(cv_pred_pool, learner.predict_proba(XEXval)[1])
             else:
                 cv_pred_pool = np.append(cv_pred_pool, learner.predict(XEXval))
             cv_n_iters = np.append(cv_n_iters, n_iters)
