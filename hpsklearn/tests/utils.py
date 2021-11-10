@@ -85,7 +85,12 @@ class StandardPreprocessingTest(StandardClassifierTest):
     """
 
 
-def create_function(fn: callable, is_classif: bool, non_negative_input: bool, non_negative_output: bool):
+def create_function(fn: callable,
+                    is_classif: bool,
+                    non_negative_input: bool,
+                    non_negative_output: bool,
+                    trial_timeout: float,
+                    max_evals: int):
     """
     Instantiate standard hyperopt estimator model
 
@@ -94,6 +99,8 @@ def create_function(fn: callable, is_classif: bool, non_negative_input: bool, no
         is_classif: estimator is classifier | bool
         non_negative_input: estimator input non negative | bool
         non_negative_output: estimator output non negative | bool
+        trial_timeout: kill trial evaluations after this many seconds | float
+        max_evals: evaluate up to this-many configurations | int
 
      fit and score model
     """
@@ -104,16 +111,16 @@ def create_function(fn: callable, is_classif: bool, non_negative_input: bool, no
                 classifier=fn("classifier"),
                 preprocessing=[],
                 algo=rand.suggest,
-                trial_timeout=10.0,
-                max_evals=5,
+                trial_timeout=trial_timeout,
+                max_evals=max_evals,
             )
         else:
             model = hyperopt_estimator(
                 regressor=fn("regressor"),
                 preprocessing=[],
                 algo=rand.suggest,
-                trial_timeout=10.0,
-                max_evals=5,
+                trial_timeout=trial_timeout,
+                max_evals=max_evals,
             )
         model.fit(np.abs(self.X_train) if non_negative_input else self.X_train,
                   np.abs(self.Y_train) if non_negative_output else self.Y_train)
@@ -128,7 +135,9 @@ def generate_test_attributes(TestClass,
                              fn_list: list[callable],
                              is_classif: bool,
                              non_negative_input: bool = False,
-                             non_negative_output: bool = False):
+                             non_negative_output: bool = False,
+                             trial_timeout: float = 10.0,
+                             max_evals: int = 5):
     """
     Generate class methods
 
@@ -138,6 +147,8 @@ def generate_test_attributes(TestClass,
         is_classif: estimator is classifier | bool
         non_negative_input: estimator input non negative | bool
         non_negative_output: estimator output non negative | bool
+        trial_timeout: kill trial evaluations after this many seconds | float
+        max_evals: evaluate up to this-many configurations | int
     """
     # Create unique testing methods
     #  with test_ prefix so that nose can see them
@@ -148,5 +159,7 @@ def generate_test_attributes(TestClass,
             create_function(fn=fn,
                             is_classif=is_classif,
                             non_negative_input=non_negative_input,
-                            non_negative_output=non_negative_output)
+                            non_negative_output=non_negative_output,
+                            trial_timeout=trial_timeout,
+                            max_evals=max_evals)
         )
