@@ -52,3 +52,15 @@ from ._omp import \
 from ._passive_aggressive import \
     passive_aggressive_classifier, \
     passive_aggressive_regressor
+
+from ._perceptron import \
+    perceptron
+
+from ._quantile import \
+    quantile_regression
+
+from ._ransac import \
+    ransac_regression
+
+from ._theil_sen import \
+    theil_sen_regressor

@@ -59,4 +59,8 @@ from .linear_model import \
     orthogonal_matching_pursuit, \
     orthogonal_matching_pursuit_cv, \
     passive_aggressive_classifier, \
-    passive_aggressive_regressor
+    passive_aggressive_regressor, \
+    perceptron, \
+    quantile_regression, \
+    ransac_regression, \
+    theil_sen_regressor
