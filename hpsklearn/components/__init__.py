@@ -64,3 +64,7 @@ from .linear_model import \
     quantile_regression, \
     ransac_regression, \
     theil_sen_regressor
+
+from .dummy import \
+    dummy_classifier, \
+    dummy_regressor
