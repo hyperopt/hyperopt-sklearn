@@ -68,3 +68,7 @@ from .linear_model import \
 from .dummy import \
     dummy_classifier, \
     dummy_regressor
+
+from .gaussian_process import \
+    gaussian_process_classifier, \
+    gaussian_process_regressor
