@@ -72,3 +72,7 @@ from .dummy import \
 from .gaussian_process import \
     gaussian_process_classifier, \
     gaussian_process_regressor
+
+from .neural_network import \
+    mlp_classifier, \
+    mlp_regressor
