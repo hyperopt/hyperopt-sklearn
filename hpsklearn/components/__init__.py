@@ -76,3 +76,8 @@ from .gaussian_process import \
 from .neural_network import \
     mlp_classifier, \
     mlp_regressor
+
+from .cross_decomposition import \
+    cca, \
+    pls_canonical, \
+    pls_regression
