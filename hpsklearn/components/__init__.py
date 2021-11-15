@@ -81,3 +81,12 @@ from .cross_decomposition import \
     cca, \
     pls_canonical, \
     pls_regression
+
+from .svm import \
+    linear_svc, \
+    linear_svr, \
+    nu_svc, \
+    nu_svr, \
+    one_class_svm, \
+    svc, \
+    svr
