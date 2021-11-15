@@ -90,3 +90,9 @@ from .svm import \
     one_class_svm, \
     svc, \
     svr
+
+from .tree import \
+    decision_tree_classifier, \
+    decision_tree_regressor, \
+    extra_tree_classifier, \
+    extra_tree_regressor
