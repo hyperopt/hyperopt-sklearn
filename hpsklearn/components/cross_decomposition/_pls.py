@@ -22,6 +22,27 @@ def sklearn_PLSRegression(*args, **kwargs):
     return cross_decomposition.PLSRegression(*args, **kwargs)
 
 
+def _pls_n_components(name: str):
+    """
+    Declaration search space 'n_components' parameter
+    """
+    return hp.choice(name, [1, 2])
+
+
+def _pls_max_iter(name: str):
+    """
+    Declaration search space 'max_iter' parameter
+    """
+    scope.int(hp.qloguniform(name, np.log(350), np.log(650), 1))
+
+
+def _pls_tol(name: str):
+    """
+    Declaration search space 'tol' parameter
+    """
+    return hp.loguniform(name, np.log(1e-7), np.log(1e-5))
+
+
 def _pls_hp_space(
         name_func,
         n_components: int = None,
@@ -37,11 +58,10 @@ def _pls_hp_space(
      pls regression
     """
     hp_space = dict(
-        n_components=hp.choice(name_func("n_components"), [1, 2]) if n_components is None else n_components,
+        n_components=_pls_n_components(name_func("n_components")) if n_components is None else n_components,
         scale=scale,
-        max_iter=scope.int(
-            hp.qloguniform(name_func("max_iter"), np.log(350), np.log(650), 1)) if max_iter is None else max_iter,
-        tol=hp.loguniform(name_func("tol"), np.log(1e-7), np.log(1e-5)) if tol is None else tol,
+        max_iter=_pls_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
+        tol=_pls_tol(name_func("tol")) if tol is None else tol,
         copy=copy
     )
     return hp_space

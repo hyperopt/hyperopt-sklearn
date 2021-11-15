@@ -16,6 +16,132 @@ def sklearn_MLPRegressor(*args, **kwargs):
     return neural_network.MLPRegressor(*args, **kwargs)
 
 
+def _multilayer_perceptron_activation(name: str):
+    """
+    Declaration search space 'activation' parameter
+    """
+    return hp.pchoice(name, [(0.2, "identity"), (0.2, "logistic"), (0.2, "tanh"), (0.4, "relu")])
+
+
+def _multilayer_perceptron_solver(name: str):
+    """
+    Declaration search space 'solver' parameter
+    """
+    return hp.pchoice(name, [(0.2, "lbfgs"), (0.2, "sgd"), (0.6, "adam")])
+
+
+def _multilayer_perceptron_alpha(name: str):
+    """
+    Declaration search space 'alpha' parameter
+    """
+    return hp.uniform(name, 1e-4, 0.01)
+
+
+def _multilayer_perceptron_learning_rate(name: str):
+    """
+    Declaration search space 'learning_rate' parameter
+    """
+    return hp.choice(name, ["constant", "invscaling", "adaptive"])
+
+
+def _multilayer_perceptron_learning_rate_init(name: str):
+    """
+    Declaration search space 'learning_rate_init' parameter
+    """
+    return hp.uniform(name, 1e-4, 0.1)
+
+
+def _multilayer_perceptron_power_t(name: str):
+    """
+    Declaration search space 'power_t' parameter
+    """
+    return hp.uniform(name, 0.1, 0.9)
+
+
+def _multilayer_perceptron_max_iter(name: str):
+    """
+    Declaration search space 'max_iter' parameter
+    """
+    return scope.int(hp.uniform(name, 150, 350))
+
+
+def _multilayer_perceptron_random_state(name: str):
+    """
+    Declaration search space 'random_state' parameter
+    """
+    return hp.randint(name, 5)
+
+
+def _multilayer_perceptron_tol(name: str):
+    """
+    Declaration search space 'tol' parameter
+    """
+    return hp.uniform(name, 1e-4, 0.01)
+
+
+def _multilayer_perceptron_momentum(name: str):
+    """
+    Declaration search space 'momentum' parameter
+    """
+    return hp.uniform(name, 0.8, 1.0)
+
+
+def _multilayer_perceptron_nesterovs_momentum(name: str):
+    """
+    Declaration search space 'nesterovs_momentum' parameter
+    """
+    return hp.choice(name, [True, False])
+
+
+def _multilayer_perceptron_early_stopping(name: str):
+    """
+    Declaration search space 'early_stopping' parameter
+    """
+    return hp.choice(name, [True, False])
+
+
+def _multilayer_perceptron_validation_fraction(name: str):
+    """
+    Declaration search space 'validation_fraction' parameter
+    """
+    return hp.uniform(name, 0.01, 0.2)
+
+
+def _multilayer_perceptron_beta_1(name: str):
+    """
+    Declaration search space 'beta_1' parameter
+    """
+    return hp.uniform(name, 0.8, 1.0)
+
+
+def _multilayer_perceptron_beta_2(name: str):
+    """
+    Declaration search space 'beta_2' parameter
+    """
+    return hp.uniform(name, 0.95, 1.0)
+
+
+def _multilayer_perceptron_epsilon(name: str):
+    """
+    Declaration search space 'epsilon' parameter
+    """
+    return hp.uniform(name, 1e-9, 1e-5)
+
+
+def _multilayer_perceptron_n_iter_no_change(name: str):
+    """
+    Declaration search space 'n_iter_no_change' parameter
+    """
+    return hp.choice(name, [10, 20, 30])
+
+
+def _multilayer_perceptron_max_fun(name: str):
+    """
+    Declaration search space 'max_fun' parameter
+    """
+    return scope.int(hp.uniform(name, 1e4, 3e4))
+
+
 @validate(params=["activation"],
           validation_test=lambda param: isinstance(param, str) and param in ["identity", "logistic", "tanh", "relu"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['identity', 'logistic', 'tanh', 'relu'].")
@@ -58,32 +184,33 @@ def _multilayer_perceptron_hp_space(
     """
     hp_space = dict(
         hidden_layer_sizes=(100,) if hidden_layer_sizes is None else hidden_layer_sizes,
-        activation=activation or hp.pchoice(name_func("activation"), [(0.2, "identity"), (0.2, "logistic"),
-                                                                      (0.2, "tanh"), (0.4, "relu")]),
-        solver=solver or hp.pchoice(name_func("solver"), [(0.2, "lbfgs"), (0.2, "sgd"), (0.6, "adam")]),
-        alpha=hp.uniform(name_func("alpha"), 1e-4, 0.01) if alpha is None else alpha,
+        activation=activation or _multilayer_perceptron_activation(name_func("activation")),
+        solver=solver or _multilayer_perceptron_solver(name_func("solver")),
+        alpha=_multilayer_perceptron_alpha(name_func("alpha")) if alpha is None else alpha,
         batch_size="auto" if batch_size is None else batch_size,
-        learning_rate=learning_rate or hp.choice(name_func("learning_rate"), ["constant", "invscaling", "adaptive"]),
-        learning_rate_init=hp.uniform(name_func("learning_rate_init"), 1e-4, 0.1)
+        learning_rate=learning_rate or _multilayer_perceptron_learning_rate(name_func("learning_rate")),
+        learning_rate_init=_multilayer_perceptron_learning_rate_init(name_func("learning_rate_init"))
         if learning_rate_init is None else learning_rate_init,
-        power_t=hp.uniform(name_func("power_t"), 0.1, 0.9) if power_t is None else power_t,
-        max_iter=max_iter or scope.int(hp.uniform(name_func("max_iter"), 150, 350)),
+        power_t=_multilayer_perceptron_power_t(name_func("power_t")) if power_t is None else power_t,
+        max_iter=max_iter or _multilayer_perceptron_max_iter(name_func("max_iter")),
         shuffle=shuffle,
-        random_state=hp.randint(name_func("random_state"), 5) if random_state is None else random_state,
-        tol=hp.uniform(name_func("tol"), 1e-4, 0.01) if tol is None else tol,
+        random_state=_multilayer_perceptron_random_state(name_func("random_state"))
+        if random_state is None else random_state,
+        tol=_multilayer_perceptron_tol(name_func("tol")) if tol is None else tol,
         verbose=verbose,
         warm_start=warm_start,
-        momentum=hp.uniform(name_func("momentum"), 0.8, 1.0) if momentum is None else momentum,
-        nesterovs_momentum=nesterovs_momentum or hp.choice(name_func("nesterovs_momentum"), [True, False]),
-        early_stopping=early_stopping or hp.choice(name_func("early_stopping"), [True, False]),
-        validation_fraction=hp.uniform(name_func("validation_fraction"), 0.01, 0.2)
+        momentum=_multilayer_perceptron_momentum(name_func("momentum")) if momentum is None else momentum,
+        nesterovs_momentum=nesterovs_momentum
+        or _multilayer_perceptron_nesterovs_momentum(name_func("nesterovs_momentum")),
+        early_stopping=early_stopping or _multilayer_perceptron_early_stopping(name_func("early_stopping")),
+        validation_fraction=_multilayer_perceptron_validation_fraction(name_func("validation_fraction"))
         if validation_fraction is None else validation_fraction,
-        beta_1=hp.uniform(name_func("beta_1"), 0.8, 1.0) if beta_1 is None else beta_1,
-        beta_2=hp.uniform(name_func("beta_2"), 0.95, 1.0) if beta_2 is None else beta_2,
-        epsilon=hp.uniform(name_func("epsilon"), 1e-9, 1e-5) if epsilon is None else epsilon,
-        n_iter_no_change=hp.choice(name_func("n_iter_no_change"), [10, 20, 30])
+        beta_1=_multilayer_perceptron_beta_1(name_func("beta_1")) if beta_1 is None else beta_1,
+        beta_2=_multilayer_perceptron_beta_2(name_func("beta_2")) if beta_2 is None else beta_2,
+        epsilon=_multilayer_perceptron_epsilon(name_func("epsilon")) if epsilon is None else epsilon,
+        n_iter_no_change=_multilayer_perceptron_n_iter_no_change(name_func("n_iter_no_change"))
         if n_iter_no_change is None else n_iter_no_change,
-        max_fun=scope.int(hp.uniform(name_func("max_fun"), 1e4, 3e4)) if max_fun is None else max_fun,
+        max_fun=_multilayer_perceptron_max_fun(name_func("max_fun")) if max_fun is None else max_fun,
     )
     return hp_space
 
