@@ -96,3 +96,7 @@ from .tree import \
     decision_tree_regressor, \
     extra_tree_classifier, \
     extra_tree_regressor
+
+from .semi_supervised import \
+    label_propagation, \
+    label_spreading
