@@ -104,3 +104,7 @@ from .semi_supervised import \
 from .compose import transformed_target_regressor
 
 from .covariance import elliptic_envelope
+
+from .discriminant_analysis import \
+    linear_discriminant_analysis, \
+    quadratic_discriminant_analysis
