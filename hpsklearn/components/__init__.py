@@ -108,3 +108,5 @@ from .covariance import elliptic_envelope
 from .discriminant_analysis import \
     linear_discriminant_analysis, \
     quadratic_discriminant_analysis
+
+from .kernel_ridge import hp_sklearn_kernel_ridge
