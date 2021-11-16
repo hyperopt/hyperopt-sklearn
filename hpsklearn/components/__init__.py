@@ -100,3 +100,7 @@ from .tree import \
 from .semi_supervised import \
     label_propagation, \
     label_spreading
+
+from .compose import transformed_target_regressor
+
+from .covariance import elliptic_envelope
