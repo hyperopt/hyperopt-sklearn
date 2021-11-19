@@ -90,7 +90,7 @@ def _pfit_until_convergence(learner,
     n_iters = 0  # Keep track of the number of training iterations
     best_learner = None
 
-    rng = np.random.RandomState(6665)
+    rng = np.random.default_rng(6665)
     train_idxs = rng.permutation(XEXfit.shape[0])
     validation_scores = []
 

@@ -1,4 +1,4 @@
-hyperopt>=0.2.5
+hyperopt>=0.2.6
 numpy>=1.21.2
 scikit-learn>=1.0
 scipy>=1.7.1

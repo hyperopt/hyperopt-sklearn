@@ -25,7 +25,7 @@ def _cost_fn(argd,
              valid_size: float = 0.2,
              n_folds: int = None,
              shuffle: bool = False,
-             random_state: typing.Union[int, np.random.RandomState] = None,
+             random_state: typing.Union[int, np.random.Generator] = None,
              use_partial_fit: bool = False,
              info: callable = print,
              timeout: float = float("inf"),
@@ -61,7 +61,7 @@ def _cost_fn(argd,
             Whether to perform sample shuffling before splitting the
             data into training and validation sets.
 
-        random_state: RandomState, default is np.random.RandomState()
+        random_state: Generator, default is np.random.default_rng()
             The random state used to seed the cross-validation shuffling.
 
         use_partial_fit: bool, default is False
