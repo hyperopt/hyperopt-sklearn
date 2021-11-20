@@ -115,6 +115,14 @@ from .mixture import \
     bayesian_gaussian_mixture, \
     gaussian_mixture
 
+from .neighbors import \
+    k_neighbors_classifier, \
+    radius_neighbors_classifier, \
+    local_outlier_factor, \
+    nearest_centroid, \
+    k_neighbors_regressor, \
+    radius_neighbors_regressor
+
 
 # Legacy any classifier
 def any_classifier(name):
