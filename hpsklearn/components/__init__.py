@@ -110,3 +110,7 @@ from .discriminant_analysis import \
     quadratic_discriminant_analysis
 
 from .kernel_ridge import hp_sklearn_kernel_ridge
+
+from .mixture import \
+    bayesian_gaussian_mixture, \
+    gaussian_mixture
