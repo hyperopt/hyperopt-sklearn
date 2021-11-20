@@ -114,3 +114,20 @@ from .kernel_ridge import hp_sklearn_kernel_ridge
 from .mixture import \
     bayesian_gaussian_mixture, \
     gaussian_mixture
+
+
+# Legacy any classifier
+def any_classifier(name):
+    from hyperopt import hp
+
+    classifiers = [
+        svc(name + ".svc"),
+        # knn(name + ".knn"),
+        random_forest_classifier(name + ".random_forest"),
+        extra_tree_classifier(name + ".extra_trees"),
+        ada_boost_classifier(name + ".ada_boost"),
+        gradient_boosting_classifier(name + ".grad_boosting", loss="deviance"),
+        sgd_classifier(name + ".sgd")
+    ]
+
+    return hp.choice(name, classifiers)
