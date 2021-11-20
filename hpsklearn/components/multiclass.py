@@ -23,6 +23,15 @@ def sklearn_OutputCodeClassifier(*args, **kwargs):
 def one_vs_rest_classifier(name: str,
                            estimator: object = None,
                            n_jobs: int = 1):
+    """
+    Return a pyll graph with hyperparameters that will construct
+    a sklearn.multiclass.OneVsRestClassifier model.
+
+    Args:
+        name: name | str
+        estimator: estimator object | object
+        n_jobs: number of CPUs to use | int
+    """
     def _name(msg):
         return f"{name}.one_vs_rest_{msg}"
 
@@ -36,6 +45,15 @@ def one_vs_rest_classifier(name: str,
 def one_vs_one_classifier(name: str,
                           estimator: object = None,
                           n_jobs: int = 1):
+    """
+    Return a pyll graph with hyperparameters that will construct
+    a sklearn.multiclass.OneVsOneClassifier model.
+
+    Args:
+        name: name | str
+        estimator: estimator object | object
+        n_jobs: number of CPUs to use | int
+    """
     def _name(msg):
         return f"{name}.one_vs_one_{msg}"
 
@@ -51,6 +69,17 @@ def output_code_classifier(name: str,
                            code_size: float = None,
                            random_state=None,
                            n_jobs: int = 1):
+    """
+    Return a pyll graph with hyperparameters that will construct
+    a sklearn.multiclass.OutputCodeClassifier model.
+
+    Args:
+        name: name | str
+        estimator: estimator object | object
+        code_size: percentage number of classes | float
+        random_state: random state | int
+        n_jobs: number of CPUs to use | int
+    """
     def _name(msg):
         return f"{name}.output_code_classifier{msg}"
 
