@@ -166,7 +166,7 @@ def _stochastic_gradient_hp_space(
         tol: float = None,
         shuffle: bool = True,
         verbose: int = 0,
-        epsilon: float = 0.1,
+        epsilon: float = None,
         random_state=None,
         learning_rate: str = None,
         eta0: float = None,
@@ -199,7 +199,7 @@ def _stochastic_gradient_hp_space(
         tol=_stochastic_gradient_tol(name_func("tol")) if tol is None else tol,
         shuffle=shuffle,
         verbose=verbose,
-        epsilon=epsilon,
+        epsilon=0.1 if epsilon is None else epsilon,
         random_state=_stochastic_gradient_random_state(name_func("random_state"))
         if random_state is None else random_state,
         learning_rate=learning_rate or _stochastic_gradient_learning_rate(name_func("learning_rate")),
