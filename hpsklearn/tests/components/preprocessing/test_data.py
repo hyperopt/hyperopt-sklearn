@@ -1,45 +1,55 @@
 import unittest
-import numpy as np
 
 from hyperopt import rand
 
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest
 from hpsklearn import hyperopt_estimator, \
+    binarizer, \
     min_max_scaler, \
+    max_abs_scaler, \
     normalizer, \
-    one_hot_encoder, \
+    robust_scaler, \
     standard_scaler, \
-    gaussian_nb, \
-    multinomial_nb
+    quantile_transformer, \
+    power_transformer, \
+    gaussian_nb
+
+import numpy as np
 
 
 class TestDataPreprocessing(StandardPreprocessingTest):
     """
     Class for _data preprocessing testing
     """
-    def test_one_hot_encoder(self):
+    def test_power_transformer(self):
         """
-        Instantiate multinomial_nb hyperopt estimator model
-         define preprocessor one_hot_encoder
-         fit and score model on test set
+        Instantiate gaussian_nb hyperopt estimator model
+         define preprocessor power_transformer
+         fit and score model on positive data
         """
         model = hyperopt_estimator(
-            classifier=multinomial_nb("classifier"),
-            preprocessing=[one_hot_encoder("preprocessing")],
+            classifier=gaussian_nb("classifier"),
+            preprocessing=[power_transformer("preprocessing")],
             algo=rand.suggest,
             trial_timeout=10.0,
             max_evals=5,
         )
-        model.fit(np.abs(np.round(self.X_test).astype(np.int64)), self.Y_test)
-        model.score(np.abs(np.round(self.X_test).astype(np.int64)), self.Y_test)
+        model.fit(np.abs(self.X_train), self.Y_train)
+        model.score(np.abs(self.X_test), self.Y_test)
+
+    test_power_transformer.__name__ = f"test_{power_transformer.__name__}"
 
 
 # List of preprocessors to test
 preprocessors = [
+    binarizer,
     min_max_scaler,
+    max_abs_scaler,
     normalizer,
-    standard_scaler
+    robust_scaler,
+    standard_scaler,
+    quantile_transformer
 ]
 
 
