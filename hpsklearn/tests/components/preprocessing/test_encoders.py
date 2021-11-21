@@ -3,8 +3,7 @@ import numpy as np
 
 from hyperopt import rand
 
-from hpsklearn.tests.utils import \
-    StandardPreprocessingTest, IrisTest
+from hpsklearn.tests.utils import StandardPreprocessingTest
 from hpsklearn import hyperopt_estimator, \
     one_hot_encoder, \
     ordinal_encoder, \

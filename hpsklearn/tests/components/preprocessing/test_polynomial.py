@@ -1,11 +1,9 @@
 import unittest
 
-from hyperopt import rand
-
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest, \
     generate_preprocessor_test_attributes
-from hpsklearn import hyperopt_estimator, \
+from hpsklearn import \
     polynomial_features, \
     spline_transformer, \
     gaussian_nb
