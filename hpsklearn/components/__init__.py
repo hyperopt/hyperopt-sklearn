@@ -23,7 +23,9 @@ from .preprocessing import \
     quantile_transformer, \
     power_transformer, \
     one_hot_encoder, \
-    ordinal_encoder
+    ordinal_encoder, \
+    polynomial_features, \
+    spline_transformer
 
 from .naive_bayes import \
     bernoulli_nb, \

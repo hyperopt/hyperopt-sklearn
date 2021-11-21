@@ -11,3 +11,7 @@ from ._data import \
 from ._encoders import \
     one_hot_encoder, \
     ordinal_encoder
+
+from ._polynomial import \
+    polynomial_features, \
+    spline_transformer
