@@ -131,6 +131,10 @@ from .neighbors import \
     k_neighbors_regressor, \
     radius_neighbors_regressor
 
+from .cluster import \
+    k_means, \
+    mini_batch_k_means
+
 
 # Legacy any classifier
 def any_classifier(name):
