@@ -131,6 +131,48 @@ def create_function(fn: callable,
     return test_estimator
 
 
+def create_preprocessing_function(pre_fn, classifier):
+    """
+    Instantiate gaussian_nb hyperopt estimator model
+     'pre_fn' regards the preprocessor
+     fit and score model
+    """
+    def test_preprocessor(self):
+        model = hyperopt_estimator(
+            classifier=classifier("classifier"),
+            preprocessing=[pre_fn("preprocessing")],
+            algo=rand.suggest,
+            trial_timeout=10.0,
+            max_evals=5,
+        )
+        model.fit(self.X_train, self.Y_train)
+        model.score(self.X_test, self.Y_test)
+
+    test_preprocessor.__name__ = f"test_{pre_fn.__name__}"
+    return test_preprocessor
+
+
+# Create unique _data preprocessing algorithms
+#  with test_ prefix so that nose can see them
+def generate_preprocessor_test_attributes(TestClass,
+                                          preprocessor_list: list[callable],
+                                          classifier: callable):
+    """
+    Generate class methods
+
+    Args:
+        TestClass: main test class | unittest.TestCase
+        preprocessor_list: list of preprocessors to test | list[callable]
+        classifier: classifier to test preprocessors with | callable
+    """
+    for pre in preprocessor_list:
+        setattr(
+            TestClass,
+            f"test_{pre.__name__}",
+            create_preprocessing_function(pre, classifier)
+        )
+
+
 def generate_test_attributes(TestClass,
                              fn_list: list[callable],
                              is_classif: bool,
