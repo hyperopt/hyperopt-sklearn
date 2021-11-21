@@ -25,7 +25,8 @@ from .preprocessing import \
     one_hot_encoder, \
     ordinal_encoder, \
     polynomial_features, \
-    spline_transformer
+    spline_transformer, \
+    k_bins_discretizer
 
 from .naive_bayes import \
     bernoulli_nb, \

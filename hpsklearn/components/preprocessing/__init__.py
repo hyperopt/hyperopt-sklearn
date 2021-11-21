@@ -15,3 +15,5 @@ from ._encoders import \
 from ._polynomial import \
     polynomial_features, \
     spline_transformer
+
+from ._discretization import k_bins_discretizer
