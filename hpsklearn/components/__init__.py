@@ -135,6 +135,15 @@ from .cluster import \
     k_means, \
     mini_batch_k_means
 
+from .xgboost import \
+    xgboost_classification, \
+    xgboost_regression
+
+
+from .lightgbm import \
+    lightgbm_classification, \
+    lightgbm_regression
+
 
 # Legacy any classifier
 def any_classifier(name):
