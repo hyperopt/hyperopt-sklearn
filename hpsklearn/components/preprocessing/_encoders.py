@@ -14,7 +14,7 @@ def sklearn_OneHotEncoder(*args, **kwargs):
 
 
 @scope.define
-def skleran_OrdinalEncoder(*args, **kwargs):
+def sklearn_OrdinalEncoder(*args, **kwargs):
     return preprocessing.OrdinalEncoder(*args, **kwargs)
 
 
@@ -72,7 +72,7 @@ def ordinal_encoder(name: str,
         handle_unknown: choose 'error' or 'use_encoded_value' | str
         unknown_value: value for unknown categories | int or np.nan
     """
-    rval = scope.skleran_OrdinalEncoder(
+    rval = scope.sklearn_OrdinalEncoder(
         categories=categories,
         dtype=dtype,
         handle_unknown=handle_unknown,
