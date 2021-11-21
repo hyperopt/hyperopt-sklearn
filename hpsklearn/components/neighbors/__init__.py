@@ -2,7 +2,6 @@ from ._classification import \
     k_neighbors_classifier, \
     radius_neighbors_classifier
 
-from ._lof import local_outlier_factor
 from ._nearest_centroid import nearest_centroid
 
 from ._regression import \

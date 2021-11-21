@@ -14,10 +14,16 @@ from .ensemble import \
     hist_gradient_boosting_regressor
 
 from .preprocessing import \
+    binarizer, \
     min_max_scaler, \
+    max_abs_scaler, \
     normalizer, \
+    robust_scaler, \
+    standard_scaler, \
+    quantile_transformer, \
+    power_transformer, \
     one_hot_encoder, \
-    standard_scaler
+    ordinal_encoder
 
 from .naive_bayes import \
     bernoulli_nb, \
@@ -118,7 +124,6 @@ from .mixture import \
 from .neighbors import \
     k_neighbors_classifier, \
     radius_neighbors_classifier, \
-    local_outlier_factor, \
     nearest_centroid, \
     k_neighbors_regressor, \
     radius_neighbors_regressor
