@@ -6,7 +6,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestMLPClassifier(StandardClassifierTest):
@@ -21,14 +21,14 @@ class TestMLPRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestMLPClassifier,
     fn_list=[mlp_classifier],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestMLPRegression,
     fn_list=[mlp_regressor],
     is_classif=False,

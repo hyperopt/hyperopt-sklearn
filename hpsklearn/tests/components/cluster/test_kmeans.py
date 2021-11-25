@@ -4,7 +4,7 @@ from hpsklearn import \
     k_means, \
     mini_batch_k_means
 from hpsklearn.tests.utils import \
-    generate_test_attributes, \
+    generate_attributes, \
     IrisTest
 
 
@@ -14,7 +14,7 @@ class TestKMeansIris(IrisTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestKMeansIris,
     fn_list=[k_means, mini_batch_k_means],
     is_classif=False,

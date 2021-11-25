@@ -6,7 +6,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestPassiveAggressiveClassifier(StandardClassifierTest):
@@ -21,14 +21,14 @@ class TestPassiveAggressiveRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestPassiveAggressiveClassifier,
     fn_list=[passive_aggressive_classifier],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestPassiveAggressiveRegression,
     fn_list=[passive_aggressive_regressor],
     is_classif=False,

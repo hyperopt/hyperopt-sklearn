@@ -8,7 +8,7 @@ from hpsklearn import \
     lasso_lars_ic
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestLeastAngleRegression(StandardRegressorTest):
@@ -27,7 +27,7 @@ regressors = [
 ]
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestLeastAngleRegression,
     fn_list=regressors,
     is_classif=False

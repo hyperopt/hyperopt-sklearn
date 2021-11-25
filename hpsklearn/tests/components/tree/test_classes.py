@@ -12,7 +12,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestTreeClassification(StandardClassifierTest):
@@ -45,14 +45,14 @@ class TestTreeRegression(StandardRegressorTest):
     test_poisson_function.__name__ = f"test_{decision_tree_regressor.__name__}"
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestTreeClassification,
     fn_list=[decision_tree_classifier, extra_tree_classifier],
     is_classif=True
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestTreeRegression,
     fn_list=[decision_tree_regressor, extra_tree_regressor],
     is_classif=False

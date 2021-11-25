@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import elliptic_envelope
 from hpsklearn.tests.utils import \
     IrisTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestEllipticEnvelopeClassifier(IrisTest):
@@ -12,7 +12,7 @@ class TestEllipticEnvelopeClassifier(IrisTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestEllipticEnvelopeClassifier,
     fn_list=[elliptic_envelope],
     is_classif=True,

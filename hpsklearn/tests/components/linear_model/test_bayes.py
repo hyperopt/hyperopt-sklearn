@@ -2,7 +2,7 @@ import unittest
 
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 from hpsklearn import \
     bayesian_ridge, \
     ard_regression
@@ -14,7 +14,7 @@ class TestBayesRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestBayesRegression,
     fn_list=[bayesian_ridge, ard_regression],
     is_classif=False

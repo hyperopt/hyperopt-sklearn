@@ -5,7 +5,7 @@ from hpsklearn import \
     radius_neighbors_classifier
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestNeighborsClassifier(StandardClassifierTest):
@@ -14,7 +14,7 @@ class TestNeighborsClassifier(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestNeighborsClassifier,
     fn_list=[k_neighbors_classifier, radius_neighbors_classifier],
     is_classif=True,

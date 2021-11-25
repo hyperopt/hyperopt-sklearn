@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import hp_sklearn_kernel_ridge
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestKernelRidgeRegression(StandardRegressorTest):
@@ -12,7 +12,7 @@ class TestKernelRidgeRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestKernelRidgeRegression,
     fn_list=[hp_sklearn_kernel_ridge],
     is_classif=False,

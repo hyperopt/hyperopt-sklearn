@@ -6,7 +6,7 @@ from hpsklearn import \
     tweedie_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestGLMRegression(StandardRegressorTest):
@@ -23,7 +23,7 @@ regressors = [
 ]
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestGLMRegression,
     fn_list=regressors,
     is_classif=False,

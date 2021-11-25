@@ -8,7 +8,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 from hyperopt import rand
 from sklearn.metrics import accuracy_score
@@ -48,14 +48,14 @@ class TestSGDOneClassSVM(StandardClassifierTest):
     test_sgd_one_class_svm.__name__ = f"test_{sgd_one_class_svm.__name__}"
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestSGDClassifier,
     fn_list=[sgd_classifier],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestSGDRegression,
     fn_list=[sgd_regressor],
     is_classif=False,

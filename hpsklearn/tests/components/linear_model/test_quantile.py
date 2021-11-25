@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import quantile_regression
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class QuantileRegressorTest(StandardRegressorTest):
@@ -12,7 +12,7 @@ class QuantileRegressorTest(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=QuantileRegressorTest,
     fn_list=[quantile_regression],
     is_classif=False,

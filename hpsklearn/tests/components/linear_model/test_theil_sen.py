@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import theil_sen_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestTheilSenRegressor(StandardRegressorTest):
@@ -12,7 +12,7 @@ class TestTheilSenRegressor(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestTheilSenRegressor,
     fn_list=[theil_sen_regressor],
     is_classif=False,

@@ -6,7 +6,7 @@ from hpsklearn import \
     output_code_classifier
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class OneVsRestClassifierTest(StandardClassifierTest):
@@ -15,7 +15,7 @@ class OneVsRestClassifierTest(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=OneVsRestClassifierTest,
     fn_list=[one_vs_rest_classifier, one_vs_one_classifier, output_code_classifier],
     is_classif=True,

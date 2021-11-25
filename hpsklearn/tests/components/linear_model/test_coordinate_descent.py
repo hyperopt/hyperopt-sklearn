@@ -12,7 +12,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     MultiTaskRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestCoordinateDescentRegression(StandardRegressorTest):
@@ -44,14 +44,14 @@ multi_task_regressors = [
 ]
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestCoordinateDescentRegression,
     fn_list=regressors,
     is_classif=False
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestCoordinateDescentMultiTaskRegression,
     fn_list=multi_task_regressors,
     is_classif=False

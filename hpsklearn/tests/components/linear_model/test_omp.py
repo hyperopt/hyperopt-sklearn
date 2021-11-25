@@ -5,7 +5,7 @@ from hpsklearn import \
     orthogonal_matching_pursuit_cv
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestOMPRegression(StandardRegressorTest):
@@ -14,7 +14,7 @@ class TestOMPRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestOMPRegression,
     fn_list=[orthogonal_matching_pursuit, orthogonal_matching_pursuit_cv],
     is_classif=False,

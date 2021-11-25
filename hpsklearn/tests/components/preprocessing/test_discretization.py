@@ -2,7 +2,7 @@ import unittest
 
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest, \
-    generate_preprocessor_test_attributes
+    generate_preprocessor_attributes
 from hpsklearn import \
     k_bins_discretizer, \
     gaussian_nb
@@ -14,7 +14,7 @@ class TestDiscretizationPreprocessing(StandardPreprocessingTest):
     """
 
 
-generate_preprocessor_test_attributes(
+generate_preprocessor_attributes(
     TestClass=TestDiscretizationPreprocessing,
     preprocessor_list=[k_bins_discretizer],
     classifier=gaussian_nb,

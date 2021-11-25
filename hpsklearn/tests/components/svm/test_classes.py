@@ -14,7 +14,7 @@ from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
     IrisTest, \
-    generate_test_attributes
+    generate_attributes
 from sklearn.metrics import accuracy_score
 
 
@@ -52,14 +52,14 @@ class TestOneClassSVM(IrisTest):
     test_one_class_svm.__name__ = f"test_{one_class_svm.__name__}"
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestSVMClassifier,
     fn_list=[linear_svc, nu_svc, svc],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestSVMRegression,
     fn_list=[linear_svr, nu_svr, svr],
     is_classif=False,

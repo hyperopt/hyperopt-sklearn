@@ -4,7 +4,7 @@ from hyperopt import rand
 
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 from hpsklearn import hyperopt_estimator, \
     linear_regression
 
@@ -15,7 +15,7 @@ class TestBaseRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestBaseRegression,
     fn_list=[linear_regression],
     is_classif=False

@@ -8,7 +8,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestRidgeClassification(StandardClassifierTest):
@@ -23,14 +23,14 @@ class TestRidgeRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestRidgeClassification,
     fn_list=[ridge_classifier, ridge_classifier_cv],
     is_classif=True
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestRidgeRegression,
     fn_list=[ridge, ridge_cv],
     is_classif=False

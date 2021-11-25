@@ -4,7 +4,7 @@ from hyperopt import rand
 
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest, \
-    generate_preprocessor_test_attributes
+    generate_preprocessor_attributes
 from hpsklearn import hyperopt_estimator, \
     binarizer, \
     min_max_scaler, \
@@ -54,7 +54,7 @@ preprocessors = [
 ]
 
 
-generate_preprocessor_test_attributes(
+generate_preprocessor_attributes(
     TestClass=TestDataPreprocessing,
     preprocessor_list=preprocessors,
     classifier=gaussian_nb,

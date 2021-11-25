@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import perceptron
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestPerceptronClassifier(StandardClassifierTest):
@@ -12,7 +12,7 @@ class TestPerceptronClassifier(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestPerceptronClassifier,
     fn_list=[perceptron],
     is_classif=True,

@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import gaussian_process_classifier
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestGaussianProcessClassifier(StandardClassifierTest):
@@ -12,7 +12,7 @@ class TestGaussianProcessClassifier(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestGaussianProcessClassifier,
     fn_list=[gaussian_process_classifier],
     is_classif=True

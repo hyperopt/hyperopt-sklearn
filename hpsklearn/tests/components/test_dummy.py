@@ -7,7 +7,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestDummyClassifier(StandardClassifierTest):
@@ -22,14 +22,14 @@ class TestDummyRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestDummyClassifier,
     fn_list=[dummy_classifier],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestDummyRegression,
     fn_list=[dummy_regressor],
     is_classif=False,

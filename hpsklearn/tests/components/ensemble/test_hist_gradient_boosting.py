@@ -10,7 +10,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestHistGradientBoostingClassification(StandardClassifierTest):
@@ -43,14 +43,14 @@ class TestHistGradientBoostingRegression(StandardRegressorTest):
     test_poisson_function.__name__ = f"test_{hist_gradient_boosting_regressor.__name__}"
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestHistGradientBoostingClassification,
     fn_list=[hist_gradient_boosting_classifier],
     is_classif=True
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestHistGradientBoostingRegression,
     fn_list=[hist_gradient_boosting_regressor],
     is_classif=False

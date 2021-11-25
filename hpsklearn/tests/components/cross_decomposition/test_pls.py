@@ -7,7 +7,7 @@ from hpsklearn import \
     pls_regression
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 from hyperopt import rand
 
 
@@ -46,7 +46,7 @@ class TestPLSRegression(StandardRegressorTest):
         model.score(self.X_test, self.Y_test)
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestPLSRegression,
     fn_list=[pls_regression],
     is_classif=False,

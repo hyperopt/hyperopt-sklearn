@@ -5,7 +5,7 @@ from hpsklearn import \
     quadratic_discriminant_analysis
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestLinearDiscriminantAnalysisClassifier(StandardClassifierTest):
@@ -14,7 +14,7 @@ class TestLinearDiscriminantAnalysisClassifier(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestLinearDiscriminantAnalysisClassifier,
     fn_list=[linear_discriminant_analysis, quadratic_discriminant_analysis],
     is_classif=True,

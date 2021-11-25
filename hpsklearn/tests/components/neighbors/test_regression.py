@@ -5,7 +5,7 @@ from hpsklearn import \
     radius_neighbors_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestNeighborsRegression(StandardRegressorTest):
@@ -14,7 +14,7 @@ class TestNeighborsRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestNeighborsRegression,
     fn_list=[k_neighbors_regressor, radius_neighbors_regressor],
     is_classif=False,

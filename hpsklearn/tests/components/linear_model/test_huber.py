@@ -4,7 +4,7 @@ from hpsklearn import \
     huber_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestHuberRegression(StandardRegressorTest):
@@ -13,7 +13,7 @@ class TestHuberRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestHuberRegression,
     fn_list=[huber_regressor],
     is_classif=False

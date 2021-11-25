@@ -6,7 +6,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestGradientBoostingClassification(StandardClassifierTest):
@@ -21,14 +21,14 @@ class TestGradientBoostingRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestGradientBoostingClassification,
     fn_list=[gradient_boosting_classifier],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestGradientBoostingRegression,
     fn_list=[gradient_boosting_regression],
     is_classif=False,

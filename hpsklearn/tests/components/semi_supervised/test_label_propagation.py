@@ -5,7 +5,7 @@ from hpsklearn import \
     label_spreading
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestLabelPropagationClassifier(StandardClassifierTest):
@@ -14,7 +14,7 @@ class TestLabelPropagationClassifier(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestLabelPropagationClassifier,
     fn_list=[label_propagation, label_spreading],
     is_classif=True,

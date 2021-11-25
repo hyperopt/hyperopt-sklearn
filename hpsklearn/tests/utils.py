@@ -154,9 +154,9 @@ def create_preprocessing_function(pre_fn, classifier):
 
 # Create unique _data preprocessing algorithms
 #  with test_ prefix so that nose can see them
-def generate_preprocessor_test_attributes(TestClass,
-                                          preprocessor_list: list[callable],
-                                          classifier: callable):
+def generate_preprocessor_attributes(TestClass,
+                                     preprocessor_list: list[callable],
+                                     classifier: callable):
     """
     Generate class methods
 
@@ -173,13 +173,13 @@ def generate_preprocessor_test_attributes(TestClass,
         )
 
 
-def generate_test_attributes(TestClass,
-                             fn_list: list[callable],
-                             is_classif: bool,
-                             non_negative_input: bool = False,
-                             non_negative_output: bool = False,
-                             trial_timeout: float = 10.0,
-                             max_evals: int = 5):
+def generate_attributes(TestClass,
+                        fn_list: list[callable],
+                        is_classif: bool,
+                        non_negative_input: bool = False,
+                        non_negative_output: bool = False,
+                        trial_timeout: float = 10.0,
+                        max_evals: int = 5):
     """
     Generate class methods
 

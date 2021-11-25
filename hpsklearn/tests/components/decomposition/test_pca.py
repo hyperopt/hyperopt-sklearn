@@ -5,7 +5,7 @@ from hpsklearn import \
     gaussian_nb
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest, \
-    generate_preprocessor_test_attributes
+    generate_preprocessor_attributes
 
 
 class TestPCA(StandardPreprocessingTest):
@@ -14,7 +14,7 @@ class TestPCA(StandardPreprocessingTest):
     """
 
 
-generate_preprocessor_test_attributes(
+generate_preprocessor_attributes(
     TestClass=TestPCA,
     preprocessor_list=[pca],
     classifier=gaussian_nb,

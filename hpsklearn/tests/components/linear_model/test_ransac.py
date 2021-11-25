@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import ransac_regression
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestRANSACRegressor(StandardRegressorTest):
@@ -12,7 +12,7 @@ class TestRANSACRegressor(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestRANSACRegressor,
     fn_list=[ransac_regression],
     is_classif=False,

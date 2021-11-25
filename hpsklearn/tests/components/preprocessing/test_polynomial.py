@@ -2,7 +2,7 @@ import unittest
 
 from hpsklearn.tests.utils import \
     StandardPreprocessingTest, \
-    generate_preprocessor_test_attributes
+    generate_preprocessor_attributes
 from hpsklearn import \
     polynomial_features, \
     spline_transformer, \
@@ -22,7 +22,7 @@ preprocessors = [
 ]
 
 
-generate_preprocessor_test_attributes(
+generate_preprocessor_attributes(
     TestClass=TestPolynomialPreprocessing,
     preprocessor_list=preprocessors,
     classifier=gaussian_nb,

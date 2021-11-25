@@ -6,7 +6,7 @@ from hpsklearn import \
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestLightGBMClassifier(StandardClassifierTest):
@@ -21,14 +21,14 @@ class TestLightGBMRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestLightGBMClassifier,
     fn_list=[lightgbm_classification],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestLightGBMRegression,
     fn_list=[lightgbm_regression],
     is_classif=False,

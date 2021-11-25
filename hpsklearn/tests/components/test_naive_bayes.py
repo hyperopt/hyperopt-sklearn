@@ -2,7 +2,7 @@ import unittest
 
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 from hpsklearn import \
     bernoulli_nb, \
     categorical_nb, \
@@ -17,14 +17,14 @@ class TestNaiveBayes(StandardClassifierTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestNaiveBayes,
     fn_list=[bernoulli_nb, gaussian_nb],
     is_classif=True
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestNaiveBayes,
     fn_list=[categorical_nb, complement_nb, multinomial_nb],
     is_classif=True,

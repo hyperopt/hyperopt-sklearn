@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import transformed_target_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestTransformedTargetRegression(StandardRegressorTest):
@@ -12,7 +12,7 @@ class TestTransformedTargetRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestTransformedTargetRegression,
     fn_list=[transformed_target_regressor],
     is_classif=False,

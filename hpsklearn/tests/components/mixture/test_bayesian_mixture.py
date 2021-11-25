@@ -4,7 +4,7 @@ from hpsklearn import bayesian_gaussian_mixture
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestBayesianGaussianMixtureClassifier(StandardClassifierTest):
@@ -19,14 +19,14 @@ class TestBayesianGaussianMixtureRegression(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestBayesianGaussianMixtureClassifier,
     fn_list=[bayesian_gaussian_mixture],
     is_classif=True,
 )
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestBayesianGaussianMixtureRegression,
     fn_list=[bayesian_gaussian_mixture],
     is_classif=False,

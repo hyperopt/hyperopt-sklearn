@@ -3,7 +3,7 @@ import unittest
 from hpsklearn import gaussian_process_regressor
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
-    generate_test_attributes
+    generate_attributes
 
 
 class TestGaussianProcessRegressor(StandardRegressorTest):
@@ -12,7 +12,7 @@ class TestGaussianProcessRegressor(StandardRegressorTest):
     """
 
 
-generate_test_attributes(
+generate_attributes(
     TestClass=TestGaussianProcessRegressor,
     fn_list=[gaussian_process_regressor],
     is_classif=False
