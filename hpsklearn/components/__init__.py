@@ -144,6 +144,9 @@ from .lightgbm import \
     lightgbm_classification, \
     lightgbm_regression
 
+from .feature_extraction import \
+    tfidf
+
 
 # Legacy any classifier
 def any_classifier(name):
