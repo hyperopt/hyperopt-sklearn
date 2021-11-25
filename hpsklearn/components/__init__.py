@@ -147,6 +147,8 @@ from .lightgbm import \
 from .feature_extraction import \
     tfidf
 
+from .decomposition import pca
+
 
 # Legacy any classifier
 def any_classifier(name):
