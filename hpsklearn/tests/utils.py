@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from hyperopt import rand
-from hpsklearn import hyperopt_estimator
+from hpsklearn import HyperoptEstimator
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
@@ -107,7 +107,7 @@ def create_function(fn: callable,
 
     def test_estimator(self):
         if is_classif:
-            model = hyperopt_estimator(
+            model = HyperoptEstimator(
                 classifier=fn("classifier"),
                 preprocessing=[],
                 algo=rand.suggest,
@@ -115,7 +115,7 @@ def create_function(fn: callable,
                 max_evals=max_evals,
             )
         else:
-            model = hyperopt_estimator(
+            model = HyperoptEstimator(
                 regressor=fn("regressor"),
                 preprocessing=[],
                 algo=rand.suggest,
@@ -138,7 +138,7 @@ def create_preprocessing_function(pre_fn, classifier):
      fit and score model
     """
     def test_preprocessor(self):
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             classifier=classifier("classifier"),
             preprocessing=[pre_fn("preprocessing")],
             algo=rand.suggest,

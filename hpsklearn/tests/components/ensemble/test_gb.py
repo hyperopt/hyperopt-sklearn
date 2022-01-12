@@ -2,7 +2,7 @@ import unittest
 
 from hpsklearn import \
     gradient_boosting_classifier, \
-    gradient_boosting_regression
+    gradient_boosting_regressor
 from hpsklearn.tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
@@ -30,7 +30,7 @@ generate_attributes(
 
 generate_attributes(
     TestClass=TestGradientBoostingRegression,
-    fn_list=[gradient_boosting_regression],
+    fn_list=[gradient_boosting_regressor],
     is_classif=False,
 )
 

@@ -4,7 +4,7 @@ import numpy as np
 from hyperopt import rand
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     decision_tree_classifier, \
     decision_tree_regressor, \
     extra_tree_classifier, \
@@ -31,7 +31,7 @@ class TestTreeRegression(StandardRegressorTest):
          define 'criterion' = 'poisson'
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=decision_tree_regressor(name="poisson_regressor",
                                               criterion="poisson"),
             preprocessing=[],

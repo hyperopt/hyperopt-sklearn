@@ -4,7 +4,7 @@ import numpy as np
 from hyperopt import rand
 
 from hpsklearn.tests.utils import StandardPreprocessingTest
-from hpsklearn import hyperopt_estimator, \
+from hpsklearn import HyperoptEstimator, \
     one_hot_encoder, \
     ordinal_encoder, \
     multinomial_nb
@@ -30,7 +30,7 @@ def create_preprocessing_function(pre_fn):
     """
 
     def test_preprocessor(self):
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             classifier=multinomial_nb("classifier"),
             preprocessing=[pre_fn("preprocessing")],
             algo=rand.suggest,

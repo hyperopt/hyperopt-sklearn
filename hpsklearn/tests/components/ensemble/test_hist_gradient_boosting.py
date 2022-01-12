@@ -4,7 +4,7 @@ import numpy as np
 from hyperopt import rand
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     hist_gradient_boosting_classifier, \
     hist_gradient_boosting_regressor
 from hpsklearn.tests.utils import \
@@ -29,7 +29,7 @@ class TestHistGradientBoostingRegression(StandardRegressorTest):
          define 'criterion' = 'poisson'
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=hist_gradient_boosting_regressor(name="poisson_regressor",
                                                        loss="poisson"),
             preprocessing=[],

@@ -4,7 +4,7 @@ import numpy as np
 from hyperopt import rand
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     random_forest_classifier, \
     random_forest_regressor, \
     extra_trees_classifier, \
@@ -31,7 +31,7 @@ class TestForestRegression(StandardRegressorTest):
          define 'criterion' = 'poisson'
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=random_forest_regressor(name="poisson_regressor",
                                               criterion="poisson"),
             preprocessing=[],

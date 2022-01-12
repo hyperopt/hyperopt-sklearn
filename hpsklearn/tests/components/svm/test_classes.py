@@ -2,7 +2,7 @@ import unittest
 
 from hyperopt import rand
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     linear_svc, \
     linear_svr, \
     nu_svc, \
@@ -39,7 +39,7 @@ class TestOneClassSVM(IrisTest):
         Instantiate one_class_svm hyperopt estimator model
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=one_class_svm(name="one_class_svm_regressor"),
             preprocessing=[],
             algo=rand.suggest,

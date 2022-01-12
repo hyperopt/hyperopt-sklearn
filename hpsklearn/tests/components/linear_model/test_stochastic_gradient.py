@@ -1,7 +1,7 @@
 import unittest
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     sgd_classifier, \
     sgd_regressor, \
     sgd_one_class_svm
@@ -35,7 +35,7 @@ class TestSGDOneClassSVM(StandardClassifierTest):
         Instantiate sgd one class svm classifier hyperopt estimator model
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=sgd_one_class_svm(name="sgd_one_class_svm"),
             preprocessing=[],
             algo=rand.suggest,

@@ -1,12 +1,9 @@
 import unittest
 
-from hyperopt import rand
-
 from hpsklearn.tests.utils import \
     StandardRegressorTest, \
     generate_attributes
-from hpsklearn import hyperopt_estimator, \
-    linear_regression
+from hpsklearn import linear_regression
 
 
 class TestBaseRegression(StandardRegressorTest):

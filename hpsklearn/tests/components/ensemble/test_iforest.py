@@ -1,7 +1,7 @@
 import unittest
 
 from hyperopt import rand
-from hpsklearn import hyperopt_estimator, isolation_forest
+from hpsklearn import HyperoptEstimator, isolation_forest
 from sklearn.metrics import accuracy_score
 from hpsklearn.tests.utils import IrisTest
 
@@ -15,7 +15,7 @@ class TestIsolationForest(IrisTest):
         Instantiate isolation forest classifier hyperopt estimator model
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=isolation_forest(name="i_forest"),
             preprocessing=[],
             algo=rand.suggest,

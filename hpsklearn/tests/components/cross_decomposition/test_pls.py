@@ -1,7 +1,7 @@
 import unittest
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     cca, \
     pls_canonical, \
     pls_regression
@@ -20,7 +20,7 @@ class TestPLSRegression(StandardRegressorTest):
         Instantiate cca hyperopt estimator model
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=cca(name="cca", n_components=1),
             preprocessing=[],
             algo=rand.suggest,
@@ -35,7 +35,7 @@ class TestPLSRegression(StandardRegressorTest):
         Instantiate pls canonical hyperopt estimator model
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=pls_canonical(name="pls_canonical", n_components=1),
             preprocessing=[],
             algo=rand.suggest,

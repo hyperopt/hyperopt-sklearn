@@ -1,7 +1,7 @@
 import unittest
 
 from hpsklearn import \
-    hyperopt_estimator, \
+    HyperoptEstimator, \
     tfidf, \
     multinomial_nb
 
@@ -33,7 +33,7 @@ class TestTfidf(unittest.TestCase):
          add TfidfVectorizer preprocessor
          fit and score model
         """
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             classifier=multinomial_nb("classifier"),
             preprocessing=[tfidf("preprocessing")],
             algo=rand.suggest,

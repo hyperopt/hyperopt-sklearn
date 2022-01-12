@@ -5,7 +5,7 @@ from hpsklearn import \
     logistic_regression_cv
 from hpsklearn.tests.utils import IrisTest
 from hyperopt import rand
-from hpsklearn import hyperopt_estimator
+from hpsklearn import HyperoptEstimator
 from sklearn.metrics import accuracy_score
 
 
@@ -25,7 +25,7 @@ def create_regression_attr(fn: callable):
     fit and score model
     """
     def test_regressor(self):
-        model = hyperopt_estimator(
+        model = HyperoptEstimator(
             regressor=fn(name="regressor"),
             preprocessing=[],
             algo=rand.suggest,
