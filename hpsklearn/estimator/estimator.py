@@ -200,14 +200,14 @@ class hyperopt_estimator(BaseEstimator):
         if self.verbose:
             print(" ".join(map(str, args)))
 
-    def _fit_iter(self, X, y,
-                  EX_list: typing.Union[list, tuple] = None,
-                  valid_size: float = .2,
-                  n_folds: int = None,
-                  cv_shuffle: bool = False,
-                  warm_start: bool = False,
-                  random_state: np.random.RandomState = np.random.RandomState(),
-                  ) -> typing.Generator:
+    def fit_iter(self, X, y,
+                 EX_list: typing.Union[list, tuple] = None,
+                 valid_size: float = .2,
+                 n_folds: int = None,
+                 cv_shuffle: bool = False,
+                 warm_start: bool = False,
+                 random_state: np.random.RandomState = np.random.RandomState(),
+                 ) -> typing.Generator:
         """
         Generator of Trials after ever-increasing numbers of evaluations
 
@@ -430,13 +430,13 @@ class hyperopt_estimator(BaseEstimator):
         if EX_list is not None:
             assert len(EX_list) == self.n_ex_pps
 
-        fit_iter = self._fit_iter(X=X, y=y,
-                                  EX_list=EX_list,
-                                  valid_size=valid_size,
-                                  n_folds=n_folds,
-                                  cv_shuffle=cv_shuffle,
-                                  warm_start=warm_start,
-                                  random_state=random_state)
+        fit_iter = self.fit_iter(X=X, y=y,
+                                 EX_list=EX_list,
+                                 valid_size=valid_size,
+                                 n_folds=n_folds,
+                                 cv_shuffle=cv_shuffle,
+                                 warm_start=warm_start,
+                                 random_state=random_state)
 
         next(fit_iter)
         adjusted_max_evals = self.max_evals if not warm_start else len(self.trials.trials) + self.max_evals
