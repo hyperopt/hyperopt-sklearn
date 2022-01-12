@@ -1,4 +1,4 @@
-from .estimator import hyperopt_estimator
+from .estimator import hyperopt_estimator as HyperoptEstimator
 from .components import *
 from .components.multiclass import \
     one_vs_rest_classifier, \
