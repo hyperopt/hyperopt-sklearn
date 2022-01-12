@@ -78,7 +78,7 @@ def k_means(name: str,
         name: name | str
         n_init: number of times to run k-means algorithm | int
         max_iter: maximum number of iterations | int
-        tol: relative tolerance with regards to Frobenius norm | float
+        tol: relative tolerance in regard to Frobenius norm | float
         copy_x: modify copy of data | bool
         algorithm: K-means algorithm to use | str
 

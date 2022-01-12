@@ -240,7 +240,7 @@ def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
                                                                              "huber" or "quantile"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'.")
-def gradient_boosting_regression(name: str, loss: str = None, alpha: float = None, **kwargs):
+def gradient_boosting_regressor(name: str, loss: str = None, alpha: float = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.GradientBoostingRegressor model.
