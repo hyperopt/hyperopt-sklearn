@@ -126,6 +126,12 @@ class hyperopt_estimator(BaseEstimator):
             Use multiple CPU cores when training estimators which support
             multiprocessing.
         """
+        self.preprocessing = preprocessing
+        self.ex_preprocs = ex_preprocs
+        self.classifier = classifier
+        self.regressor = regressor
+        self.space = space
+        self.algo = algo
         self.max_evals = max_evals
         self.loss_fn = loss_fn
         self.continuous_loss_fn = continuous_loss_fn
@@ -133,61 +139,66 @@ class hyperopt_estimator(BaseEstimator):
         self.trial_timeout = trial_timeout
         self.fit_increment = fit_increment
         self.fit_increment_dump_filename = fit_increment_dump_filename
+        self.seed = seed
         self.use_partial_fit = use_partial_fit
         self.refit = refit
+        self.n_jobs = n_jobs
+        self._times_fitted = 0
+
+    def _init(self):
         self._best_preprocs = ()
         self._best_ex_preprocs = ()
         self._best_learner = None
         self._best_loss = self._best_loss = float('inf')
         self._best_iters = None
-        self.n_jobs = n_jobs
+        self._times_fitted += 1
 
-        if space is None:
-            assert not all(isinstance(v, pyll.Apply) for v in [regressor, classifier])
+        if self.space is None:
+            assert not all(isinstance(v, pyll.Apply) for v in [self.regressor, self.classifier])
 
             # TODO: Default classifier/regressor import issue
-            assert not (classifier is None and regressor is None), "Still have to sort out the classifier issue."
+            assert not (self.classifier is None and self.regressor is None), \
+                "Still have to sort out the classifier issue."
             # if classifier is None and regressor is None:
             #     classifier = random_forest_classifier(name="classifier")
 
-            self.classification = isinstance(classifier, pyll.Apply)
-            self.classification = True if classifier is not None else False
+            self.classification = isinstance(self.classifier, pyll.Apply)
+            self.classification = True if self.classifier is not None else False
 
             # TODO: Preprocessing
-            assert preprocessing is not None, "Preprocessing is yet to be implemented"
+            assert self.preprocessing is None, "Preprocessing is yet to be implemented"
             # if preprocessing is not None:
 
-            if ex_preprocs is None:
-                ex_preprocs = list()
+            if self.ex_preprocs is None:
+                self.ex_preprocs = list()
 
             self.space = pyll.as_apply({
-                "classifier": classifier,
-                "regressor": regressor,
-                "preprocessing": preprocessing,
-                "ex_preprocs": ex_preprocs
+                "classifier": self.classifier,
+                "regressor": self.regressor,
+                "preprocessing": self.preprocessing,
+                "ex_preprocs": self.ex_preprocs
             })
         else:
-            assert all(v is None for v in [classifier, regressor, preprocessing, ex_preprocs]), \
-                "Detected a search space. " \
-                "Parameters 'classifier', 'regressor', 'preprocessing' and 'ex_preprocs' " \
-                "should be contained in the space and should not be set in addition to the space."
+            if self._times_fitted == 1:
+                assert all(v is None for v in [self.classifier, self.regressor, self.preprocessing, self.ex_preprocs]), \
+                    "Detected a search space. " \
+                    "Parameters 'classifier', 'regressor', 'preprocessing' and 'ex_preprocs' " \
+                    "should be contained in the space and should not be set in addition to the space."
 
-            if isinstance(space, dict):
-                space = pyll.as_apply(space)
+            if isinstance(self.space, dict):
+                self.space = pyll.as_apply(self.space)
 
-            self.space = space
             eval_space = dict(self.space.named_args)
 
             if "ex_preprocs" in eval_space.keys():
-                ex_preprocs = eval_space["ex_preprocs"].eval()
+                self.ex_preprocs = eval_space["ex_preprocs"].eval()
             else:
-                ex_preprocs = list()
-                self.space.named_args.append(["ex_preprocs", pyll.as_apply(ex_preprocs)])
+                self.ex_preprocs = list()
+                self.space.named_args.append(["ex_preprocs", pyll.as_apply(self.ex_preprocs)])
 
-        self.n_ex_pps = len(ex_preprocs)
-        self.algo = algo or hyperopt.rand.suggest
-        self.seed = seed
-        self.rstate = np.random.RandomState(seed)
+        self.n_ex_pps = len(self.ex_preprocs)
+        self.algo = self.algo or hyperopt.rand.suggest
+        self.rstate = np.random.RandomState(self.seed)
 
         if self.continuous_loss_fn:
             assert self.space['classifier'] is not None, "Can only use 'continuous_loss_fn' with classifiers."
@@ -242,6 +253,9 @@ class hyperopt_estimator(BaseEstimator):
             random_state: RandomState, default is np.random.RandomState()
                 The random state used to seed the cross-validation shuffling.
         """
+        if self._times_fitted == 0:
+            self._init()
+
         increment = self.fit_increment
 
         # Convert list, pandas series, or other array-like to ndarray
@@ -427,6 +441,8 @@ class hyperopt_estimator(BaseEstimator):
             For classification problems, hpsklearn will always use the stratified
             version of the K-fold cross-validation or shuffle-and-split.
         """
+        self._init()
+
         if EX_list is not None:
             assert len(EX_list) == self.n_ex_pps
 
