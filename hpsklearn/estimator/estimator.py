@@ -17,9 +17,6 @@ import inspect
 import typing
 import pickle
 
-# from ..components import ensemble
-# from hpsklearn.components.ensemble import random_forest_classifier
-
 
 class hyperopt_estimator(BaseEstimator):
     """
@@ -156,18 +153,16 @@ class hyperopt_estimator(BaseEstimator):
         if self.space is None:
             assert not all(isinstance(v, pyll.Apply) for v in [self.regressor, self.classifier])
 
-            # TODO: Default classifier/regressor import issue
-            assert not (self.classifier is None and self.regressor is None), \
-                "Still have to sort out the classifier issue."
-            # if classifier is None and regressor is None:
-            #     classifier = random_forest_classifier(name="classifier")
+            if self.classifier is None and self.regressor is None:
+                from hpsklearn import any_classifier
+                self.classifier = any_classifier(name="classifier")
 
             self.classification = isinstance(self.classifier, pyll.Apply)
             self.classification = True if self.classifier is not None else False
 
-            # TODO: Preprocessing
-            assert self.preprocessing is None, "Preprocessing is yet to be implemented"
-            # if preprocessing is not None:
+            if self.preprocessing is None:
+                from hpsklearn import any_preprocessing
+                self.preprocessing = any_preprocessing(name="preprocessing")
 
             if self.ex_preprocs is None:
                 self.ex_preprocs = list()
@@ -189,6 +184,10 @@ class hyperopt_estimator(BaseEstimator):
                 self.space = pyll.as_apply(self.space)
 
             eval_space = dict(self.space.named_args)
+            assert all(k in eval_space.keys() for k in ["classifier", "regressor", "preprocessing"]), \
+                "Detected a search space. " \
+                "Parameters 'classifier', 'regressor' and 'preprocessing' should be supplied. " \
+                "'None' suffices for empty parameters."
 
             if "ex_preprocs" in eval_space.keys():
                 self.ex_preprocs = eval_space["ex_preprocs"].eval()
