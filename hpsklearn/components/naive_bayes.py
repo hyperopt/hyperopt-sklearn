@@ -1,4 +1,4 @@
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import naive_bayes
@@ -34,8 +34,8 @@ def sklearn_MultinomialNB(*args, **kwargs):
 
 def _nb_hp_space(
         name_func,
-        alpha: float = None,
-        fit_prior: bool = None,
+        alpha: typing.Union[float, Apply] = None,
+        fit_prior: typing.Union[bool, Apply] = None,
         class_prior: npt.ArrayLike = None,
 ):
     """
@@ -46,8 +46,8 @@ def _nb_hp_space(
      multinomial nb
     """
     hp_space = dict(
-        alpha=alpha or hp.quniform(name_func("alpha"), 0, 1, 0.001),
-        fit_prior=fit_prior or hp.choice(name_func("fit_prior"), [True, False]),
+        alpha=hp.quniform(name_func("alpha"), 0, 1, 0.001) if alpha is None else alpha,
+        fit_prior=hp.choice(name_func("fit_prior"), [True, False]) if fit_prior is None else fit_prior,
         class_prior=class_prior
     )
     return hp_space
@@ -65,6 +65,7 @@ def bernoulli_nb(name: str, binarize: typing.Union[float, None] = 0.0, **kwargs)
     See help(hpsklearn.components.naive_bayes._nb_hp_space)
     for info on additional available naive bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.bernoulli_nb_{msg}"
 
@@ -86,6 +87,7 @@ def categorical_nb(name: str, min_categories: typing.Union[int, npt.ArrayLike] =
     See help(hpsklearn.components.naive_bayes._nb_hp_space)
     for info on additional available naive bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.categorical_nb_{msg}"
 
@@ -95,7 +97,7 @@ def categorical_nb(name: str, min_categories: typing.Union[int, npt.ArrayLike] =
     return scope.sklearn_CategoricalNB(**hp_space)
 
 
-def complement_nb(name: str, norm: bool = None, **kwargs):
+def complement_nb(name: str, norm: typing.Union[bool, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.naive_bayes.ComplementNB model.
@@ -107,11 +109,12 @@ def complement_nb(name: str, norm: bool = None, **kwargs):
     See help(hpsklearn.components.naive_bayes._nb_hp_space)
     for info on additional available naive bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.complement_nb_{msg}"
 
     hp_space = _nb_hp_space(_name, **kwargs)
-    hp_space["norm"] = norm or hp.choice(_name("norm"), [True, False])
+    hp_space["norm"] = hp.choice(_name("norm"), [True, False]) if norm is None else norm
 
     return scope.sklearn_ComplementNB(**hp_space)
 
@@ -125,6 +128,7 @@ def gaussian_nb(name: str, var_smoothing: float = 1e-9):
         name: name | str
         var_smoothing: portion of largest variance | float
     """
+
     def _name(msg):
         return f"{name}.gaussian_nb_{msg}"
 
@@ -145,6 +149,7 @@ def multinomial_nb(name: str, **kwargs):
     See help(hpsklearn.components.naive_bayes._nb_hp_space)
     for info on additional available naive bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.multinomial_nb_{msg}"
 

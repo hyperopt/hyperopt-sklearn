@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import preprocessing
@@ -19,14 +19,14 @@ def sklearn_OrdinalEncoder(*args, **kwargs):
 
 
 @validate(params=["categories"],
-          validation_test=lambda param: isinstance(param, str) and param == "auto",
+          validation_test=lambda param: not isinstance(param, str) or param == "auto",
           msg="Invalid parameter '%s' with value '%s'. Choose 'auto' or a list of array-like.")
 @validate(params=["drop"],
-          validation_test=lambda param: isinstance(param, str) and param in ("first", "if_binary"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("first", "if_binary"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'first' or 'if_binary'.")
 def one_hot_encoder(name: str,
                     categories: typing.Union[str, list] = "auto",
-                    drop: typing.Union[str, np.ndarray] = None,
+                    drop: typing.Union[str, np.ndarray, Apply] = None,
                     sparse: bool = True,
                     dtype: type = np.float64):
     """
@@ -42,7 +42,7 @@ def one_hot_encoder(name: str,
     """
     rval = scope.sklearn_OneHotEncoder(
         categories=categories,
-        drop=drop or hp.choice(name + ".drop", ["first", "if_binary"]),
+        drop=hp.choice(name + ".drop", ["first", "if_binary"]) if drop is None else drop,
         sparse=sparse,
         dtype=dtype
     )
@@ -51,10 +51,10 @@ def one_hot_encoder(name: str,
 
 
 @validate(params=["categories"],
-          validation_test=lambda param: isinstance(param, str) and param == "auto",
+          validation_test=lambda param: not isinstance(param, str) or param == "auto",
           msg="Invalid parameter '%s' with value '%s'. Choose 'auto' or a list of array-like.")
 @validate(params=["handle_unknown"],
-          validation_test=lambda param: isinstance(param, str) and param in ("error", "use_encoded_value"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("error", "use_encoded_value"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'error' or 'use_encoded_value'.")
 def ordinal_encoder(name: str,
                     categories: typing.Union[str, list] = "auto",

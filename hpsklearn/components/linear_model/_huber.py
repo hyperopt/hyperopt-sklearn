@@ -1,10 +1,11 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
 import numpy as np
+import typing
 
 
 @scope.define
@@ -41,15 +42,15 @@ def _glm_tol(name: str):
 
 
 @validate(params=["epsilon", "max_iter"],
-          validation_test=lambda param: isinstance(param, float) and param > 1,
+          validation_test=lambda param: not isinstance(param, float) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter must exceed 1.")
 def huber_regressor(name: str,
-                    epsilon: float = None,
-                    max_iter: int = None,
-                    alpha: float = None,
+                    epsilon: typing.Union[float, Apply] = None,
+                    max_iter: typing.Union[int, Apply] = None,
+                    alpha: typing.Union[float, Apply] = None,
                     warm_start: bool = False,
                     fit_intercept: bool = True,
-                    tol: float = None):
+                    tol: typing.Union[float, Apply] = None):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.HuberRegressor model.

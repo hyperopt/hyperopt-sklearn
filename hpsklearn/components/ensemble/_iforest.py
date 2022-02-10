@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
@@ -47,15 +47,15 @@ def _iforest_random_state(name: str):
 
 
 @validate(params=["contamination"],
-          validation_test=lambda param: isinstance(param, float) and 0 < param <= .5,
+          validation_test=lambda param: not isinstance(param, float) or 0 < param <= .5,
           msg="Invalid parameter '%s' with value '%s'. Parameter value should be in the range (0, 0.5].")
 def _iforest_hp_space(
         name_func,
-        n_estimators: int = None,
-        max_samples: typing.Union[str, float] = "auto",
-        contamination: typing.Union[str, float] = "auto",
-        max_features: float = None,
-        bootstrap: bool = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        max_samples: typing.Union[str, float, Apply] = "auto",
+        contamination: typing.Union[str, float, Apply] = "auto",
+        max_features: typing.Union[float, Apply] = None,
+        bootstrap: typing.Union[bool, Apply] = None,
         n_jobs: int = 1,
         random_state=None,
         verbose: int = False,
@@ -66,11 +66,11 @@ def _iforest_hp_space(
      isolation forest algorithm
     """
     hp_space = dict(
-        n_estimators=(n_estimators or _iforest_n_estimators(name_func("n_estimators"))),
+        n_estimators=_iforest_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
         max_samples=max_samples,
         contamination=contamination,
-        max_features=(max_features or _iforest_max_features(name_func("max_features"))),
-        bootstrap=(bootstrap or _iforest_bootstrap(name_func("bootstrap"))),
+        max_features=_iforest_max_features(name_func("max_features")) if max_features is None else max_features,
+        bootstrap=_iforest_bootstrap(name_func("bootstrap")) if bootstrap is None else bootstrap,
         n_jobs=n_jobs,
         random_state=_iforest_random_state(name_func("random_state")) if random_state is None else random_state,
         verbose=verbose,
@@ -90,6 +90,7 @@ def isolation_forest(name: str, **kwargs):
     See help(hpsklearn.components.ensemble._iforest._iforest_hp_space)
     for info on additional available bagging arguments.
     """
+
     def _name(msg):
         return f"{name}.if_{msg}"
 

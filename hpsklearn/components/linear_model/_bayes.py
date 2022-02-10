@@ -1,10 +1,11 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
 import numpy as np
+import typing
 
 
 @scope.define
@@ -40,19 +41,19 @@ def _bayes_alpha_lambda(name: str):
 
 
 @validate(params=["n_iter"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 @validate(params=["alpha_1", "alpha_2", "lambda_1", "lambda_2"],
-          validation_test=lambda param: isinstance(param, float) and param >= 0,
+          validation_test=lambda param: not isinstance(param, float) or param >= 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be equal to or exceed 0.")
 def _bayes_hp_space(
         name_func,
-        n_iter: int = None,
-        tol: float = None,
-        alpha_1: float = None,
-        alpha_2: float = None,
-        lambda_1: float = None,
-        lambda_2: float = None,
+        n_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
+        alpha_1: typing.Union[float, Apply] = None,
+        alpha_2: typing.Union[float, Apply] = None,
+        lambda_1: typing.Union[float, Apply] = None,
+        lambda_2: typing.Union[float, Apply] = None,
         compute_score: bool = False,
         fit_intercept: bool = True,
         copy_X: bool = True,
@@ -64,12 +65,12 @@ def _bayes_hp_space(
      ard regression
     """
     hp_space = dict(
-        n_iter=n_iter or _bayes_n_iter(name_func("n_iter")),
+        n_iter=_bayes_n_iter(name_func("n_iter")) if n_iter is None else n_iter,
         tol=_bayes_tol(name_func("tol")) if tol is None else tol,
-        alpha_1=alpha_1 or _bayes_alpha_lambda(name_func("alpha_1")),
-        alpha_2=alpha_2 or _bayes_alpha_lambda(name_func("alpha_2")),
-        lambda_1=lambda_1 or _bayes_alpha_lambda(name_func("lambda_1")),
-        lambda_2=lambda_2 or _bayes_alpha_lambda(name_func("lambda_2")),
+        alpha_1=_bayes_alpha_lambda(name_func("alpha_1")) if alpha_1 is None else alpha_1,
+        alpha_2=_bayes_alpha_lambda(name_func("alpha_2")) if alpha_2 is None else alpha_2,
+        lambda_1=_bayes_alpha_lambda(name_func("lambda_1")) if lambda_1 is None else lambda_1,
+        lambda_2=_bayes_alpha_lambda(name_func("lambda_2")) if lambda_2 is None else lambda_2,
         compute_score=compute_score,
         fit_intercept=fit_intercept,
         copy_X=copy_X,
@@ -94,6 +95,7 @@ def bayesian_ridge(name: str,
     See help(hpsklearn.components.linear_model._bayes._bayes_hp_space)
     for info on additional available bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.bayesian_ridge_{msg}"
 
@@ -116,6 +118,7 @@ def ard_regression(name: str, threshold_lambda: float = 10000, **kwargs):
     See help(hpsklearn.components.linear_model._bayes._bayes_hp_space)
     for info on additional available bayes arguments.
     """
+
     def _name(msg):
         return f"{name}.ard_regression_{msg}"
 

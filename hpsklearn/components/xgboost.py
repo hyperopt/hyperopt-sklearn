@@ -1,9 +1,10 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 import numpy as np
+import typing
 
 try:
     import xgboost
@@ -104,17 +105,17 @@ def _xgboost_random_state(name: str):
 
 def _xgboost_hp_space(
         name_func,
-        max_depth: int = None,
-        learning_rate: float = None,
-        n_estimators: int = None,
-        gamma: float = None,
-        min_child_weight: float = None,
+        max_depth: typing.Union[int, Apply] = None,
+        learning_rate: typing.Union[float, Apply] = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        gamma: typing.Union[float, Apply] = None,
+        min_child_weight: typing.Union[float, Apply] = None,
         max_delta_step: float = 0,
-        subsample: float = None,
-        colsample_bytree: float = None,
-        colsample_bylevel: float = None,
-        reg_alpha: float = None,
-        reg_lambda: float = None,
+        subsample: typing.Union[float, Apply] = None,
+        colsample_bytree: typing.Union[float, Apply] = None,
+        colsample_bylevel: typing.Union[float, Apply] = None,
+        reg_alpha: typing.Union[float, Apply] = None,
+        reg_lambda: typing.Union[float, Apply] = None,
         scale_pos_weight: float = 1,
         base_score: float = 0.5,
         random_state=None,
@@ -148,9 +149,9 @@ def _xgboost_hp_space(
 
 
 @validate(params=["objective"],
-          validation_test=lambda param: param in ["binary:logistic", "binary:logitraw"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["binary:logistic", "binary:logitraw"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'binary:logistic' or 'binary:logitraw'.")
-def xgboost_classification(name: str, objective: str = None, **kwargs):
+def xgboost_classification(name: str, objective: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a xgboost.XGBClassifier model.
@@ -162,6 +163,7 @@ def xgboost_classification(name: str, objective: str = None, **kwargs):
     See help(hpsklearn.components._xgboost_hp_space) for info on
     additional available XGBoost arguments.
     """
+
     def _name(msg):
         return f"{name}.xgboost_clf_{msg}"
 
@@ -173,9 +175,9 @@ def xgboost_classification(name: str, objective: str = None, **kwargs):
 
 
 @validate(params=["objective"],
-          validation_test=lambda param: param in ["reg:squarederror", "count:poisson"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["reg:squarederror", "count:poisson"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'reg:squarederror' or 'count:poisson'.")
-def xgboost_regression(name: str, objective: str = None, **kwargs):
+def xgboost_regression(name: str, objective: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a xgboost.XGBRegressor model.
@@ -187,6 +189,7 @@ def xgboost_regression(name: str, objective: str = None, **kwargs):
     See help(hpsklearn.components._xgboost_hp_space) for info on
     additional available XGBoost arguments.
     """
+
     def _name(msg):
         return f"{name}.xgboost_reg_{msg}"
 

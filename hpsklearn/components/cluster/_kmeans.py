@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import cluster
@@ -41,8 +41,8 @@ def _kmeans_random_state(name: str):
 
 def _kmeans_hp_space(
         name_func,
-        n_clusters: int = None,
-        init: typing.Union[str, callable, npt.ArrayLike] = None,
+        n_clusters: typing.Union[int, Apply] = None,
+        init: typing.Union[str, callable, npt.ArrayLike, Apply] = None,
         verbose: int = 0,
         random_state=None
 ):
@@ -53,7 +53,7 @@ def _kmeans_hp_space(
     """
     hp_space = dict(
         n_clusters=_kmeans_n_clusters(name_func("n_clusters")) if n_clusters is None else n_clusters,
-        init=init or _kmeans_init(name_func("init")),
+        init=_kmeans_init(name_func("init")) if init is None else init,
         verbose=verbose,
         random_state=_kmeans_random_state(name_func("random_state")) if random_state is None else random_state
     )
@@ -61,14 +61,14 @@ def _kmeans_hp_space(
 
 
 @validate(params=["algorithm"],
-          validation_test=lambda param: param in ["auto", "full", "elkan"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "full", "elkan"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'auto', 'full' or 'elkan'")
 def k_means(name: str,
-            n_init: int = None,
-            max_iter: int = None,
-            tol: float = None,
+            n_init: typing.Union[int, Apply] = None,
+            max_iter: typing.Union[int, Apply] = None,
+            tol: typing.Union[float, Apply] = None,
             copy_x: bool = True,
-            algorithm: str = None,
+            algorithm: typing.Union[str, Apply] = None,
             **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -85,6 +85,7 @@ def k_means(name: str,
     See help(hpsklearn.components.cluster._kmeans._kmeans_hp_space)
     for info on additional available k means arguments.
     """
+
     def _name(msg):
         return f"{name}.k_means_{msg}"
 
@@ -93,20 +94,20 @@ def k_means(name: str,
     hp_space["max_iter"] = scope.int(hp.uniform(_name("max_iter"), 100, 500)) if max_iter is None else max_iter
     hp_space["tol"] = hp.uniform(_name("tol"), 1e-5, 1e-3) if tol is None else tol
     hp_space["copy_x"] = copy_x
-    hp_space["algorithm"] = algorithm or hp.choice(_name("algorithm"), ["auto", "full", "elkan"])
+    hp_space["algorithm"] = hp.choice(_name("algorithm"), ["auto", "full", "elkan"]) if algorithm is None else algorithm
 
     return scope.sklearn_KMeans(**hp_space)
 
 
 def mini_batch_k_means(name: str,
-                       max_iter: int = None,
-                       batch_size: int = None,
+                       max_iter: typing.Union[int, Apply] = None,
+                       batch_size: typing.Union[int, Apply] = None,
                        compute_labels: bool = True,
-                       tol: float = None,
-                       max_no_improvement: int = None,
+                       tol: typing.Union[float, Apply] = None,
+                       max_no_improvement: typing.Union[int, Apply] = None,
                        init_size: int = None,
-                       n_init: int = None,
-                       reassignment_ratio: float = None,
+                       n_init: typing.Union[int, Apply] = None,
+                       reassignment_ratio: typing.Union[float, Apply] = None,
                        **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -126,6 +127,7 @@ def mini_batch_k_means(name: str,
     See help(hpsklearn.components.cluster._kmeans._kmeans_hp_space)
     for info on additional available k means arguments.
     """
+
     def _name(msg):
         return f"{name}.mini_batch_k_means_{msg}"
 

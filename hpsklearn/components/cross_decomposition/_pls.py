@@ -1,6 +1,8 @@
+import typing
+
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import cross_decomposition
@@ -33,7 +35,7 @@ def _pls_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    scope.int(hp.qloguniform(name, np.log(350), np.log(650), 1))
+    return scope.int(hp.qloguniform(name, np.log(350), np.log(650), 1))
 
 
 def _pls_tol(name: str):
@@ -45,10 +47,10 @@ def _pls_tol(name: str):
 
 def _pls_hp_space(
         name_func,
-        n_components: int = None,
+        n_components: typing.Union[int, Apply] = None,
         scale: bool = True,
-        max_iter: int = None,
-        tol: float = None,
+        max_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
         copy: bool = True
 ):
     """
@@ -78,6 +80,7 @@ def cca(name: str, **kwargs):
     See help(hpsklearn.components.cross_decomposition._pls._pls_hp_space)
     for info on additional available pls arguments.
     """
+
     def _name(msg):
         return f"{name}.cca_{msg}"
 
@@ -87,9 +90,9 @@ def cca(name: str, **kwargs):
 
 
 @validate(params=["algorithm"],
-          validation_test=lambda param: isinstance(param, str) and param in ["nipals", "svd"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["nipals", "svd"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['nipals', 'svd'].")
-def pls_canonical(name: str, algorithm: str = None, **kwargs):
+def pls_canonical(name: str, algorithm: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.cross_decomposition.PLSCanonical model.
@@ -101,11 +104,12 @@ def pls_canonical(name: str, algorithm: str = None, **kwargs):
     See help(hpsklearn.components.cross_decomposition._pls._pls_hp_space)
     for info on additional available pls arguments.
     """
+
     def _name(msg):
         return f"{name}.pls_canonical_{msg}"
 
     hp_space = _pls_hp_space(_name, **kwargs)
-    hp_space["algorithm"] = algorithm or hp.choice(_name("algorithm"), ["nipals", "svd"])
+    hp_space["algorithm"] = hp.choice(_name("algorithm"), ["nipals", "svd"]) if algorithm is None else algorithm
 
     return scope.sklearn_PLSCanonical(**hp_space)
 
@@ -121,6 +125,7 @@ def pls_regression(name: str, **kwargs):
     See help(hpsklearn.components.cross_decomposition._pls._pls_hp_space)
     for info on additional available pls arguments.
     """
+
     def _name(msg):
         return f"{name}.pls_regression_{msg}"
 

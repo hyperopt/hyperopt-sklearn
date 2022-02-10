@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -14,23 +14,23 @@ def sklearn_Perceptron(*args, **kwargs):
 
 
 @validate(params=["penalty"],
-          validation_test=lambda param: isinstance(param, str) and param in ["l1", "l2", "elasticnet"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["l1", "l2", "elasticnet"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['l1', 'l2', 'elasticnet'].")
 def perceptron(name: str,
-               penalty: str = None,
-               alpha: float = None,
-               l1_ratio: float = None,
-               fit_intercept: bool = True,
-               max_iter: int = None,
-               tol: float = None,
+               penalty: typing.Union[str, Apply] = None,
+               alpha: typing.Union[float, Apply] = None,
+               l1_ratio: typing.Union[float, Apply] = None,
+               fit_intercept: typing.Union[bool, Apply] = True,
+               max_iter: typing.Union[int, Apply] = None,
+               tol: typing.Union[float, Apply] = None,
                shuffle: bool = True,
                verbose: int = 0,
-               eta0: float = None,
+               eta0: typing.Union[float, Apply] = None,
                n_jobs: int = 1,
                random_state=None,
                early_stopping: bool = False,
-               validation_fraction: float = None,
-               n_iter_no_change: int = 5,
+               validation_fraction: typing.Union[float, Apply] = None,
+               n_iter_no_change: typing.Union[int, Apply] = 5,
                class_weight: typing.Union[dict, str] = None,
                warm_start: bool = False
                ):
@@ -57,24 +57,26 @@ def perceptron(name: str,
         class_weight: class_weight fit parameters | dict or str
         warm_start: reuse previous call as fit | bool
     """
+
     def _name(msg):
         return f"{name}.perceptron_{msg}"
 
     hp_space = dict(
-        penalty=penalty or hp.choice(_name("penalty"), ["l1", "l2", "elasticnet"]),
-        alpha=alpha or hp.loguniform(_name("alpha"), np.log(1e-6), np.log(1e-1)),
-        l1_ratio=l1_ratio or hp.loguniform(_name("l1_ratio"), np.log(1e-7), np.log(1)),
-        fit_intercept=fit_intercept or hp.choice(_name("fit_intercept"), [True, False]),
-        max_iter=max_iter or hp.qloguniform(_name("max_iter"), np.log(750), np.log(1250), 1),
-        tol=tol or hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)),
+        penalty=hp.choice(_name("penalty"), ["l1", "l2", "elasticnet"]) if penalty is None else penalty,
+        alpha=hp.loguniform(_name("alpha"), np.log(1e-6), np.log(1e-1)) if alpha is None else alpha,
+        l1_ratio=hp.loguniform(_name("l1_ratio"), np.log(1e-7), np.log(1)) if l1_ratio is None else l1_ratio,
+        fit_intercept=hp.choice(_name("fit_intercept"), [True, False]) if fit_intercept is None else fit_intercept,
+        max_iter=hp.qloguniform(_name("max_iter"), np.log(750), np.log(1250), 1) if max_iter is None else max_iter,
+        tol=hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)) if tol is None else tol,
         shuffle=shuffle,
         verbose=verbose,
-        eta0=eta0 or hp.normal(_name("eta0"), mu=1.0, sigma=0.1),
+        eta0=hp.normal(_name("eta0"), mu=1.0, sigma=0.1) if eta0 is None else eta0,
         n_jobs=n_jobs,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
         early_stopping=early_stopping,
         validation_fraction=0.1 if validation_fraction is None else validation_fraction,
-        n_iter_no_change=n_iter_no_change or hp.pchoice(_name("n_iter_no_change"), [(0.25, 4), (0.50, 5), (0.25, 6)]),
+        n_iter_no_change=hp.pchoice(_name("n_iter_no_change"), [(0.25, 4), (0.50, 5), (0.25, 6)])
+        if n_iter_no_change is None else n_iter_no_change,
         class_weight=class_weight,
         warm_start=warm_start
     )

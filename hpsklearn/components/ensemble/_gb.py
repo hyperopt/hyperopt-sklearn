@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
@@ -26,16 +26,18 @@ def _gb_clf_loss(name: str):
     return hp.choice(name, ["deviance", "exponential"])
 
 
-def _gb_reg_loss_alpha(name: str):
+def _gb_reg_loss(name: str):
     """
-    Declaration search space 'loss' and 'alpha' parameters for _gb regressor
+    Declaration search space 'loss' parameter for _gb regressor
     """
-    return hp.choice(name, [
-        ("squared_error", 0.9),
-        ("absolute_error", 0.9),
-        ("huber", hp.uniform(name + ".alpha", 0.85, 0.95)),
-        ("quantile", 0.5)
-    ])
+    return hp.choice(name, ["squared_error", "absolute_error", "huber"])
+
+
+def _gb_reg_alpha(name: str):
+    """
+    Declaration search space 'alpha' parameter for _gb regressor
+    """
+    return hp.uniform(name, 0.85, 0.95)
 
 
 def _gb_learning_rate(name: str):
@@ -142,32 +144,32 @@ def _gb_max_leaf_nodes(name: str):
 
 
 @validate(params=["max_features"],
-          validation_test=lambda param: isinstance(param, str) and param in ["auto", "sqrt", "log2"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "sqrt", "log2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'sqrt', 'log2'].")
 @validate(params=["n_estimators", "max_depth", "min_samples_split",
                   "min_samples_leaf", "min_weight_fraction_leaf",
                   "min_impurity_decrease", "max_features", "max_leaf_nodes"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["ccp_alpha", "learning_rate"],
-          validation_test=lambda param: isinstance(param, float) and 0 <= param <= 1,
+          validation_test=lambda param: not isinstance(param, float) or 0 <= param <= 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0].")
 def _gb_hp_space(
         name_func,
-        learning_rate: float = None,
-        n_estimators: int = None,
+        learning_rate: typing.Union[float, Apply] = None,
+        n_estimators: typing.Union[int, Apply] = None,
         subsample: float = 1.0,
-        criterion: str = None,
-        min_samples_split: float = None,
-        min_samples_leaf: float = None,
-        min_weight_fraction_leaf: float = None,
-        max_depth: int = None,
-        min_impurity_decrease: float = None,
+        criterion: typing.Union[str, Apply] = None,
+        min_samples_split: typing.Union[float, Apply] = None,
+        min_samples_leaf: typing.Union[float, Apply] = None,
+        min_weight_fraction_leaf: typing.Union[float, Apply] = None,
+        max_depth: typing.Union[int, Apply] = None,
+        min_impurity_decrease: typing.Union[float, Apply] = None,
         init=None,
         random_state=None,
-        max_features: typing.Union[str, float] = None,
+        max_features: typing.Union[str, float, Apply] = None,
         verbose: int = False,
-        max_leaf_nodes: int = None,
+        max_leaf_nodes: typing.Union[int, Apply] = None,
         warm_start: bool = False,
         validation_fraction: float = 0.1,
         n_iter_no_change: int = None,
@@ -180,24 +182,24 @@ def _gb_hp_space(
      gradient boosting regressor
     """
     hp_space = dict(
-        learning_rate=(learning_rate or _gb_learning_rate(name_func("learning_rate"))),
-        n_estimators=(n_estimators or _gb_n_estimators(name_func("n_estimators"))),
+        learning_rate=_gb_learning_rate(name_func("learning_rate")) if learning_rate is None else learning_rate,
+        n_estimators=_gb_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
         subsample=subsample,
-        criterion=(criterion or _gb_criterion(name_func("criterion"))),
-        min_samples_split=(min_samples_split or _gb_min_samples_split(name_func("min_samples_split"))),
-        min_samples_leaf=(min_samples_leaf or _gb_min_samples_leaf(name_func("min_samples_leaf"))),
-        min_weight_fraction_leaf=(min_weight_fraction_leaf
-                                  or _gb_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))),
-        max_depth=(_gb_max_depth(name_func("max_depth"))
-                   if max_depth is None else max_depth),
-        min_impurity_decrease=(min_impurity_decrease
-                               or _gb_min_impurity_decrease(name_func("min_impurity_decrease"))),
+        criterion=_gb_criterion(name_func("criterion")) if criterion is None else criterion,
+        min_samples_split=_gb_min_samples_split(name_func("min_samples_split"))
+        if min_samples_split is None else min_samples_split,
+        min_samples_leaf=_gb_min_samples_leaf(name_func("min_samples_leaf"))
+        if min_samples_leaf is None else min_samples_leaf,
+        min_weight_fraction_leaf=_gb_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))
+        if min_weight_fraction_leaf is None else min_weight_fraction_leaf,
+        max_depth=_gb_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        min_impurity_decrease=_gb_min_impurity_decrease(name_func("min_impurity_decrease"))
+        if min_impurity_decrease is None else min_impurity_decrease,
         init=init,
         random_state=_gb_random_state(name_func("random_state")) if random_state is None else random_state,
-        max_features=(max_features or _gb_max_features(name_func("max_features"))),
+        max_features=_gb_max_features(name_func("max_features")) if max_features is None else max_features,
         verbose=verbose,
-        max_leaf_nodes=(_gb_max_leaf_nodes(name_func("max_leaf_nodes"))
-                        if max_leaf_nodes is None else max_leaf_nodes),
+        max_leaf_nodes=_gb_max_leaf_nodes(name_func("max_leaf_nodes")) if max_leaf_nodes is None else max_leaf_nodes,
         warm_start=warm_start,
         validation_fraction=validation_fraction,
         n_iter_no_change=n_iter_no_change,
@@ -208,9 +210,9 @@ def _gb_hp_space(
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ("deviance", "exponential"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("deviance", "exponential"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'deviance' or 'exponential'.")
-def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
+def gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.GradientBoostingClassifier model.
@@ -227,20 +229,23 @@ def gradient_boosting_classifier(name: str, loss: str = None, **kwargs):
         return f"{name}.gbc_{msg}"
 
     hp_space = _gb_hp_space(_name, **kwargs)
-    hp_space["loss"] = (loss or _gb_clf_loss(_name("loss")))
+    hp_space["loss"] = _gb_clf_loss(_name("loss")) if loss is None else loss
 
     return scope.sklearn_GradientBoostingClassifier(**hp_space)
 
 
 @validate(params=["alpha"],
-          validation_test=lambda param: isinstance(param, float) and 0 <= param <= 1,
+          validation_test=lambda param: not isinstance(param, float) or 0 <= param <= 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0]")
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ("squared_error", "absolute_error",
-                                                                             "huber" or "quantile"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("squared_error", "absolute_error",
+                                                                                "huber" or "quantile"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'.")
-def gradient_boosting_regressor(name: str, loss: str = None, alpha: float = None, **kwargs):
+def gradient_boosting_regressor(name: str,
+                                loss: typing.Union[str, Apply] = None,
+                                alpha: typing.Union[float, Apply] = None,
+                                **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.GradientBoostingRegressor model.
@@ -262,9 +267,8 @@ def gradient_boosting_regressor(name: str, loss: str = None, alpha: float = None
     def _name(msg):
         return f"{name}.gbr_{msg}"
 
-    loss_alpha = _gb_reg_loss_alpha(_name("loss_alpha"))
     hp_space = _gb_hp_space(_name, **kwargs)
-    hp_space["loss"] = loss or loss_alpha[0]
-    hp_space["alpha"] = alpha or loss_alpha[1]
+    hp_space["loss"] = _gb_reg_loss(_name("loss")) if loss is None else loss
+    hp_space["alpha"] = _gb_reg_alpha(_name("alpha")) if alpha is None else alpha
 
     return scope.sklearn_GradientBoostingRegressor(**hp_space)

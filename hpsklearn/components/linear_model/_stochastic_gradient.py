@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -145,35 +145,35 @@ def _stochastic_gradient_n_iter_no_change(name: str):
 
 
 @validate(params=["penalty"],
-          validation_test=lambda param: isinstance(param, str) and param in ["l2", "l1", "elasticnet"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["l2", "l1", "elasticnet"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['l2', 'l1', 'elasticnet'].")
 @validate(params=["learning_rate"],
-          validation_test=lambda param: isinstance(param, str) and param in
+          validation_test=lambda param: not isinstance(param, str) or param in
                                         ["constant", "optimal", "invscaling", "adaptive"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['constant', 'optimal', 'invscaling', 'adaptive'].")
 @validate(params=["n_iter_no_change"],
-          validation_test=lambda param: isinstance(param, int) and param > 0,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Value must be 0 or higher.")
 def _stochastic_gradient_hp_space(
         name_func,
-        loss: str = None,
-        penalty: str = None,
-        alpha: float = None,
-        l1_ratio: float = None,
+        loss: typing.Union[str, Apply] = None,
+        penalty: typing.Union[str, Apply] = None,
+        alpha: typing.Union[float, Apply] = None,
+        l1_ratio: typing.Union[float, Apply] = None,
         fit_intercept: bool = True,
-        max_iter: int = None,
-        tol: float = None,
+        max_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
         shuffle: bool = True,
         verbose: int = 0,
-        epsilon: float = None,
+        epsilon: typing.Union[float, Apply] = None,
         random_state=None,
-        learning_rate: str = None,
-        eta0: float = None,
-        power_t: float = None,
+        learning_rate: typing.Union[str, Apply] = None,
+        eta0: typing.Union[float, Apply] = None,
+        power_t: typing.Union[float, Apply] = None,
         early_stopping: bool = False,
-        validation_fraction: float = None,
-        n_iter_no_change: int = None,
+        validation_fraction: typing.Union[float, Apply] = None,
+        n_iter_no_change: typing.Union[int, Apply] = None,
         warm_start: bool = False,
         average: typing.Union[bool, int] = False,
 ):
@@ -191,23 +191,25 @@ def _stochastic_gradient_hp_space(
 
     hp_space = dict(
         loss=loss,
-        penalty=penalty or _stochastic_gradient_penalty(name_func("penalty")),
-        alpha=alpha or _stochastic_gradient_alpha(name_func("alpha")),
+        penalty=_stochastic_gradient_penalty(name_func("penalty")) if penalty is None else penalty,
+        alpha=_stochastic_gradient_alpha(name_func("alpha")) if alpha is None else alpha,
         l1_ratio=_stochastic_gradient_l1_ratio(name_func("l1_ratio")) if l1_ratio is None else l1_ratio,
         fit_intercept=fit_intercept,
-        max_iter=max_iter or _stochastic_gradient_max_iter(name_func("max_iter")),
+        max_iter=_stochastic_gradient_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_stochastic_gradient_tol(name_func("tol")) if tol is None else tol,
         shuffle=shuffle,
         verbose=verbose,
         epsilon=0.1 if epsilon is None else epsilon,
         random_state=_stochastic_gradient_random_state(name_func("random_state"))
         if random_state is None else random_state,
-        learning_rate=learning_rate or _stochastic_gradient_learning_rate(name_func("learning_rate")),
+        learning_rate=_stochastic_gradient_learning_rate(name_func("learning_rate"))
+        if learning_rate is None else learning_rate,
         eta0=_stochastic_gradient_eta0(name_func("eta0")) if eta0 is None else eta0,
         power_t=_stochastic_gradient_power_t(name_func("power_t")) if power_t is None else power_t,
         early_stopping=early_stopping,
         validation_fraction=0.1 if validation_fraction is None else validation_fraction,
-        n_iter_no_change=n_iter_no_change or _stochastic_gradient_n_iter_no_change(name_func("n_iter_no_change")),
+        n_iter_no_change=_stochastic_gradient_n_iter_no_change(name_func("n_iter_no_change"))
+        if n_iter_no_change is None else n_iter_no_change,
         warm_start=warm_start,
         average=average,
     )
@@ -215,7 +217,7 @@ def _stochastic_gradient_hp_space(
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and
+          validation_test=lambda param: not isinstance(param, str) or
                                         param in ["hinge", "log", "modified_huber", "squared_hinge", "perceptron",
                                                   "squared_error", "huber", "epsilon_insensitive",
                                                   "squared_epsilon_insensitive"],
@@ -223,10 +225,10 @@ def _stochastic_gradient_hp_space(
               "'squared_hinge', 'perceptron', 'squared_error', 'huber', 'epsilon_insensitive', "
               "'squared_epsilon_insensitive'].")
 @validate(params=["class_weight"],
-          validation_test=lambda param: isinstance(param, str) and param == "balanced",
+          validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'.")
 def sgd_classifier(name: str,
-                   loss: str = None,
+                   loss: typing.Union[str, Apply] = None,
                    n_jobs: int = 1,
                    class_weight: typing.Union[dict, str] = None,
                    **kwargs):
@@ -243,10 +245,11 @@ def sgd_classifier(name: str,
     See help(hpsklearn.components.linear_model._stochastic_gradient._stochastic_gradient_hp_space)
     for info on additional available stochastic gradient arguments.
     """
+
     def _name(msg):
         return f"{name}.sgd_classifier_{msg}"
 
-    sgd_loss = loss or _stochastic_gradient_classifier_loss(_name("loss"))
+    sgd_loss = _stochastic_gradient_classifier_loss(_name("loss")) if loss is None else loss
     hp_space = _stochastic_gradient_hp_space(_name, sgd_loss, **kwargs)
     hp_space["n_jobs"] = n_jobs
     hp_space["class_weight"] = class_weight
@@ -255,12 +258,12 @@ def sgd_classifier(name: str,
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and
+          validation_test=lambda param: not isinstance(param, str) or
                                         param in ["squared_error", "huber", "epsilon_insensitive",
                                                   "squared_epsilon_insensitive"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['squared_error', 'huber', "
               "'epsilon_insensitive', 'squared_epsilon_insensitive'].")
-def sgd_regressor(name: str, loss: str = None, **kwargs):
+def sgd_regressor(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.SGDRegressor model.
@@ -272,26 +275,27 @@ def sgd_regressor(name: str, loss: str = None, **kwargs):
     See help(hpsklearn.components.linear_model._stochastic_gradient._stochastic_gradient_hp_space)
     for info on additional available stochastic gradient arguments.
     """
+
     def _name(msg):
         return f"{name}.sgd_regressor_{msg}"
 
-    sgd_loss = loss or _stochastic_gradient_regressor_loss(_name("loss"))
+    sgd_loss = _stochastic_gradient_regressor_loss(_name("loss")) if loss is None else loss
     hp_space = _stochastic_gradient_hp_space(_name, sgd_loss, **kwargs)
 
     return scope.sklearn_SGDRegressor(**hp_space)
 
 
 def sgd_one_class_svm(name: str,
-                      nu: float = None,
+                      nu: typing.Union[float, Apply] = None,
                       fit_intercept: bool = True,
-                      max_iter: int = None,
-                      tol: float = None,
+                      max_iter: typing.Union[int, Apply] = None,
+                      tol: typing.Union[float, Apply] = None,
                       shuffle: bool = True,
                       verbose: int = 0,
                       random_state=None,
-                      learning_rate: str = None,
-                      eta0: float = None,
-                      power_t: float = None,
+                      learning_rate: typing.Union[str, Apply] = None,
+                      eta0: typing.Union[float, Apply] = None,
+                      power_t: typing.Union[float, Apply] = None,
                       warm_start: bool = False,
                       average: typing.Union[bool, int] = False
                       ):
@@ -317,19 +321,21 @@ def sgd_one_class_svm(name: str,
     See help(hpsklearn.components.linear_model._stochastic_gradient._stochastic_gradient_hp_space)
     for info on additional available stochastic gradient arguments.
     """
+
     def _name(msg):
         return f"{name}.sgd_one_class_svm_{msg}"
 
     hp_space = dict(
         nu=_stochastic_gradient_nu(_name("nu")) if nu is None else nu,
         fit_intercept=fit_intercept,
-        max_iter=max_iter or _stochastic_gradient_max_iter(_name("max_iter")),
+        max_iter=_stochastic_gradient_max_iter(_name("max_iter")) if max_iter is None else max_iter,
         tol=_stochastic_gradient_tol(_name("tol")) if tol is None else tol,
         shuffle=shuffle,
         verbose=verbose,
         random_state=_stochastic_gradient_random_state(_name("random_state"))
         if random_state is None else random_state,
-        learning_rate=learning_rate or _stochastic_gradient_learning_rate(_name("learning_rate")),
+        learning_rate=_stochastic_gradient_learning_rate(_name("learning_rate"))
+        if learning_rate is None else learning_rate,
         eta0=_stochastic_gradient_eta0(_name("eta0")) if eta0 is None else eta0,
         power_t=_stochastic_gradient_power_t(_name("power_t")) if power_t is None else power_t,
         warm_start=warm_start,

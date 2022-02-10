@@ -1,9 +1,10 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
+import typing
 
 
 @scope.define
@@ -74,19 +75,19 @@ def _bagging_random_state(name: str):
 
 
 @validate(params=["max_samples", "max_features"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["n_estimators"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 def _bagging_hp_space(
         name_func,
         base_estimator=None,
-        n_estimators: int = None,
-        max_samples: float = None,
-        max_features: float = None,
-        bootstrap: bool = None,
-        bootstrap_features: bool = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        max_samples: typing.Union[float, Apply] = None,
+        max_features: typing.Union[float, Apply] = None,
+        bootstrap: typing.Union[bool, Apply] = None,
+        bootstrap_features: typing.Union[bool, Apply] = None,
         oob_score: bool = False,
         warm_start: bool = False,
         n_jobs: int = 1,
@@ -100,11 +101,12 @@ def _bagging_hp_space(
     """
     hp_space = dict(
         base_estimator=base_estimator,
-        n_estimators=(n_estimators or _bagging_n_estimators(name_func("n_estimators"))),
-        max_samples=(max_samples or _bagging_max_samples(name_func("max_samples"))),
-        max_features=(max_features or _bagging_max_features(name_func("max_features"))),
-        bootstrap=(bootstrap or _bagging_bootstrap(name_func("bootstrap"))),
-        bootstrap_features=(bootstrap_features or _bagging_bootstrap_features(name_func("bootstrap_features"))),
+        n_estimators=_bagging_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
+        max_samples=_bagging_max_samples(name_func("max_samples")) if max_samples is None else max_samples,
+        max_features=_bagging_max_features(name_func("max_features")) if max_features is None else max_features,
+        bootstrap=_bagging_bootstrap(name_func("bootstrap")) if bootstrap is None else bootstrap,
+        bootstrap_features=_bagging_bootstrap_features(name_func("bootstrap_features"))
+        if bootstrap_features is None else bootstrap_features,
         oob_score=oob_score,
         warm_start=warm_start,
         n_jobs=n_jobs,
@@ -125,6 +127,7 @@ def bagging_classifier(name: str, **kwargs):
     See help(hpsklearn.components.ensemble._bagging._bagging_hp_space)
     for info on additional available bagging arguments.
     """
+
     def _name(msg):
         return f"{name}.bc_{msg}"
 
@@ -144,6 +147,7 @@ def bagging_regressor(name: str, **kwargs):
     See help(hpsklearn.components.ensemble._bagging._bagging_hp_space)
     for info on additional available bagging arguments.
     """
+
     def _name(msg):
         return f"{name}.br_{msg}"
 

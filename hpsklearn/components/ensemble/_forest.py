@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
@@ -163,27 +163,27 @@ def _forest_random_state(name: str):
 
 
 @validate(params=["max_features"],
-          validation_test=lambda param: isinstance(param, str) and param in ["auto", "sqrt", "log2"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "sqrt", "log2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'sqrt', 'log2'].")
 @validate(params=["n_estimators", "max_depth", "min_samples_split",
                   "min_samples_leaf", "max_features", "max_leaf_nodes",
                   "min_impurity_decrease"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 @validate(params=["ccp_alpha"],
-          validation_test=lambda param: isinstance(param, float) and not param < 0,
+          validation_test=lambda param: not isinstance(param, float) or not param < 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative.")
 def _forest_hp_space(
         name_func,
-        n_estimators: int = None,
-        max_depth: int = None,
-        min_samples_split: float = None,
-        min_samples_leaf: float = None,
-        min_weight_fraction_leaf: float = None,
-        max_features: typing.Union[str, float] = None,
-        max_leaf_nodes: int = None,
-        min_impurity_decrease: float = None,
-        bootstrap: bool = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        max_depth: typing.Union[int, Apply] = None,
+        min_samples_split: typing.Union[float, Apply] = None,
+        min_samples_leaf: typing.Union[float, Apply] = None,
+        min_weight_fraction_leaf: typing.Union[float, Apply] = None,
+        max_features: typing.Union[str, float, Apply] = None,
+        max_leaf_nodes: typing.Union[int, Apply] = None,
+        min_impurity_decrease: typing.Union[float, Apply] = None,
+        bootstrap: typing.Union[bool, Apply] = None,
         oob_score: bool = False,
         n_jobs: int = 1,
         random_state=None,
@@ -204,19 +204,20 @@ def _forest_hp_space(
                          "For usage of custom parameters 'oob_score' and 'max_samples' "
                          "parameter 'bootstrap' can not be False.")
     hp_space = dict(
-        n_estimators=(n_estimators or _forest_n_estimators(name_func("n_estimators"))),
-        max_depth=(_forest_max_depth(name_func("max_depth"))
-                   if max_depth is None else max_depth),
-        min_samples_split=(min_samples_split or _forest_min_samples_split(name_func("min_samples_split"))),
-        min_samples_leaf=(min_samples_leaf or _forest_min_samples_leaf(name_func("min_samples_leaf"))),
-        min_weight_fraction_leaf=(min_weight_fraction_leaf
-                                  or _forest_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))),
-        max_features=(max_features or _forest_max_features(name_func("max_features"))),
-        max_leaf_nodes=(_forest_max_leaf_nodes(name_func("max_leaf_nodes"))
-                        if max_leaf_nodes is None else max_leaf_nodes),
-        min_impurity_decrease=(min_impurity_decrease
-                               or _forest_min_impurity_decrease(name_func("min_impurity_decrease"))),
-        bootstrap=(_forest_bootstrap(name_func("bootstrap")) if bootstrap is None else bootstrap),
+        n_estimators=_forest_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
+        max_depth=_forest_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        min_samples_split=_forest_min_samples_split(name_func("min_samples_split"))
+        if min_samples_split is None else min_samples_split,
+        min_samples_leaf=_forest_min_samples_leaf(name_func("min_samples_leaf"))
+        if min_samples_leaf is None else min_samples_leaf,
+        min_weight_fraction_leaf=_forest_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))
+        if min_weight_fraction_leaf is None else min_weight_fraction_leaf,
+        max_features=_forest_max_features(name_func("max_features")) if max_features is None else max_features,
+        max_leaf_nodes=_forest_max_leaf_nodes(name_func("max_leaf_nodes"))
+        if max_leaf_nodes is None else max_leaf_nodes,
+        min_impurity_decrease=_forest_min_impurity_decrease(name_func("min_impurity_decrease"))
+        if min_impurity_decrease is None else min_impurity_decrease,
+        bootstrap=_forest_bootstrap(name_func("bootstrap")) if bootstrap is None else bootstrap,
         oob_score=oob_score,
         n_jobs=n_jobs,
         random_state=_forest_random_state(name_func("random_state")) if random_state is None else random_state,
@@ -229,8 +230,8 @@ def _forest_hp_space(
 
 
 def random_forest_classifier(name: str,
-                             criterion: str = None,
-                             class_weight: typing.Union[dict, list] = None,
+                             criterion: typing.Union[str, Apply] = None,
+                             class_weight: typing.Union[dict, list, Apply] = None,
                              **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -249,13 +250,13 @@ def random_forest_classifier(name: str,
         return f"{name}.rfc_{msg}"
 
     hp_space = _forest_hp_space(_name, **kwargs)
-    hp_space["criterion"] = (criterion or _forest_classifier_criterion(_name("criterion")))
-    hp_space["class_weight"] = (class_weight or _forest_class_weight(_name("class_weight")))
+    hp_space["criterion"] = _forest_classifier_criterion(_name("criterion")) if criterion is None else criterion
+    hp_space["class_weight"] = _forest_class_weight(_name("class_weight")) if class_weight is None else class_weight
 
     return scope.sklearn_RandomForestClassifier(**hp_space)
 
 
-def random_forest_regressor(name: str, criterion: str = None, **kwargs):
+def random_forest_regressor(name: str, criterion: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.RandomForestRegressor model.
@@ -272,14 +273,14 @@ def random_forest_regressor(name: str, criterion: str = None, **kwargs):
         return f"{name}.rfr_{msg}"
 
     hp_space = _forest_hp_space(_name, **kwargs)
-    hp_space["criterion"] = (criterion or _random_forest_regressor_criterion(_name("criterion")))
+    hp_space["criterion"] = _random_forest_regressor_criterion(_name("criterion")) if criterion is None else criterion
 
     return scope.sklearn_RandomForestRegressor(**hp_space)
 
 
 def extra_trees_classifier(name: str,
-                           criterion: str = None,
-                           class_weight: typing.Union[dict, list] = None,
+                           criterion: typing.Union[str, Apply] = None,
+                           class_weight: typing.Union[dict, list, Apply] = None,
                            **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -298,13 +299,13 @@ def extra_trees_classifier(name: str,
         return f"{name}.etc_{msg}"
 
     hp_space = _forest_hp_space(_name, **kwargs)
-    hp_space["criterion"] = (criterion or _forest_classifier_criterion(_name("criterion")))
-    hp_space["class_weight"] = (class_weight or _forest_class_weight(_name("class_weight")))
+    hp_space["criterion"] = _forest_classifier_criterion(_name("criterion")) if criterion is None else criterion
+    hp_space["class_weight"] = _forest_class_weight(_name("class_weight")) if class_weight is None else class_weight
 
     return scope.sklearn_ExtraTreesClassifier(**hp_space)
 
 
-def extra_trees_regressor(name: str, criterion: str = None, **kwargs):
+def extra_trees_regressor(name: str, criterion: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.ExtraTreesRegressor model.
@@ -321,12 +322,12 @@ def extra_trees_regressor(name: str, criterion: str = None, **kwargs):
         return f"{name}.etr_{msg}"
 
     hp_space = _forest_hp_space(_name, **kwargs)
-    hp_space["criterion"] = (criterion or _extra_trees_regressor_criterion(_name("criterion")))
+    hp_space["criterion"] = _extra_trees_regressor_criterion(_name("criterion")) if criterion is None else criterion
 
     return scope.sklearn_ExtraTreesRegressor(**hp_space)
 
 
-def _forest_classifiers(name):
+def forest_classifiers(name):
     """
     All _forest classifiers
 
@@ -339,7 +340,7 @@ def _forest_classifiers(name):
     ]
 
 
-def _forest_regressors(name):
+def forest_regressors(name):
     """
     All _forest regressors
 

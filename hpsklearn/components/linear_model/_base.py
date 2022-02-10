@@ -24,6 +24,7 @@ def linear_regression(name: str,
         n_jobs: number of jobs for computation | int
         positive: force coefficient to be positive | bool
     """
+
     def _name(msg):
         return f"{name}.linear_regression_{msg}"
 

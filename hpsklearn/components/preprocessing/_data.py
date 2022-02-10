@@ -1,9 +1,10 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import preprocessing
+import typing
 
 
 @scope.define
@@ -47,7 +48,7 @@ def sklearn_PowerTransformer(**kwargs):
 
 
 def binarizer(name: str,
-              threshold: float = None,
+              threshold: typing.Union[float, Apply] = None,
               copy: bool = True):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -59,7 +60,7 @@ def binarizer(name: str,
         copy: perform inplace binarization or on copy | bool
     """
     rval = scope.sklearn_Binarizer(
-        threshold=threshold or hp.uniform(name + ".threshold", 0.0, 1.0),
+        threshold=hp.uniform(name + ".threshold", 0.0, 1.0) if threshold is None else threshold,
         copy=copy
     )
 
@@ -67,9 +68,9 @@ def binarizer(name: str,
 
 
 def min_max_scaler(name: str,
-                   feature_range: tuple = None,
+                   feature_range: typing.Union[tuple, Apply] = None,
                    copy: bool = True,
-                   clip: bool = None):
+                   clip: typing.Union[bool, Apply] = None):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.preprocessing.MinMaxScaler transformer.
@@ -81,9 +82,9 @@ def min_max_scaler(name: str,
         clip: clip transformed values of held-out data to provided 'feature range' | bool
     """
     rval = scope.sklearn_MinMaxScaler(
-        feature_range=feature_range or (hp.choice(name + ".feature_min", [-1.0, 0.0]), 1.0),
+        feature_range=(hp.choice(name + ".feature_min", [-1.0, 0.0]), 1.0) if feature_range is None else feature_range,
         copy=copy,
-        clip=clip or hp.choice(name + ".clip", [True, False])
+        clip=hp.choice(name + ".clip", [True, False]) if clip is None else clip
     )
 
     return rval
@@ -107,10 +108,10 @@ def max_abs_scaler(name: str,
 
 
 @validate(params=["norm"],
-          validation_test=lambda param: isinstance(param, str) and param in ("l1", "l2", "max"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("l1", "l2", "max"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'l1', 'l2' or 'max'.")
 def normalizer(name: str,
-               norm: str = None,
+               norm: typing.Union[str, Apply] = None,
                copy: bool = True):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -122,7 +123,7 @@ def normalizer(name: str,
         copy: perform inplace row normalization or on copy | bool
     """
     rval = scope.sklearn_Normalizer(
-        norm=norm or hp.choice(name + ".norm", ["l1", "l2", "max"]),
+        norm=hp.choice(name + ".norm", ["l1", "l2", "max"]) if norm is None else norm,
         copy=copy
     )
 
@@ -130,11 +131,11 @@ def normalizer(name: str,
 
 
 def robust_scaler(name: str,
-                  with_centering: bool = None,
-                  with_scaling: bool = None,
-                  quantile_range: tuple = None,
+                  with_centering: typing.Union[bool, Apply] = None,
+                  with_scaling: typing.Union[bool, Apply] = None,
+                  quantile_range: typing.Union[tuple, Apply] = None,
                   copy: bool = True,
-                  unit_variance: bool = None):
+                  unit_variance: typing.Union[bool, Apply] = None):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.preprocessing.RobustScaler transformer.
@@ -150,8 +151,8 @@ def robust_scaler(name: str,
     rval = scope.sklearn_RobustScaler(
         with_centering=hp.choice(name + ".with_centering", [True, False]) if with_centering is None else with_centering,
         with_scaling=hp.choice(name + ".with_scaling", [True, False]) if with_scaling is None else with_scaling,
-        quantile_range=quantile_range or
-        (hp.uniform(name + ".quantile_min", 0.0, 0.5), hp.uniform(name + ".quantile_max", 0.5, 1.0)),
+        quantile_range=(hp.uniform(name + ".quantile_min", 0.0, 0.5), hp.uniform(name + ".quantile_max", 0.5, 1.0))
+        if quantile_range is None else quantile_range,
         copy=copy,
         unit_variance=hp.choice(name + ".unit_variance", [True, False]) if unit_variance is None else unit_variance
     )
@@ -161,8 +162,8 @@ def robust_scaler(name: str,
 
 def standard_scaler(name: str,
                     copy: bool = True,
-                    with_mean: bool = None,
-                    with_std: bool = None):
+                    with_mean: typing.Union[bool, Apply] = None,
+                    with_std: typing.Union[bool, Apply] = None):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.preprocessing.StandardScaler transformer.
@@ -183,12 +184,12 @@ def standard_scaler(name: str,
 
 
 @validate(params=["output_distribution"],
-          validation_test=lambda param: isinstance(param, str) and param in ("normal", "uniform"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("normal", "uniform"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'normal' or 'uniform'.")
 def quantile_transformer(name: str,
-                         n_quantiles: int = None,
-                         output_distribution: str = None,
-                         subsample: int = None,
+                         n_quantiles: typing.Union[int, Apply] = None,
+                         output_distribution: typing.Union[str, Apply] = None,
+                         subsample: typing.Union[int, Apply] = None,
                          random_state=None,
                          copy: bool = True):
     """
@@ -204,9 +205,10 @@ def quantile_transformer(name: str,
         copy: perform inplace row normalization or on copy | bool
     """
     rval = scope.sklearn_QuantileTransformer(
-        n_quantiles=n_quantiles or scope.int(hp.uniform(name + ".n_quantiles", 500, 1500)),
-        output_distribution=output_distribution or hp.choice(name + ".output_distribution", ["normal", "uniform"]),
-        subsample=subsample or scope.int(hp.uniform(name + ".subsample", 1e4, 1e6)),
+        n_quantiles=scope.int(hp.uniform(name + ".n_quantiles", 500, 1500)) if n_quantiles is None else n_quantiles,
+        output_distribution=hp.choice(name + ".output_distribution", ["normal", "uniform"])
+        if output_distribution is None else output_distribution,
+        subsample=scope.int(hp.uniform(name + ".subsample", 1e4, 1e6)) if subsample is None else subsample,
         random_state=hp.randint(name + ".random_state", 5) if random_state is None else random_state,
         copy=copy
     )
@@ -215,8 +217,8 @@ def quantile_transformer(name: str,
 
 
 def power_transformer(name: str,
-                      method: str = None,
-                      standardize: bool = None,
+                      method: typing.Union[str, Apply] = None,
+                      standardize: typing.Union[bool, Apply] = None,
                       copy: bool = True):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -229,11 +231,9 @@ def power_transformer(name: str,
         copy: perform inplace row normalization or on copy | bool
     """
     rval = scope.sklearn_PowerTransformer(
-        method=method or hp.choice(name + ".method", ["yeo-johnson", "box-cox"]),
+        method=hp.choice(name + ".method", ["yeo-johnson", "box-cox"]) if method is None else method,
         standardize=hp.choice(name + ".standardize", [True, False]) if standardize is None else standardize,
         copy=copy
     )
 
     return rval
-
-

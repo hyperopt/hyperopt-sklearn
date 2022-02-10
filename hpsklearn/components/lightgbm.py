@@ -1,9 +1,10 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 import numpy as np
+import typing
 
 try:
     import lightgbm
@@ -117,21 +118,21 @@ def _lightgbm_random_state(name: str):
 
 
 @validate(params=["boosting_type"],
-          validation_test=lambda param: param in ["gbdt", "dart", "goss"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["gbdt", "dart", "goss"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of ['gbdt', 'dart', 'goss'].")
 def _lightgbm_hp_space(
         name_func,
-        max_depth: int = None,
-        num_leaves: int = None,
-        learning_rate: float = None,
-        n_estimators: int = None,
-        min_child_weight: float = None,
+        max_depth: typing.Union[int, Apply] = None,
+        num_leaves: typing.Union[int, Apply] = None,
+        learning_rate: typing.Union[float, Apply] = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        min_child_weight: typing.Union[float, Apply] = None,
         max_delta_step: float = 0,
-        subsample: float = None,
-        colsample_bytree: float = None,
-        reg_alpha: float = None,
-        reg_lambda: float = None,
-        boosting_type: str = None,
+        subsample: typing.Union[float, Apply] = None,
+        colsample_bytree: typing.Union[float, Apply] = None,
+        reg_alpha: typing.Union[float, Apply] = None,
+        reg_lambda: typing.Union[float, Apply] = None,
+        boosting_type: typing.Union[str, Apply] = None,
         scale_pos_weight: float = 1,
         random_state=None):
     """
@@ -144,10 +145,12 @@ def _lightgbm_hp_space(
         num_leaves=_lightgbm_num_leaves(name_func("num_leaves")) if num_leaves is None else num_leaves,
         learning_rate=_lightgbm_learning_rate(name_func("learning_rate")) if learning_rate is None else learning_rate,
         n_estimators=_lightgbm_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
-        min_child_weight=_lightgbm_min_child_weight(name_func("min_child_weight")) if min_child_weight is None else min_child_weight,
+        min_child_weight=_lightgbm_min_child_weight(name_func("min_child_weight"))
+        if min_child_weight is None else min_child_weight,
         max_delta_step=max_delta_step,
         subsample=_lightgbm_subsample(name_func("subsample")) if subsample is None else subsample,
-        colsample_bytree=_lightgbm_colsample_bytree(name_func("colsample_bytree")) if colsample_bytree is None else colsample_bytree,
+        colsample_bytree=_lightgbm_colsample_bytree(name_func("colsample_bytree"))
+        if colsample_bytree is None else colsample_bytree,
         reg_alpha=_lightgbm_reg_alpha(name_func("reg_alpha")) if reg_alpha is None else reg_alpha,
         reg_lambda=_lightgbm_reg_lambda(name_func("reg_lambda")) if reg_lambda is None else reg_lambda,
         boosting_type=_lightgbm_boosting_type(name_func("boosting_type")) if boosting_type is None else boosting_type,
@@ -158,7 +161,7 @@ def _lightgbm_hp_space(
 
 
 @validate(params=["objective"],
-          validation_test=lambda param: param in ["binary", "multiclass"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["binary", "multiclass"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'binary' or 'multiclass'.")
 def lightgbm_classification(name: str, objective: str = None, **kwargs):
     """
@@ -172,6 +175,7 @@ def lightgbm_classification(name: str, objective: str = None, **kwargs):
     See help(hpsklearn.components._lightgbm_hp_space) for info on
     additional available LightGBM arguments.
     """
+
     def _name(msg):
         return f"{name}.lightgbm_clf_{msg}"
 
@@ -192,6 +196,7 @@ def lightgbm_regression(name: str, **kwargs):
     See help(hpsklearn.components._lightgbm_hp_space) for info on
     additional available LightGBM arguments.
     """
+
     def _name(msg):
         return f"{name}.lightgbm_reg_{msg}"
 

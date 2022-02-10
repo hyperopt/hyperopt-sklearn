@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -77,21 +77,21 @@ def _ridge_alphas(name: str):
 
 
 @validate(params=["solver"],
-          validation_test=lambda param: isinstance(param, str) and param in
+          validation_test=lambda param: not isinstance(param, str) or param in
                                         ["auto", "svd", "cholesky", "lsqr", "sparse_cg", "sag", "saga", "lbfgs"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga', 'lbfgs'].")
 @validate(params=["alpha"],
-          validation_test=lambda param: isinstance(param, int) and param >= 0,
+          validation_test=lambda param: not isinstance(param, int) or param >= 0,
           msg="Invalid parameter '%s' with value '%s'. Alpha must be positive.")
 def _ridge_hp_space(
         name_func,
-        alpha: typing.Union[float, np.ndarray] = None,
+        alpha: typing.Union[float, np.ndarray, Apply] = None,
         fit_intercept: bool = True,
         copy_X: bool = True,
-        max_iter: int = None,
-        tol: float = None,
-        solver: str = "auto",
+        max_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
+        solver: typing.Union[str, Apply] = "auto",
         positive: bool = False,
         random_state=None,
 ):
@@ -115,10 +115,10 @@ def _ridge_hp_space(
 
 def _ridge_cv_hp_space(
         name_func,
-        alphas: np.ndarray = None,
+        alphas: typing.Union[np.ndarray, Apply] = None,
         fit_intercept: bool = True,
         scoring: typing.Union[str, callable] = None,
-        cv: typing.Union[int, Iterable, typing.Generator] = None,
+        cv: typing.Union[int, Iterable, typing.Generator, Apply] = None,
         store_cv_values: bool = False
 ):
     """
@@ -127,10 +127,10 @@ def _ridge_cv_hp_space(
      ridge classifier cv
     """
     hp_space = dict(
-        alphas=alphas or _ridge_alphas(name_func("alphas")),
+        alphas=_ridge_alphas(name_func("alphas")) if alphas is None else alphas,
         fit_intercept=fit_intercept,
         scoring=scoring,
-        cv=cv or _ridge_cv(name_func("cv")),
+        cv=_ridge_cv(name_func("cv")) if cv is None else cv,
         store_cv_values=store_cv_values
     )
     return hp_space
@@ -147,6 +147,7 @@ def ridge(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._ridge._ridge_hp_space)
     for info on additional available ridge arguments.
     """
+
     def _name(msg):
         return f"{name}.ridge_{msg}"
 
@@ -156,10 +157,10 @@ def ridge(name: str, **kwargs):
 
 
 @validate(params=["gcv_mode"],
-          validation_test=lambda param: isinstance(param, str) and param in ["auto", "svd", "eigen"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "svd", "eigen"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of 'auto', 'svd', 'eigen'.")
 def ridge_cv(name: str,
-             gcv_mode: str = "auto",
+             gcv_mode: typing.Union[str, Apply] = "auto",
              alpha_per_target: bool = False,
              **kwargs):
     """
@@ -174,6 +175,7 @@ def ridge_cv(name: str,
     See help(hpsklearn.components.linear_model._ridge._ridge_hp_space)
     for info on additional available ridge arguments.
     """
+
     def _name(msg):
         return f"{name}.ridge_cv_{msg}"
 
@@ -185,7 +187,7 @@ def ridge_cv(name: str,
 
 
 @validate(params=["class_weight"],
-          validation_test=lambda param: isinstance(param, str) and param == "balanced",
+          validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'")
 def ridge_classifier(name: str, class_weight: typing.Union[dict, str] = None, **kwargs):
     """
@@ -199,6 +201,7 @@ def ridge_classifier(name: str, class_weight: typing.Union[dict, str] = None, **
     See help(hpsklearn.components.linear_model._ridge._ridge_hp_space)
     for info on additional available ridge arguments.
     """
+
     def _name(msg):
         return f"{name}.ridge_classifier_{msg}"
 
@@ -209,7 +212,7 @@ def ridge_classifier(name: str, class_weight: typing.Union[dict, str] = None, **
 
 
 @validate(params=["class_weight"],
-          validation_test=lambda param: isinstance(param, str) and param == "balanced",
+          validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'")
 def ridge_classifier_cv(name: str, class_weight: typing.Union[dict, str] = None, **kwargs):
     """
@@ -223,6 +226,7 @@ def ridge_classifier_cv(name: str, class_weight: typing.Union[dict, str] = None,
     See help(hpsklearn.components.linear_model._ridge._ridge_hp_space)
     for info on additional available ridge arguments.
     """
+
     def _name(msg):
         return f"{name}.ridge_classifier_cv_{msg}"
 

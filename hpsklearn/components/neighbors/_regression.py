@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import neighbors
@@ -53,18 +53,19 @@ def _neighbors_metric(name: str):
 
 
 @validate(params=["weights"],
-          validation_test=lambda param: param in ["uniform", "distance"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["uniform", "distance"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'uniform' or 'distance'.")
 @validate(params=["algorithm"],
-          validation_test=lambda param: param in ["auto", "ball_tree", "kd_tree", "brute"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "ball_tree", "kd_tree",
+                                                                                "brute"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'auto', 'ball_tree', 'kd_tree', or 'brute'.")
 def neighbors_hp_space(
         name_func,
-        weights: typing.Union[str, callable] = None,
-        algorithm: str = None,
-        leaf_size: int = None,
-        p: int = None,
-        metric: typing.Union[str, callable] = None,
+        weights: typing.Union[str, callable, Apply] = None,
+        algorithm: typing.Union[str, Apply] = None,
+        leaf_size: typing.Union[int, Apply] = None,
+        p: typing.Union[int, Apply] = None,
+        metric: typing.Union[str, callable, Apply] = None,
         metric_params: dict = None,
         n_jobs: int = 1):
     """
@@ -73,11 +74,11 @@ def neighbors_hp_space(
      radius neighbors regressor
     """
     hp_space = dict(
-        weights=weights or _neighbors_weights(name_func("weights")),
-        algorithm=algorithm or _neighbors_algorithm(name_func("algorithm")),
+        weights=_neighbors_weights(name_func("weights")) if weights is None else weights,
+        algorithm=_neighbors_algorithm(name_func("algorithm")) if algorithm is None else algorithm,
         leaf_size=_neighbors_leaf_size(name_func("leaf_size")) if leaf_size is None else leaf_size,
         p=_neighbors_p(name_func("p")) if p is None else p,
-        metric=metric or _neighbors_metric(name_func("metric")),
+        metric=_neighbors_metric(name_func("metric")) if metric is None else metric,
         metric_params=metric_params,
         n_jobs=n_jobs
     )
@@ -85,7 +86,7 @@ def neighbors_hp_space(
 
 
 def k_neighbors_regressor(name: str,
-                          n_neighbors: int = None,
+                          n_neighbors: typing.Union[int, Apply] = None,
                           **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -98,6 +99,7 @@ def k_neighbors_regressor(name: str,
     See help(hpsklearn.components.neighbors._regression._neighbors_hp_space)
     for info on additional available neighbors regression arguments.
     """
+
     def _name(msg):
         return f"{name}.k_neighbors_regressor_{msg}"
 
@@ -108,7 +110,7 @@ def k_neighbors_regressor(name: str,
 
 
 def radius_neighbors_regressor(name: str,
-                               radius: float = None,
+                               radius: typing.Union[float, Apply] = None,
                                **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -121,10 +123,11 @@ def radius_neighbors_regressor(name: str,
     See help(hpsklearn.components.neighbors._regression._neighbors_hp_space)
     for info on additional available neighbors arguments.
     """
+
     def _name(msg):
         return f"{name}.radius_neighbors_regressor_{msg}"
 
     hp_space = neighbors_hp_space(_name, **kwargs)
-    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 10) if radius is None else radius
+    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 100) if radius is None else radius  # very dependent on data
 
     return scope.sklearn_RadiusNeighborsRegressor(**hp_space)

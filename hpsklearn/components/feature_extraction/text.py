@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import feature_extraction
@@ -13,21 +13,21 @@ def sklearn_TfidfVectorizer(*args, **kwargs):
 
 
 @validate(params=["analyzer"],
-          validation_test=lambda param: param in ["word", "char", "char_wb"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["word", "char", "char_wb"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of 'word', 'char', 'char_wb'.")
 @validate(params=["norm"],
-          validation_test=lambda param: param in ["l1", "l2"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["l1", "l2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of 'l1', 'l2'.")
 def tfidf(name: str,
-          analyzer: typing.Union[str, callable] = None,
+          analyzer: typing.Union[str, callable, Apply] = None,
           ngram_range: tuple = None,
-          stop_words: typing.Union[str, list] = None,
-          lowercase: bool = None,
+          stop_words: typing.Union[str, list, Apply] = None,
+          lowercase: typing.Union[bool, Apply] = None,
           max_df: float = 1.0,
           min_df: float = 1,
           max_features: int = None,
-          binary: bool = None,
-          norm: str = None,
+          binary: typing.Union[bool, Apply] = None,
+          norm: typing.Union[str, Apply] = None,
           use_idf: bool = False,
           smooth_idf: bool = False,
           sublinear_tf: bool = False):
@@ -56,8 +56,8 @@ def tfidf(name: str,
     max_ngram = scope.int(hp.quniform(_name("max_ngram"), 1, 4, 1))
 
     rval = scope.sklearn_TfidfVectorizer(
-        analyzer=analyzer or hp.choice(_name("analyzer"), ["word", "char", "char_wb"]),
-        stop_words=stop_words or hp.choice(_name("stop_words"), ["english", None]),
+        analyzer=hp.choice(_name("analyzer"), ["word", "char", "char_wb"]) if analyzer is None else analyzer,
+        stop_words=hp.choice(_name("stop_words"), ["english", None]) if stop_words is None else stop_words,
         lowercase=hp.choice(_name("lowercase"), [True, False]) if lowercase is None else lowercase,
         max_df=max_df,
         min_df=min_df,

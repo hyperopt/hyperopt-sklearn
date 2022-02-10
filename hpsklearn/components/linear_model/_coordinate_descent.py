@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -120,25 +120,25 @@ def _coordinate_descent_selection(name: str):
 
 
 @validate(params=["alpha"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Alpha = 0 is equivalent to ordinary least square. "
               "For ordinary least square, use LinearRegression instead.")
 @validate(params=["selection"],
-          validation_test=lambda param: isinstance(param, str) and param in ["cyclic", "random"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["cyclic", "random"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['cyclic', 'random'].")
 @validate(params=["max_iter"],
-          validation_test=lambda param: isinstance(param, int) and param > 0,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def _coordinate_descent_hp_space(
         name_func,
-        alpha: float = None,
+        alpha: typing.Union[float, Apply] = None,
         fit_intercept: bool = True,
         copy_X: bool = True,
-        max_iter: int = None,
-        tol: float = None,
+        max_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
         warm_start: bool = False,
         random_state=None,
-        selection: str = None
+        selection: typing.Union[str, Apply] = None
 ):
     """
     Hyper parameter search space for
@@ -148,39 +148,39 @@ def _coordinate_descent_hp_space(
      multi task elastic net
     """
     hp_space = dict(
-        alpha=alpha or _coordinate_descent_alpha(name_func("alpha")),
+        alpha=_coordinate_descent_alpha(name_func("alpha")) if alpha is None else alpha,
         fit_intercept=fit_intercept,
         copy_X=copy_X,
-        max_iter=max_iter or _coordinate_descent_max_iter(name_func("max_iter")),
+        max_iter=_coordinate_descent_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_coordinate_descent_tol(name_func("tol")) if tol is None else tol,
         warm_start=warm_start,
         random_state=_coordinate_descent_random_state(name_func("random_state"))
         if random_state is None else random_state,
-        selection=selection or _coordinate_descent_selection(name_func("selection"))
+        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection
     )
     return hp_space
 
 
 @validate(params=["selection"],
-          validation_test=lambda param: isinstance(param, str) and param in ["cyclic", "random"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["cyclic", "random"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['cyclic', 'random'].")
 @validate(params=["max_iter", "n_alphas", "eps", "cv"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def _coordinate_descent_cv_hp_space(
         name_func,
-        eps: float = None,
-        n_alphas: int = None,
+        eps: typing.Union[float, Apply] = None,
+        n_alphas: typing.Union[int, Apply] = None,
         alphas: np.ndarray = None,
         fit_intercept: bool = True,
-        max_iter: int = None,
-        tol: float = None,
+        max_iter: typing.Union[int, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
         copy_X: bool = True,
-        cv: typing.Union[int, callable, typing.Generator] = None,
+        cv: typing.Union[int, callable, typing.Generator, Apply] = None,
         verbose: int = False,
         n_jobs: int = 1,
         random_state=None,
-        selection: str = None
+        selection: typing.Union[str, Apply] = None
 ):
     """
     Hyper parameter search space for
@@ -190,19 +190,19 @@ def _coordinate_descent_cv_hp_space(
      multi task elastic net cv
     """
     hp_space = dict(
-        eps=eps or _coordinate_descent_eps(name_func("eps")),
-        n_alphas=n_alphas or _coordinate_descent_n_alphas(name_func("n_alphas")),
+        eps=_coordinate_descent_eps(name_func("eps")) if eps is None else eps,
+        n_alphas=_coordinate_descent_n_alphas(name_func("n_alphas")) if n_alphas is None else n_alphas,
         alphas=alphas,
         fit_intercept=fit_intercept,
-        max_iter=max_iter or _coordinate_descent_max_iter(name_func("max_iter")),
+        max_iter=_coordinate_descent_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_coordinate_descent_tol(name_func("tol")) if tol is None else tol,
         copy_X=copy_X,
-        cv=cv or _coordinate_descent_cv(name_func("cv")),
+        cv=_coordinate_descent_cv(name_func("cv")) if cv is None else cv,
         verbose=verbose,
         n_jobs=n_jobs,
         random_state=_coordinate_descent_random_state(name_func("random_state"))
         if random_state is None else random_state,
-        selection=selection or _coordinate_descent_selection(name_func("selection"))
+        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection
     )
     return hp_space
 
@@ -223,6 +223,7 @@ def lasso(name: str,
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_hp_space)
     for info on additional available coordinate descent arguments.
     """
+
     def _name(msg):
         return f"{name}.lasso_{msg}"
 
@@ -234,7 +235,7 @@ def lasso(name: str,
 
 
 def elastic_net(name: str,
-                l1_ratio: float = None,
+                l1_ratio: typing.Union[float, Apply] = None,
                 precompute: typing.Union[bool, npt.ArrayLike] = False,
                 positive: bool = False,
                 **kwargs):
@@ -251,6 +252,7 @@ def elastic_net(name: str,
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_hp_space)
     for info on additional available coordinate descent arguments.
     """
+
     def _name(msg):
         return f"{name}.elastic_net_{msg}"
 
@@ -278,6 +280,7 @@ def lasso_cv(name: str,
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_cv_hp_space)
     for info on additional available coordinate descent cv arguments.
     """
+
     def _name(msg):
         return f"{name}.lasso_cv_{msg}"
 
@@ -289,7 +292,7 @@ def lasso_cv(name: str,
 
 
 def elastic_net_cv(name: str,
-                   l1_ratio: float = None,
+                   l1_ratio: typing.Union[float, Apply] = None,
                    precompute: typing.Union[bool, str, npt.ArrayLike] = "auto",
                    positive: bool = False,
                    **kwargs):
@@ -306,6 +309,7 @@ def elastic_net_cv(name: str,
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_cv_hp_space)
     for info on additional available coordinate descent cv arguments.
     """
+
     def _name(msg):
         return f"{name}.elastic_net_cv_{msg}"
 
@@ -328,6 +332,7 @@ def multi_task_lasso(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_hp_space)
     for info on additional available coordinate descent arguments.
     """
+
     def _name(msg):
         return f"{name}.multi_task_lasso_{msg}"
 
@@ -347,6 +352,7 @@ def multi_task_elastic_net(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_hp_space)
     for info on additional available coordinate descent arguments.
     """
+
     def _name(msg):
         return f"{name}.multi_task_elastic_net_{msg}"
 
@@ -366,6 +372,7 @@ def multi_task_lasso_cv(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_cv_hp_space)
     for info on additional available coordinate descent cv arguments.
     """
+
     def _name(msg):
         return f"{name}.multi_task_lasso_cv_{msg}"
 
@@ -374,7 +381,7 @@ def multi_task_lasso_cv(name: str, **kwargs):
     return scope.sklearn_MultiTaskLassoCV(**hp_space)
 
 
-def multi_task_elastic_net_cv(name: str, l1_ratio: float = None, **kwargs):
+def multi_task_elastic_net_cv(name: str, l1_ratio: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.MultiTaskElasticNetCV model.
@@ -386,6 +393,7 @@ def multi_task_elastic_net_cv(name: str, l1_ratio: float = None, **kwargs):
     See help(hpsklearn.components.linear_model._coordinate_descent._coordinate_descent_cv_hp_space)
     for info on additional available coordinate descent arguments.
     """
+
     def _name(msg):
         return f"{name}.multi_task_elastic_net_cv_{msg}"
 

@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import gaussian_process
@@ -14,13 +14,13 @@ def sklearn_GaussianProcessRegressor(*args, **kwargs):
 
 
 @validate(params=["optimizer"],
-          validation_test=lambda param: isinstance(param, str) and param == "fmin_l_bfgs_b",
+          validation_test=lambda param: not isinstance(param, str) or param == "fmin_l_bfgs_b",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'fmin_l_bfgs_b' or callable.")
 def gaussian_process_regressor(name: str,
                                kernel=None,
-                               alpha: typing.Union[float, np.ndarray] = None,
-                               optimizer: typing.Union[str, callable] = None,
-                               n_restarts_optimizer: int = None,
+                               alpha: typing.Union[float, np.ndarray, Apply] = None,
+                               optimizer: typing.Union[str, callable, Apply] = None,
+                               n_restarts_optimizer: typing.Union[int, Apply] = None,
                                normalize_y: bool = False,
                                copy_X_train: bool = True,
                                random_state=None):
@@ -38,6 +38,7 @@ def gaussian_process_regressor(name: str,
         copy_X_train: store persistent copy of training data | bool
         random_state: random seed for center initialization | int
     """
+
     def _name(msg):
         return f"{name}.gaussian_process_regressor_{msg}"
 

@@ -1,4 +1,4 @@
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -18,7 +18,7 @@ def sklearn_OrthogonalMatchingPursuitCV(*args, **kwargs):
 
 def orthogonal_matching_pursuit(name: str,
                                 n_nonzero_coefs: int = None,
-                                tol: float = None,
+                                tol: typing.Union[float, Apply] = None,
                                 fit_intercept: bool = True,
                                 precompute: typing.Union[str, bool] = "auto"
                                 ):
@@ -50,8 +50,8 @@ def orthogonal_matching_pursuit(name: str,
 def orthogonal_matching_pursuit_cv(name: str,
                                    copy: bool = True,
                                    fit_intercept: bool = True,
-                                   max_iter: int = None,
-                                   cv: typing.Union[int, callable, typing.Generator] = None,
+                                   max_iter: typing.Union[int, Apply] = None,
+                                   cv: typing.Union[int, callable, typing.Generator, Apply] = None,
                                    n_jobs: int = 1,
                                    verbose: typing.Union[bool, int] = False
                                    ):
@@ -76,7 +76,8 @@ def orthogonal_matching_pursuit_cv(name: str,
         copy=copy,
         fit_intercept=fit_intercept,
         max_iter=max_iter,
-        cv=cv or hp.pchoice(name, [(0.0625, 3), (0.175, 4), (0.525, 5), (0.175, 6), (0.0625, 7)]),
+        cv=hp.pchoice(_name("cv"), [(0.0625, 3), (0.175, 4), (0.525, 5), (0.175, 6), (0.0625, 7)])
+        if cv is None else cv,
         n_jobs=n_jobs,
         verbose=verbose
     )

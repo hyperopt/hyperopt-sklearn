@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from ._regression import neighbors_hp_space
@@ -19,7 +19,7 @@ def sklearn_RadiusNeighborsClassifier(*args, **kwargs):
 
 
 def k_neighbors_classifier(name: str,
-                           n_neighbors: int = None,
+                           n_neighbors: typing.Union[int, Apply] = None,
                            **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -32,6 +32,7 @@ def k_neighbors_classifier(name: str,
     See help(hpsklearn.components.neighbors._regression._neighbors_regression_hp_space)
     for info on additional available neighbors arguments.
     """
+
     def _name(msg):
         return f"{name}.k_neighbors_classifier_{msg}"
 
@@ -42,11 +43,11 @@ def k_neighbors_classifier(name: str,
 
 
 @validate(params=["outlier_label"],
-          validation_test=lambda param: param == "most_frequent",
+          validation_test=lambda param: not isinstance(param, str) or param == "most_frequent",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'most_frequent'.")
 def radius_neighbors_classifier(name: str,
-                                radius: float = None,
-                                outlier_label: typing.Union[int, str] = None,
+                                radius: typing.Union[float, Apply] = None,
+                                outlier_label: typing.Union[int, str, Apply] = None,
                                 **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -60,11 +61,12 @@ def radius_neighbors_classifier(name: str,
     See help(hpsklearn.components.neighbors._regression._neighbors_regression_hp_space)
     for info on additional available neighbors arguments.
     """
+
     def _name(msg):
         return f"{name}.radius_neighbors_classifier_{msg}"
 
     hp_space = neighbors_hp_space(_name, **kwargs)
-    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 10) if radius is None else radius
+    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 100) if radius is None else radius  # very dependent on data
     hp_space["outlier_label"] = outlier_label
 
     return scope.sklearn_RadiusNeighborsClassifier(**hp_space)

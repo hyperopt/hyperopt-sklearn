@@ -26,6 +26,7 @@ def transformed_target_regressor(name: str,
         inverse_func: function to apply to prediction | callable
         check_inverse: check whether inverse leads to original targets | bool
     """
+
     def _name(msg):
         return f"{name}.transformed_target_regressor_{msg}"
 

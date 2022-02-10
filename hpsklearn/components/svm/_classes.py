@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import svm
@@ -129,14 +129,14 @@ def _svc_decision_function_shape(name: str):
 
 def _linear_hp_space(
         name_func,
-        tol: float = None,
-        C: float = None,
+        tol: typing.Union[float, Apply] = None,
+        C: typing.Union[float, Apply] = None,
         fit_intercept: bool = True,
-        intercept_scaling: float = None,
+        intercept_scaling: typing.Union[float, Apply] = None,
         dual: bool = True,
         verbose: int = 0,
         random_state=None,
-        max_iter: int = None
+        max_iter: typing.Union[int, Apply] = None
 ):
     """
     Hyper parameter search space for
@@ -158,32 +158,32 @@ def _linear_hp_space(
 
 
 @validate(params=["kernel"],
-          validation_test=lambda param: isinstance(param, str) and param in ["linear", "poly", "rbf", "sigmoid",
-                                                                             "precomputed"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["linear", "poly", "rbf", "sigmoid",
+                                                                                "precomputed"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed'].")
 @validate(params=["gamma"],
-          validation_test=lambda param: isinstance(param, str) and param in ["scale", "auto"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["scale", "auto"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['scale', 'auto'].")
 @validate(params=["class_weight"],
-          validation_test=lambda param: isinstance(param, str) and param == "balanced",
+          validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'.")
 @validate(params=["decision_function_shape"],
-          validation_test=lambda param: isinstance(param, str) and param in ["ovo", "ovr"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["ovo", "ovr"],
           msg="Invalid parameter '%s' with value '%s'. Value must be ['ovo', 'ovr'].")
 def _svc_hp_space(name_func,
-                  kernel: str = None,
-                  degree: int = None,
-                  gamma: typing.Union[float, str] = None,
-                  coef0: float = None,
-                  shrinking: bool = None,
-                  probability: bool = False,
-                  tol: float = None,
+                  kernel: typing.Union[str, Apply] = None,
+                  degree: typing.Union[int, Apply] = None,
+                  gamma: typing.Union[float, str, Apply] = None,
+                  coef0: typing.Union[float, Apply] = None,
+                  shrinking: typing.Union[bool, Apply] = None,
+                  probability: typing.Union[bool, Apply] = False,
+                  tol: typing.Union[float, Apply] = None,
                   cache_size: int = 200,
                   class_weight: typing.Union[dict, str] = None,
                   verbose: bool = False,
-                  max_iter: int = None,
-                  decision_function_shape: str = None,
+                  max_iter: typing.Union[int, Apply] = None,
+                  decision_function_shape: typing.Union[str, Apply] = None,
                   break_ties: bool = False,
                   random_state=None):
     """
@@ -192,19 +192,19 @@ def _svc_hp_space(name_func,
      svc
     """
     hp_space = dict(
-        kernel=kernel or _svm_kernel(name_func("kernel")),
+        kernel=_svm_kernel(name_func("kernel")) if kernel is None else kernel,
         degree=_svm_degree(name_func("degree")) if degree is None else degree,
         gamma=_svm_gamma(name_func("gamma")) if gamma is None else gamma,
         coef0=_svm_coef0(name_func("coef0")) if coef0 is None else coef0,
-        shrinking=shrinking or _svm_shrinking(name_func("shrinking")),
+        shrinking=_svm_shrinking(name_func("shrinking")) if shrinking is None else shrinking,
         probability=probability,
         tol=_svm_tol(name_func("tol")) if tol is None else tol,
         cache_size=cache_size,
         class_weight=class_weight,
         verbose=verbose,
         max_iter=-1 if max_iter is None else max_iter,
-        decision_function_shape=decision_function_shape
-        or _svc_decision_function_shape(name_func("decision_function_shape")),
+        decision_function_shape=_svc_decision_function_shape(name_func("decision_function_shape"))
+        if decision_function_shape is None else decision_function_shape,
         break_ties=break_ties,
         random_state=_svm_random_state(name_func("random_state")) if random_state is None else random_state
     )
@@ -212,12 +212,12 @@ def _svc_hp_space(name_func,
 
 
 def _svr_one_class_hp_space(name_func,
-                            kernel: str = None,
-                            degree: int = None,
-                            gamma: typing.Union[float, str] = None,
-                            coef0: float = None,
-                            tol: float = None,
-                            shrinking: bool = None,
+                            kernel: typing.Union[str, Apply] = None,
+                            degree: typing.Union[int, Apply] = None,
+                            gamma: typing.Union[float, str, Apply] = None,
+                            coef0: typing.Union[float, Apply] = None,
+                            tol: typing.Union[float, Apply] = None,
+                            shrinking: typing.Union[bool, Apply] = None,
                             cache_size: int = 200,
                             verbose: bool = False,
                             max_iter: int = None):
@@ -228,12 +228,12 @@ def _svr_one_class_hp_space(name_func,
      svr
     """
     hp_space = dict(
-        kernel=kernel or _svm_kernel(name_func("kernel")),
+        kernel=_svm_kernel(name_func("kernel")) if kernel is None else kernel,
         degree=_svm_degree(name_func("degree")) if degree is None else degree,
         gamma=_svm_gamma(name_func("gamma")) if gamma is None else gamma,
         coef0=_svm_coef0(name_func("coef0")) if coef0 is None else coef0,
         tol=_svm_tol(name_func("tol")) if tol is None else tol,
-        shrinking=shrinking or _svm_shrinking(name_func("shrinking")),
+        shrinking=_svm_shrinking(name_func("shrinking")) if shrinking is None else shrinking,
         cache_size=cache_size,
         verbose=verbose,
         max_iter=-1 if max_iter is None else max_iter,
@@ -242,21 +242,21 @@ def _svr_one_class_hp_space(name_func,
 
 
 @validate(params=["penalty"],
-          validation_test=lambda param: isinstance(param, str) and param in ["l1", "l2"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["l1", "l2"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['l1', 'l2'].")
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ["hinge", "squared_hinge"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["hinge", "squared_hinge"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['hinge', 'squared_hinge'].")
 @validate(params=["multi_class"],
-          validation_test=lambda param: isinstance(param, str) and param in ["ovr", "crammer_singer"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["ovr", "crammer_singer"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['ovr', 'crammer_singer'].")
 @validate(params=["class_weight"],
-          validation_test=lambda param: isinstance(param, str) and param == "balanced",
+          validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'.")
 def linear_svc(name: str,
-               penalty: str = None,
-               loss: str = None,
-               multi_class: str = None,
+               penalty: typing.Union[str, Apply] = None,
+               loss: typing.Union[str, Apply] = None,
+               multi_class: typing.Union[str, Apply] = None,
                class_weight: typing.Union[dict, str] = None,
                **kwargs):
     """
@@ -273,24 +273,26 @@ def linear_svc(name: str,
     See help(hpsklearn.components.svm._classes._linear_hp_space)
     for info on additional available linear svm arguments.
     """
+
     def _name(msg):
         return f"{name}.linear_svc_{msg}"
 
     hp_space = _linear_hp_space(_name, **kwargs)
-    hp_space["penalty"] = penalty or "l2"
-    hp_space["loss"] = loss or "squared_hinge"
-    hp_space["multi_class"] = multi_class or hp.choice(_name("multi_class"), ["ovr", "crammer_singer"])
+    hp_space["penalty"] = "l2" if penalty is None else penalty
+    hp_space["loss"] = "squared_hinge" if loss is None else loss
+    hp_space["multi_class"] = hp.choice(_name("multi_class"), ["ovr", "crammer_singer"]) \
+        if multi_class is None else multi_class
     hp_space["class_weight"] = class_weight
 
     return scope.sklearn_LinearSVC(**hp_space)
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ["epsilon_insensitive",
-                                                                             "squared_epsilon_insensitive"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["epsilon_insensitive",
+                                                                                "squared_epsilon_insensitive"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['epsilon_insensitive', 'squared_epsilon_insensitive'].")
-def linear_svr(name: str, epsilon: float = None, loss: str = None, **kwargs):
+def linear_svr(name: str, epsilon: typing.Union[float, Apply] = None, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.LinearSVR model.
@@ -303,17 +305,19 @@ def linear_svr(name: str, epsilon: float = None, loss: str = None, **kwargs):
     See help(hpsklearn.components.svm._classes._linear_hp_space)
     for info on additional available linear svm arguments.
     """
+
     def _name(msg):
         return f"{name}.linear_svr_{msg}"
 
     hp_space = _linear_hp_space(_name, **kwargs)
     hp_space["epsilon"] = 0 if epsilon is None else epsilon
-    hp_space["loss"] = loss or hp.choice(_name("loss"), ["epsilon_insensitive", "squared_epsilon_insensitive"])
+    hp_space["loss"] = hp.choice(_name("loss"), ["epsilon_insensitive", "squared_epsilon_insensitive"]) \
+        if loss is None else loss
 
     return scope.sklearn_LinearSVR(**hp_space)
 
 
-def nu_svc(name: str, nu: float = None, **kwargs):
+def nu_svc(name: str, nu: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.NuSVC model.
@@ -325,6 +329,7 @@ def nu_svc(name: str, nu: float = None, **kwargs):
     See help(hpsklearn.components.svm._classes._svc_hp_space)
     for info on additional available svc svm arguments.
     """
+
     def _name(msg):
         return f"{name}.nu_svc_{msg}"
 
@@ -334,7 +339,7 @@ def nu_svc(name: str, nu: float = None, **kwargs):
     return scope.sklearn_NuSVC(**hp_space)
 
 
-def nu_svr(name: str, nu: float = None, C: float = None, **kwargs):
+def nu_svr(name: str, nu: typing.Union[float, Apply] = None, C: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.NuSVR model.
@@ -347,6 +352,7 @@ def nu_svr(name: str, nu: float = None, C: float = None, **kwargs):
     See help(hpsklearn.components.svm._classes._svr_one_class_hp_space)
     for info on additional available svr svm arguments.
     """
+
     def _name(msg):
         return f"{name}.nu_svr_{msg}"
 
@@ -357,7 +363,7 @@ def nu_svr(name: str, nu: float = None, C: float = None, **kwargs):
     return scope.sklearn_NuSVR(**hp_space)
 
 
-def one_class_svm(name: str, nu: float = None, **kwargs):
+def one_class_svm(name: str, nu: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.OneClassSVM model.
@@ -369,6 +375,7 @@ def one_class_svm(name: str, nu: float = None, **kwargs):
     See help(hpsklearn.components.svm._classes._svr_one_class_hp_space)
     for info on additional available one class svm arguments.
     """
+
     def _name(msg):
         return f"{name}.one_class_svm_{msg}"
 
@@ -378,7 +385,7 @@ def one_class_svm(name: str, nu: float = None, **kwargs):
     return scope.sklearn_OneClassSVM(**hp_space)
 
 
-def svc(name: str, C: float = None, **kwargs):
+def svc(name: str, C: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.SVC model.
@@ -390,6 +397,7 @@ def svc(name: str, C: float = None, **kwargs):
     See help(hpsklearn.components.svm._classes._svc_hp_space)
     for info on additional available svc svm arguments.
     """
+
     def _name(msg):
         return f"{name}.svc_{msg}"
 
@@ -399,7 +407,7 @@ def svc(name: str, C: float = None, **kwargs):
     return scope.sklearn_SVC(**hp_space)
 
 
-def svr(name: str, C: float = None, epsilon: float = None, **kwargs):
+def svr(name: str, C: typing.Union[float, Apply] = None, epsilon: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.svm.SVR model.
@@ -412,6 +420,7 @@ def svr(name: str, C: float = None, epsilon: float = None, **kwargs):
     See help(hpsklearn.components.svm._classes._svr_one_class_hp_space)
     for info on additional available svr svm arguments.
     """
+
     def _name(msg):
         return f"{name}.svr_{msg}"
 

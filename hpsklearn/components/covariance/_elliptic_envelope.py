@@ -1,4 +1,6 @@
-from hyperopt.pyll import scope
+import typing
+
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import covariance
@@ -12,8 +14,8 @@ def sklearn_EllipticEnvelope(*args, **kwargs):
 def elliptic_envelope(name: str,
                       store_precision: bool = True,
                       assume_centered: bool = False,
-                      support_fraction: float = None,
-                      contamination: float = 0.1,
+                      support_fraction: typing.Union[float, Apply] = None,
+                      contamination: typing.Union[float, Apply] = 0.1,
                       random_state=None):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -27,6 +29,7 @@ def elliptic_envelope(name: str,
         contamination: contamination of data set | float
         random_state: random state for shuffling data | int
     """
+
     def _name(msg):
         return f"{name}.elliptic_envelope_{msg}"
 

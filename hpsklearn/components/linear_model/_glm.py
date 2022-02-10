@@ -1,10 +1,11 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
 import numpy as np
+import typing
 
 
 @scope.define
@@ -44,14 +45,14 @@ def _glm_power(name: str):
 
 
 @validate(params=["max_iter"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter must exceed 1.")
 def _glm_hp_space(
         name_func,
         alpha: float = 1,
         fit_intercept: bool = True,
-        max_iter: int = 100,
-        tol: float = 1e-4,
+        max_iter: typing.Union[int, Apply] = 100,
+        tol: typing.Union[float, Apply] = 1e-4,
         warm_start: bool = False,
         verbose: int = 0,
 ):
@@ -64,7 +65,7 @@ def _glm_hp_space(
     hp_space = dict(
         alpha=alpha,
         fit_intercept=fit_intercept,
-        max_iter=max_iter or _glm_max_iter(name_func("max_iter")),
+        max_iter=_glm_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_glm_tol(name_func("tol")) if tol is None else tol,
         warm_start=warm_start,
         verbose=verbose
@@ -83,6 +84,7 @@ def poisson_regressor(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._glm._glm_hp_space)
     for info on additional available glm arguments.
     """
+
     def _name(msg):
         return f"{name}.poisson_regressor_{msg}"
 
@@ -102,6 +104,7 @@ def gamma_regressor(name: str, **kwargs):
     See help(hpsklearn.components.linear_model._glm._glm_hp_space)
     for info on additional available glm arguments.
     """
+
     def _name(msg):
         return f"{name}.gamma_regressor_{msg}"
 
@@ -111,10 +114,10 @@ def gamma_regressor(name: str, **kwargs):
 
 
 @validate(params=["link"],
-          validation_test=lambda param: isinstance(param, str) and param in ["auto", "identity", "log"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "identity", "log"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'identity', 'log'].")
 def tweedie_regressor(name: str,
-                      power: float = None,
+                      power: typing.Union[float, Apply] = None,
                       link: str = "auto",
                       **kwargs):
     """
@@ -129,6 +132,7 @@ def tweedie_regressor(name: str,
     See help(hpsklearn.components.linear_model._glm._glm_hp_space)
     for info on additional available glm arguments.
     """
+
     def _name(msg):
         return f"{name}.tweedie_regressor_{msg}"
 

@@ -1,10 +1,11 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
 import numpy as np
+import typing
 
 
 @scope.define
@@ -53,13 +54,13 @@ def _weight_boosting_random_state(name: str):
 
 
 @validate(params=["n_estimators", "learning_rate"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 def _weight_boosting_hp_space(
         name_func,
         base_estimator=None,
-        n_estimators: int = None,
-        learning_rate: float = None,
+        n_estimators: typing.Union[int, Apply] = None,
+        learning_rate: typing.Union[float, Apply] = None,
         random_state=None
 ):
     """
@@ -69,14 +70,15 @@ def _weight_boosting_hp_space(
     """
     hp_space = dict(
         base_estimator=base_estimator,
-        n_estimators=(n_estimators or _weight_boosting_n_estimators(name_func("n_estimators"))),
-        learning_rate=(learning_rate or _weight_boosting_learning_rate(name_func("learning_rate"))),
+        n_estimators=_weight_boosting_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
+        learning_rate=_weight_boosting_learning_rate(name_func("learning_rate"))
+        if learning_rate is None else learning_rate,
         random_state=_weight_boosting_random_state(name_func("random_state")) if random_state is None else random_state,
     )
     return hp_space
 
 
-def ada_boost_classifier(name: str, algorithm: str = None, **kwargs):
+def ada_boost_classifier(name: str, algorithm: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.AdaBoostClassifier model.
@@ -93,12 +95,12 @@ def ada_boost_classifier(name: str, algorithm: str = None, **kwargs):
         return f"{name}.ada_boost_{msg}"
 
     hp_space = _weight_boosting_hp_space(_name, **kwargs)
-    hp_space["algorithm"] = (algorithm or _weight_boosting_algorithm(_name("algorithm")))
+    hp_space["algorithm"] = _weight_boosting_algorithm(_name("algorithm")) if algorithm is None else algorithm
 
     return scope.sklearn_AdaBoostClassifier(**hp_space)
 
 
-def ada_boost_regressor(name: str, loss: str = None, **kwargs):
+def ada_boost_regressor(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.AdaBoostClassifier model.
@@ -115,6 +117,6 @@ def ada_boost_regressor(name: str, loss: str = None, **kwargs):
         return f"{name}.ada_boost_{msg}"
 
     hp_space = _weight_boosting_hp_space(_name, **kwargs)
-    hp_space["loss"] = (loss or _weight_boosting_loss(_name("loss")))
+    hp_space["loss"] = _weight_boosting_loss(_name("loss")) if loss is None else loss
 
     return scope.sklearn_AdaBoostRegressor(**hp_space)

@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import decomposition
@@ -14,11 +14,11 @@ def sklearn_PCA(*args, **kwargs):
 
 
 @validate(params=["n_components"],
-          validation_test=lambda param: param == "mle",
+          validation_test=lambda param: not isinstance(param, str) or param == "mle",
           msg="Invalid parameter '%s' with value '%s'. Choose 'mle', int or float.")
 def pca(name: str,
-        n_components: typing.Union[float, str] = None,
-        whiten: bool = None,
+        n_components: typing.Union[float, str, Apply] = None,
+        whiten: typing.Union[bool, Apply] = None,
         copy: bool = True):
     """
     Return a pyll graph with hyperparameters that will construct

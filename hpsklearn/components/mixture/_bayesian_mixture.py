@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import mixture
@@ -15,23 +15,24 @@ def sklearn_BayesianGaussianMixture(*args, **kwargs):
 
 
 @validate(params=["covariance_type"],
-          validation_test=lambda param: param in ["full", "tied", "diag", "spherical"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["full", "tied", "diag", "spherical"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of 'full', 'tied', 'diag', or 'spherical'")
 @validate(params=["init_params"],
-          validation_test=lambda param: param in ["kmeans", "random"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["kmeans", "random"],
           msg="Invalid parameter '%s' with value '%s'. Value must be one of 'kmeans' or 'random'")
 @validate(params=["weight_concentration_prior_type"],
-          validation_test=lambda param: param in ["dirichlet_process", "dirichlet_distribution"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["dirichlet_process",
+                                                                                "dirichlet_distribution"],
           msg="Invalid parameter '%s' with value '%s'. Value must be 'dirichlet_process' or 'dirichlet_distribution'")
 def bayesian_gaussian_mixture(name: str,
-                              n_components: int = None,
-                              covariance_type: str = None,
-                              tol: float = None,
-                              reg_covar: float = None,
-                              max_iter: int = None,
-                              n_init: int = None,
-                              init_params: str = None,
-                              weight_concentration_prior_type: str = None,
+                              n_components: typing.Union[int, Apply] = None,
+                              covariance_type: typing.Union[str, Apply] = None,
+                              tol: typing.Union[float, Apply] = None,
+                              reg_covar: typing.Union[float, Apply] = None,
+                              max_iter: typing.Union[int, Apply] = None,
+                              n_init: typing.Union[int, Apply] = None,
+                              init_params: typing.Union[str, Apply] = None,
+                              weight_concentration_prior_type: typing.Union[str, Apply] = None,
                               weight_concentration_prior: float = None,
                               mean_precision_prior: float = None,
                               mean_prior: npt.ArrayLike = None,
@@ -65,19 +66,22 @@ def bayesian_gaussian_mixture(name: str,
         verbose: verbosity level | int
         verbose_interval: interval between log messages | int
     """
+
     def _name(msg):
         return f"{name}.bayesian_gaussian_mixture_{msg}"
 
     hp_space = dict(
-        n_components=n_components or scope.int(hp.uniform(_name("n_components"), 1, 5)),
-        covariance_type=covariance_type or hp.choice(_name("covariance_type"), ["full", "tied", "diag", "spherical"]),
+        n_components=scope.int(hp.uniform(_name("n_components"), 1, 5)) if n_components is None else n_components,
+        covariance_type=hp.choice(_name("covariance_type"), ["full", "tied", "diag", "spherical"])
+        if covariance_type is None else covariance_type,
         tol=hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)) if tol is None else tol,
         reg_covar=hp.loguniform(_name("reg_covar"), np.log(1e-7), np.log(1e-5)) if reg_covar is None else reg_covar,
-        max_iter=max_iter or scope.int(hp.uniform(_name("max_iter"), 100, 300)),
-        n_init=n_init or hp.choice(_name("n_init"), [1, 2]),
-        init_params=init_params or hp.choice(_name("init_params"), ["kmeans", "random"]),
-        weight_concentration_prior_type=weight_concentration_prior_type
-        or hp.choice(_name("weight_concentration_prior_type"), ["dirichlet_process", "dirichlet_distribution"]),
+        max_iter=scope.int(hp.uniform(_name("max_iter"), 100, 300)) if max_iter is None else max_iter,
+        n_init=hp.choice(_name("n_init"), [1, 2]) if n_init is None else n_init,
+        init_params=hp.choice(_name("init_params"), ["kmeans", "random"]) if init_params is None else init_params,
+        weight_concentration_prior_type=hp.choice(_name("weight_concentration_prior_type"), ["dirichlet_process",
+                                                                                             "dirichlet_distribution"])
+        if weight_concentration_prior_type is None else weight_concentration_prior_type,
         weight_concentration_prior=weight_concentration_prior,
         mean_precision_prior=mean_precision_prior,
         mean_prior=mean_prior,

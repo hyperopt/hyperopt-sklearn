@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import discriminant_analysis
@@ -46,14 +46,14 @@ def _discriminant_analysis_hp_space(
 
 
 @validate(params=["solver"],
-          validation_test=lambda param: isinstance(param, str) and param in ["svd", "lsqr", "eigen"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["svd", "lsqr", "eigen"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['svd', 'lsqr', 'eigen'].")
 @validate(params=["shrinkage"],
-          validation_test=lambda param: isinstance(param, str) and param == "auto",
+          validation_test=lambda param: not isinstance(param, str) or param == "auto",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'auto' or float.")
 def linear_discriminant_analysis(name: str,
-                                 solver: str = None,
-                                 shrinkage: typing.Union[float, str] = None,
+                                 solver: typing.Union[str, Apply] = None,
+                                 shrinkage: typing.Union[float, str, Apply] = None,
                                  n_components: int = None,
                                  covariance_estimator: callable = None,
                                  **kwargs):
@@ -71,11 +71,12 @@ def linear_discriminant_analysis(name: str,
     See help(hpsklearn.components.discriminant_analysis._discriminant_analysis_hp_space)
     for info on additional available discriminant analysis arguments.
     """
+
     def _name(msg):
         return f"{name}.linear_discriminant_analysis_{msg}"
 
     hp_space = _discriminant_analysis_hp_space(_name, **kwargs)
-    hp_space["solver"] = solver or hp.choice(_name("solver"), ["svd", "lsqr", "eigen"])
+    hp_space["solver"] = hp.choice(_name("solver"), ["svd", "lsqr", "eigen"]) if solver is None else solver
     hp_space["shrinkage"] = shrinkage
     hp_space["n_components"] = n_components
     hp_space["covariance_estimator"] = covariance_estimator
@@ -83,7 +84,7 @@ def linear_discriminant_analysis(name: str,
     return scope.sklearn_LinearDiscriminantAnalysis(**hp_space)
 
 
-def quadratic_discriminant_analysis(name: str, reg_param: float = None, **kwargs):
+def quadratic_discriminant_analysis(name: str, reg_param: typing.Union[float, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis model.
@@ -95,10 +96,11 @@ def quadratic_discriminant_analysis(name: str, reg_param: float = None, **kwargs
     See help(hpsklearn.components.discriminant_analysis._discriminant_analysis_hp_space)
     for info on additional available discriminant analysis arguments.
     """
+
     def _name(msg):
         return f"{name}.quadratic_discriminant_analysis_{msg}"
 
     hp_space = _discriminant_analysis_hp_space(_name, **kwargs)
-    hp_space["reg_param"] = reg_param or hp.uniform(_name("reg_param"), 0.0, 0.5)
+    hp_space["reg_param"] = hp.uniform(_name("reg_param"), 0.0, 0.5) if reg_param is None else reg_param
 
     return scope.sklearn_QuadraticDiscriminantAnalysis(**hp_space)

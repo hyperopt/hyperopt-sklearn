@@ -154,6 +154,10 @@ from .lagselectors import ts_lagselector
 
 from .vkmeans import colkmeans
 
+from .ensemble import \
+    forest_classifiers, \
+    forest_regressors
+
 
 # Legacy any classifier
 def any_classifier(name):

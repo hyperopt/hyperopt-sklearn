@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import ensemble
@@ -71,20 +71,20 @@ def _hist_gradient_boosting_random_state(name: str):
 
 
 @validate(params=["max_bins"],
-          validation_test=lambda param: 0 < param <= 255,
+          validation_test=lambda param: not isinstance(param, int) or 0 < param <= 255,
           msg="Invalid parameter '%s' with value '%s'. "
               "Parameter value must be Parameter value must be within (0, 255].")
 @validate(params=["max_leaf_nodes"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. "
               "Parameter value must be strictly higher than 1.")
 def _hist_gradient_boosting_hp_space(
         name_func,
-        learning_rate: float = None,
-        max_iter: int = 100,
-        max_leaf_nodes: int = None,
-        max_depth: int = None,
-        min_samples_leaf: int = None,
+        learning_rate: typing.Union[float, Apply] = None,
+        max_iter: typing.Union[int, Apply] = 100,
+        max_leaf_nodes: typing.Union[int, Apply] = None,
+        max_depth: typing.Union[int, Apply] = None,
+        min_samples_leaf: typing.Union[int, Apply] = None,
         l2_regularization: float = 0,
         max_bins: int = 255,
         categorical_features: npt.ArrayLike = None,
@@ -110,11 +110,15 @@ def _hist_gradient_boosting_hp_space(
                          "Parameters 'scoring', 'validation_fraction' and 'n_iter_no_change' "
                          "can only be specified in addition to 'early_stopping'.")
     hp_space = dict(
-        learning_rate=(learning_rate or _hist_gradient_boosting_learning_rate(name_func("learning_rate"))),
+        learning_rate=_hist_gradient_boosting_learning_rate(name_func("learning_rate"))
+        if learning_rate is None else learning_rate,
         max_iter=max_iter,
-        max_leaf_nodes=(max_leaf_nodes or _hist_gradient_boosting_max_leaf_nodes(name_func("max_leaf_nodes"))),
-        max_depth=(max_depth or _hist_gradient_boosting_max_depth(name_func("max_depth"))),
-        min_samples_leaf=(min_samples_leaf or _hist_gradient_boosting_min_samples_leaf(name_func("min_samples_leaf"))),
+        max_leaf_nodes=_hist_gradient_boosting_max_leaf_nodes(name_func("max_leaf_nodes"))
+        if max_leaf_nodes is None else max_leaf_nodes,
+        max_depth=_hist_gradient_boosting_max_depth(name_func("max_depth"))
+        if max_depth is None else max_depth,
+        min_samples_leaf=_hist_gradient_boosting_min_samples_leaf(name_func("min_samples_leaf"))
+        if min_samples_leaf is None else min_samples_leaf,
         l2_regularization=l2_regularization,
         max_bins=max_bins,
         categorical_features=categorical_features,
@@ -133,11 +137,11 @@ def _hist_gradient_boosting_hp_space(
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ("auto", "binary_crossentropy",
-                                                                             "categorical_crossentropy"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("auto", "binary_crossentropy",
+                                                                                "categorical_crossentropy"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'auto', 'binary_crossentropy', 'categorical_crossentropy'")
-def hist_gradient_boosting_classifier(name: str, loss: str = "auto", **kwargs):
+def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = "auto", **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.HistGradientBoostingClassifier model.
@@ -160,11 +164,11 @@ def hist_gradient_boosting_classifier(name: str, loss: str = "auto", **kwargs):
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: isinstance(param, str) and param in ("squared_error", "absolute_error",
-                                                                             "poisson"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("squared_error", "absolute_error",
+                                                                                "poisson"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'poisson'")
-def hist_gradient_boosting_regressor(name: str, loss: str = None, **kwargs):
+def hist_gradient_boosting_regressor(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.HistGradientBoostingRegressor model.
@@ -181,6 +185,6 @@ def hist_gradient_boosting_regressor(name: str, loss: str = None, **kwargs):
         return f"{name}.gbc_{msg}"
 
     hp_space = _hist_gradient_boosting_hp_space(_name, **kwargs)
-    hp_space["loss"] = (loss or _hist_gradient_boosting_reg_loss(_name("loss")))
+    hp_space["loss"] = _hist_gradient_boosting_reg_loss(_name("loss")) if loss is None else loss
 
     return scope.sklearn_HistGradientBoostingRegressor(**hp_space)

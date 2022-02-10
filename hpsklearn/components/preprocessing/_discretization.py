@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import preprocessing
@@ -14,18 +14,18 @@ def sklearn_KBinsDiscretizer(*args, **kwargs):
 
 
 @validate(params=["n_bins"],
-          validation_test=lambda param: isinstance(param, npt.ArrayLike) or param >= 2,
+          validation_test=lambda param: not isinstance(param, int) or param >= 2,
           msg="Invalid parameter '%s' with value '%s'. Value must be 2 or higher.")
 @validate(params=["encode"],
-          validation_test=lambda param: param in ["onehot", "onehot-dense", "ordinal"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["onehot", "onehot-dense", "ordinal"],
           msg="Invalid parameter '%s' with value '%s'. Choose 'onehot', 'onehot-dense' or 'ordinal'.")
 @validate(params=["strategy"],
-          validation_test=lambda param: param in ["uniform", "quantile", "kmeans"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["uniform", "quantile", "kmeans"],
           msg="Invalid parameter '%s' with value '%s'. Choose 'uniform', 'quantile' or 'kmeans'.")
 def k_bins_discretizer(name: str,
-                       n_bins: typing.Union[int, npt.ArrayLike] = None,
-                       encode: str = None,
-                       strategy: str = None,
+                       n_bins: typing.Union[int, npt.ArrayLike, Apply] = None,
+                       encode: typing.Union[str, Apply] = None,
+                       strategy: typing.Union[str, Apply] = None,
                        dtype=None):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -39,9 +39,9 @@ def k_bins_discretizer(name: str,
         dtype: dtype of output | type
     """
     rval = scope.sklearn_KBinsDiscretizer(
-        n_bins=n_bins or scope.int(hp.uniform(name + ".n_bins", 2, 20)),
-        encode=encode or hp.choice(name + ".encode", ["onehot-dense", "ordinal"]),
-        strategy=strategy or hp.choice(name + ".strategy", ["uniform", "quantile", "kmeans"]),
+        n_bins=scope.int(hp.uniform(name + ".n_bins", 2, 20)) if n_bins is None else n_bins,
+        encode=hp.choice(name + ".encode", ["onehot-dense", "ordinal"]) if encode is None else encode,
+        strategy=hp.choice(name + ".strategy", ["uniform", "quantile", "kmeans"]) if strategy is None else strategy,
         dtype=dtype
     )
 

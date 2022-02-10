@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -117,14 +117,14 @@ def _least_angle_hp_space(
 
 
 @validate(params=["cv"],
-          validation_test=lambda param: isinstance(param, float) and param > 0,
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def _least_angle_cv_shared_space(
         hp_space: dict,
         _name: callable,
-        max_iter: int = None,
-        cv: typing.Union[int, callable, typing.Generator] = None,
-        max_n_alphas: int = None,
+        max_iter: typing.Union[int, Apply] = None,
+        cv: typing.Union[int, callable, typing.Generator, Apply] = None,
+        max_n_alphas: typing.Union[int, Apply] = None,
         n_jobs: int = None,
 ):
     """
@@ -132,18 +132,19 @@ def _least_angle_cv_shared_space(
      lars cv
      lasso lars cv
     """
-    hp_space["max_iter"] = max_iter or _least_angle_max_iter(_name("max_iter"))
-    hp_space["cv"] = cv or _least_angle_cv(_name("cv"))
-    hp_space["max_n_alphas"] = max_n_alphas or _least_angle_max_n_alphas(_name("max_n_alphas"))
+    hp_space["max_iter"] = _least_angle_max_iter(_name("max_iter")) if max_iter is None else max_iter
+    hp_space["cv"] = _least_angle_cv(_name("cv")) if cv is None else cv
+    hp_space["max_n_alphas"] = _least_angle_max_n_alphas(_name("max_n_alphas")) \
+        if max_n_alphas is None else max_n_alphas
     hp_space["n_jobs"] = n_jobs
     return hp_space
 
 
 @validate(params=["n_nonzero_coefs"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 def lars(name: str,
-         n_nonzero_coefs: int = None,
+         n_nonzero_coefs: typing.Union[int, Apply] = None,
          fit_path: bool = True,
          jitter: float = None,
          random_state=None,
@@ -168,24 +169,26 @@ def lars(name: str,
         return f"{name}.lars_{msg}"
 
     hp_space = _least_angle_hp_space(_name, **kwargs)
-    hp_space["n_nonzero_coefs"] = n_nonzero_coefs or _least_angle_n_nonzero_coefs(_name("n_nonzero_coefs"))
+    hp_space["n_nonzero_coefs"] = _least_angle_n_nonzero_coefs(_name("n_nonzero_coefs")) \
+        if n_nonzero_coefs is None else n_nonzero_coefs
     hp_space["fit_path"] = fit_path
     hp_space["jitter"] = jitter  # highly dependent on data
-    hp_space["random_state"] = random_state or _least_angle_random_state(_name("random_state"))
+    hp_space["random_state"] = _least_angle_random_state(_name("random_state")) \
+        if random_state is None else random_state
 
     return scope.sklearn_Lars(**hp_space)
 
 
 @validate(params=["alpha"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Alpha = 0 is equivalent to ordinary least square. "
               "For ordinary least square, use LinearRegression instead.")
 @validate(params=["max_iter"],
-          validation_test=lambda param: isinstance(param, int) and param > 1,
+          validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 def lasso_lars(name: str,
-               alpha: float = None,
-               max_iter: int = None,
+               alpha: typing.Union[float, Apply] = None,
+               max_iter: typing.Union[int, Apply] = None,
                fit_path: bool = True,
                positive: bool = False,
                jitter: float = None,
@@ -213,23 +216,24 @@ def lasso_lars(name: str,
         return f"{name}.lasso_lars_{msg}"
 
     hp_space = _least_angle_hp_space(_name, **kwargs)
-    hp_space["alpha"] = alpha or _least_angle_alpha(_name("alpha"))
-    hp_space["max_iter"] = max_iter or _least_angle_max_iter(_name("max_iter"))
+    hp_space["alpha"] = _least_angle_alpha(_name("alpha")) if alpha is None else alpha
+    hp_space["max_iter"] = _least_angle_max_iter(_name("max_iter")) if max_iter is None else max_iter
     hp_space["fit_path"] = fit_path
     hp_space["positive"] = positive
     hp_space["jitter"] = jitter  # highly dependent on data
-    hp_space["random_state"] = random_state or _least_angle_random_state(_name("random_state"))
+    hp_space["random_state"] = _least_angle_random_state(_name("random_state")) \
+        if random_state is None else random_state
 
     return scope.sklearn_LassoLars(**hp_space)
 
 
 @validate(params=["max_iter", "max_n_alphas"],
-          validation_test=lambda param: isinstance(param, int) and param > 0,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def lars_cv(name: str,
-            max_iter: int = None,
-            cv: typing.Union[int, callable, typing.Generator] = None,
-            max_n_alphas: int = None,
+            max_iter: typing.Union[int, Apply] = None,
+            cv: typing.Union[int, callable, typing.Generator, Apply] = None,
+            max_n_alphas: typing.Union[int, Apply] = None,
             n_jobs: int = None,
             **kwargs
             ):
@@ -262,12 +266,12 @@ def lars_cv(name: str,
 
 
 @validate(params=["max_iter", "max_n_alphas"],
-          validation_test=lambda param: isinstance(param, int) and param > 0,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def lasso_lars_cv(name: str,
-                  max_iter: int = None,
-                  cv: typing.Union[int, callable, typing.Generator] = None,
-                  max_n_alphas: int = None,
+                  max_iter: typing.Union[int, Apply] = None,
+                  cv: typing.Union[int, callable, typing.Generator, Apply] = None,
+                  max_n_alphas: typing.Union[int, Apply] = None,
                   n_jobs: int = None,
                   positive: bool = False,
                   **kwargs
@@ -302,14 +306,14 @@ def lasso_lars_cv(name: str,
 
 
 @validate(params=["criterion"],
-          validation_test=lambda param: isinstance(param, str) and param in ("bic", "aic"),
+          validation_test=lambda param: not isinstance(param, str) or param in ("bic", "aic"),
           msg="Invalid parameter '%s' with value '%s'. Choose 'bic' or 'aic'.'")
 @validate(params=["max_iter"],
-          validation_test=lambda param: isinstance(param, int) and param > 0,
+          validation_test=lambda param: not isinstance(param, int) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 0.")
 def lasso_lars_ic(name: str,
-                  criterion: str = None,
-                  max_iter: int = None,
+                  criterion: typing.Union[str, Apply] = None,
+                  max_iter: typing.Union[int, Apply] = None,
                   positive: bool = False,
                   **kwargs
                   ):
@@ -331,8 +335,8 @@ def lasso_lars_ic(name: str,
         return f"{name}.lasso_lars_ic_{msg}"
 
     hp_space = _least_angle_hp_space(_name, **kwargs)
-    hp_space["criterion"] = criterion or _least_angle_criterion(_name("criterion"))
-    hp_space["max_iter"] = max_iter or _least_angle_max_iter(_name("max_iter"))
+    hp_space["criterion"] = _least_angle_criterion(_name("criterion")) if criterion is None else criterion
+    hp_space["max_iter"] = _least_angle_max_iter(_name("max_iter")) if max_iter is None else max_iter
     hp_space["positive"] = positive
 
     return scope.sklearn_LassoLarsIC(**hp_space)

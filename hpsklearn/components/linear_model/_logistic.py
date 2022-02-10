@@ -1,6 +1,6 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import linear_model
@@ -82,24 +82,24 @@ def _logistic_random_state(name: str):
 
 
 @validate(params=["penalty"],
-          validation_test=lambda param: isinstance(param, str) and param in ["l1", "l2", "elasticnet"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["l1", "l2", "elasticnet"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['l1', 'l2', 'elasticnet'].")
 @validate(params=["solver"],
-          validation_test=lambda param: isinstance(param, str) and param in ["newton-cg", "lbfgs", "liblinear", "sag",
-                                                                             "saga"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["newton-cg", "lbfgs", "liblinear",
+                                                                                "sag", "saga"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'].")
 @validate(params=["multi_class"],
-          validation_test=lambda param: isinstance(param, str) and param in ["auto", "ovr", "multinomial"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "ovr", "multinomial"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'ovr', 'multinomial'].")
 def _logistic_hp_space(
         name_func,
         fit_intercept: bool = True,
         dual: bool = False,
-        penalty: str = None,
-        solver: str = None,
-        tol: float = None,
-        max_iter: int = None,
+        penalty: typing.Union[str, Apply] = None,
+        solver: typing.Union[str, Apply] = None,
+        tol: typing.Union[float, Apply] = None,
+        max_iter: typing.Union[int, Apply] = None,
         class_weight: typing.Union[dict, str] = None,
         n_jobs: int = 1,
         verbose: int = 0,
@@ -120,7 +120,7 @@ def _logistic_hp_space(
         penalty=penalty,
         solver=solver,
         tol=_logistic_tol(name_func("tol")) if tol is None else tol,
-        max_iter=max_iter or _logistic_max_iter(name_func("max_iter")),
+        max_iter=_logistic_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         class_weight=class_weight,
         n_jobs=n_jobs,
         verbose=verbose,
@@ -133,10 +133,10 @@ def _logistic_hp_space(
 
 
 @validate(params=["l1_ratio"],
-          validation_test=lambda param: isinstance(param, int) and 0 > param > 1,
+          validation_test=lambda param: not isinstance(param, int) or 0 > param > 1,
           msg="Invalid parameter '%s' with value '%s'. Value must be between 0 and 1.")
 def logistic_regression(name: str,
-                        C: float = None,
+                        C: typing.Union[float, Apply] = None,
                         warm_start: bool = False,
                         l1_ratio: float = None,
                         **kwargs):
@@ -153,6 +153,7 @@ def logistic_regression(name: str,
     See help(hpsklearn.components.linear_model._logistic._logistic_hp_space)
     for info on additional available logistic arguments.
     """
+
     def _name(msg):
         return f"{name}.logistic_regression_{msg}"
 
@@ -165,8 +166,8 @@ def logistic_regression(name: str,
 
 
 def logistic_regression_cv(name: str,
-                           Cs: typing.Union[int, list[float]] = None,
-                           cv: typing.Union[int, typing.Generator] = None,
+                           Cs: typing.Union[int, list[float], Apply] = None,
+                           cv: typing.Union[int, typing.Generator, Apply] = None,
                            scoring: typing.Union[str, callable] = None,
                            refit: bool = True,
                            l1_ratios: list[float] = None,
@@ -186,12 +187,13 @@ def logistic_regression_cv(name: str,
     See help(hpsklearn.components.linear_model._logistic._logistic_hp_space)
     for info on additional available logistic arguments.
     """
+
     def _name(msg):
         return f"{name}.logistic_regression_cv_{msg}"
 
     hp_space = _logistic_hp_space(_name, **kwargs)
     hp_space["Cs"] = _logistic_Cs(_name("Cs")) if Cs is None else Cs
-    hp_space["cv"] = cv or _logistic_cv(_name("cv"))
+    hp_space["cv"] = _logistic_cv(_name("cv")) if cv is None else cv
     hp_space["scoring"] = scoring
     hp_space["refit"] = refit
     hp_space["l1_ratios"] = l1_ratios

@@ -1,9 +1,10 @@
 from hpsklearn.components._base import validate
 
-from hyperopt.pyll import scope
+from hyperopt.pyll import scope, Apply
 from hyperopt import hp
 
 from sklearn import neural_network
+import typing
 
 
 @scope.define
@@ -143,39 +144,39 @@ def _multilayer_perceptron_max_fun(name: str):
 
 
 @validate(params=["activation"],
-          validation_test=lambda param: isinstance(param, str) and param in ["identity", "logistic", "tanh", "relu"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["identity", "logistic", "tanh", "relu"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['identity', 'logistic', 'tanh', 'relu'].")
 @validate(params=["solver"],
-          validation_test=lambda param: isinstance(param, str) and param in ["lbfgs", "sgd", "adam"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["lbfgs", "sgd", "adam"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['lbfgs', 'sgd', 'adam'].")
 @validate(params=["learning_rate"],
-          validation_test=lambda param: isinstance(param, str) and param in ["constant", "invscaling", "adaptive"],
+          validation_test=lambda param: not isinstance(param, str) or param in ["constant", "invscaling", "adaptive"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['constant', 'invscaling', 'adaptive'].")
 def _multilayer_perceptron_hp_space(
         name_func,
-        hidden_layer_sizes: tuple = None,
-        activation: str = None,
-        solver: str = None,
-        alpha: float = None,
-        batch_size: int = None,
-        learning_rate: str = None,
-        learning_rate_init: float = None,
-        power_t: float = None,
-        max_iter: int = None,
+        hidden_layer_sizes: typing.Union[tuple, Apply] = None,
+        activation: typing.Union[str, Apply] = None,
+        solver: typing.Union[str, Apply] = None,
+        alpha: typing.Union[float, Apply] = None,
+        batch_size: typing.Union[int, Apply] = None,
+        learning_rate: typing.Union[str, Apply] = None,
+        learning_rate_init: typing.Union[float, Apply] = None,
+        power_t: typing.Union[float, Apply] = None,
+        max_iter: typing.Union[int, Apply] = None,
         shuffle: bool = True,
         random_state=None,
-        tol: float = None,
+        tol: typing.Union[float, Apply] = None,
         verbose: bool = False,
         warm_start: bool = False,
-        momentum: float = None,
-        nesterovs_momentum: bool = True,
-        early_stopping: bool = False,
-        validation_fraction: float = None,
-        beta_1: float = None,
-        beta_2: float = None,
-        epsilon: float = None,
-        n_iter_no_change: int = None,
-        max_fun: int = None,
+        momentum: typing.Union[float, Apply] = None,
+        nesterovs_momentum: typing.Union[bool, Apply] = True,
+        early_stopping: typing.Union[bool, Apply] = False,
+        validation_fraction: typing.Union[float, Apply] = None,
+        beta_1: typing.Union[float, Apply] = None,
+        beta_2: typing.Union[float, Apply] = None,
+        epsilon: typing.Union[float, Apply] = None,
+        n_iter_no_change: typing.Union[int, Apply] = None,
+        max_fun: typing.Union[int, Apply] = None,
 ):
     """
     Hyper parameter search space for
@@ -184,15 +185,16 @@ def _multilayer_perceptron_hp_space(
     """
     hp_space = dict(
         hidden_layer_sizes=(100,) if hidden_layer_sizes is None else hidden_layer_sizes,
-        activation=activation or _multilayer_perceptron_activation(name_func("activation")),
-        solver=solver or _multilayer_perceptron_solver(name_func("solver")),
+        activation=_multilayer_perceptron_activation(name_func("activation")) if activation is None else activation,
+        solver=_multilayer_perceptron_solver(name_func("solver")) if solver is None else solver,
         alpha=_multilayer_perceptron_alpha(name_func("alpha")) if alpha is None else alpha,
         batch_size="auto" if batch_size is None else batch_size,
-        learning_rate=learning_rate or _multilayer_perceptron_learning_rate(name_func("learning_rate")),
+        learning_rate=_multilayer_perceptron_learning_rate(name_func("learning_rate"))
+        if learning_rate is None else learning_rate,
         learning_rate_init=_multilayer_perceptron_learning_rate_init(name_func("learning_rate_init"))
         if learning_rate_init is None else learning_rate_init,
         power_t=_multilayer_perceptron_power_t(name_func("power_t")) if power_t is None else power_t,
-        max_iter=max_iter or _multilayer_perceptron_max_iter(name_func("max_iter")),
+        max_iter=_multilayer_perceptron_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         shuffle=shuffle,
         random_state=_multilayer_perceptron_random_state(name_func("random_state"))
         if random_state is None else random_state,
@@ -200,9 +202,10 @@ def _multilayer_perceptron_hp_space(
         verbose=verbose,
         warm_start=warm_start,
         momentum=_multilayer_perceptron_momentum(name_func("momentum")) if momentum is None else momentum,
-        nesterovs_momentum=nesterovs_momentum
-        or _multilayer_perceptron_nesterovs_momentum(name_func("nesterovs_momentum")),
-        early_stopping=early_stopping or _multilayer_perceptron_early_stopping(name_func("early_stopping")),
+        nesterovs_momentum=_multilayer_perceptron_nesterovs_momentum(name_func("nesterovs_momentum"))
+        if nesterovs_momentum is None else nesterovs_momentum,
+        early_stopping=_multilayer_perceptron_early_stopping(name_func("early_stopping"))
+        if early_stopping is None else early_stopping,
         validation_fraction=_multilayer_perceptron_validation_fraction(name_func("validation_fraction"))
         if validation_fraction is None else validation_fraction,
         beta_1=_multilayer_perceptron_beta_1(name_func("beta_1")) if beta_1 is None else beta_1,
@@ -226,6 +229,7 @@ def mlp_classifier(name: str, **kwargs):
     See help(hpsklearn.components.neural_network._multilayer_perceptron._multilayer_perceptron_hp_space)
     for info on additional available multilayer perceptron arguments.
     """
+
     def _name(msg):
         return f"{name}.mlp_classifier_{msg}"
 
@@ -245,6 +249,7 @@ def mlp_regressor(name: str, **kwargs):
     See help(hpsklearn.components.neural_network._multilayer_perceptron._multilayer_perceptron_hp_space)
     for info on additional available multilayer perceptron arguments.
     """
+
     def _name(msg):
         return f"{name}.mlp_regressor_{msg}"
 
