@@ -1,5 +1,6 @@
 import hyperopt
 import time
+import typing
 
 
 class _NonFiniteFeature(Exception):
@@ -9,7 +10,7 @@ class _NonFiniteFeature(Exception):
     """
 
 
-def _custom_handler(str_exc: str, t_start: float, exc) -> tuple[Exception, str]:
+def _custom_handler(str_exc: str, t_start: float, exc) -> typing.Tuple[Exception, str]:
     """
     Custom exception handler to reduce duplicated code.
     """

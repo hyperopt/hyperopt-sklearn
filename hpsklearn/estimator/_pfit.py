@@ -1,6 +1,7 @@
 import numpy as np
 import copy
 import time
+import typing
 
 # Constants for partial_fit
 
@@ -35,7 +36,7 @@ def _pfit_until_convergence(learner,
                             XEXval=None,
                             yval=None,
                             timeout: float = None,
-                            t_start: float = None) -> tuple[any, int]:
+                            t_start: float = None) -> typing.Tuple[any, int]:
     """
     Do partial fitting until the convergence criterion is met
 

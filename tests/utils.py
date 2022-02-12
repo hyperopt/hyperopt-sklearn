@@ -6,6 +6,7 @@ from hpsklearn import HyperoptEstimator
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
+import typing
 
 
 class StandardClassifierTest(unittest.TestCase):
@@ -155,7 +156,7 @@ def create_preprocessing_function(pre_fn, classifier):
 # Create unique _data preprocessing algorithms
 #  with test_ prefix so that nose can see them
 def generate_preprocessor_attributes(TestClass,
-                                     preprocessor_list: list[callable],
+                                     preprocessor_list: typing.List[callable],
                                      classifier: callable):
     """
     Generate class methods
@@ -174,7 +175,7 @@ def generate_preprocessor_attributes(TestClass,
 
 
 def generate_attributes(TestClass,
-                        fn_list: list[callable],
+                        fn_list: typing.List[callable],
                         is_classif: bool,
                         non_negative_input: bool = False,
                         non_negative_output: bool = False,

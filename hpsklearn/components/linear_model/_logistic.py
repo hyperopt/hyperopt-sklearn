@@ -166,11 +166,11 @@ def logistic_regression(name: str,
 
 
 def logistic_regression_cv(name: str,
-                           Cs: typing.Union[int, list[float], Apply] = None,
+                           Cs: typing.Union[int, typing.List[float], Apply] = None,
                            cv: typing.Union[int, typing.Generator, Apply] = None,
                            scoring: typing.Union[str, callable] = None,
                            refit: bool = True,
-                           l1_ratios: list[float] = None,
+                           l1_ratios: typing.List[float] = None,
                            **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
