@@ -148,8 +148,8 @@ def _stochastic_gradient_n_iter_no_change(name: str):
           validation_test=lambda param: not isinstance(param, str) or param in ["l2", "l1", "elasticnet"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['l2', 'l1', 'elasticnet'].")
 @validate(params=["learning_rate"],
-          validation_test=lambda param: not isinstance(param, str) or param in
-                                        ["constant", "optimal", "invscaling", "adaptive"],
+          validation_test=lambda param: not isinstance(param, str) or
+                                        param in ["constant", "optimal", "invscaling", "adaptive"],  # noqa
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['constant', 'optimal', 'invscaling', 'adaptive'].")
 @validate(params=["n_iter_no_change"],
@@ -218,7 +218,7 @@ def _stochastic_gradient_hp_space(
 
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["hinge", "log", "modified_huber", "squared_hinge", "perceptron",
+                                        param in ["hinge", "log", "modified_huber", "squared_hinge", "perceptron",   # noqa
                                                   "squared_error", "huber", "epsilon_insensitive",
                                                   "squared_epsilon_insensitive"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['hinge', 'log', 'modified_huber', "
@@ -259,7 +259,7 @@ def sgd_classifier(name: str,
 
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["squared_error", "huber", "epsilon_insensitive",
+                                        param in ["squared_error", "huber", "epsilon_insensitive",  # noqa
                                                   "squared_epsilon_insensitive"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['squared_error', 'huber', "
               "'epsilon_insensitive', 'squared_epsilon_insensitive'].")

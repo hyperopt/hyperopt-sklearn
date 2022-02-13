@@ -15,7 +15,7 @@ def sklearn_KernelRidge(*args, **kwargs):
 
 @validate(params=["kernel"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["additive_chi2", "chi2", "cosine", "linear", "poly",
+                                        param in ["additive_chi2", "chi2", "cosine", "linear", "poly",  # noqa
                                                   "polynomial", "rbf", "laplacian", "sigmoid"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['additive_chi2', 'chi2', 'cosine', 'linear', "
               "'poly', 'polynomial', 'rbf', 'laplacian', 'sigmoid'].")

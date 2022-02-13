@@ -174,7 +174,7 @@ def any_classifier(name):
         sgd_classifier(name + ".sgd")
     ]
 
-    if xgboost.xgboost:
+    if xgboost.xgboost:  # noqa
         classifiers.append(xgboost_classification(name + ".xgboost"))
 
     return hp.choice(name, classifiers)
@@ -210,7 +210,7 @@ def any_regressor(name):
         sgd_regressor(name + ".sgd")
     ]
 
-    if xgboost.xgboost:
+    if xgboost.xgboost:  # noqa
         regressors.append(xgboost_regression(name + ".xgboost"))
 
     return hp.choice(name, regressors)

@@ -62,7 +62,7 @@ def _ridge_cv(name: str):
         (0.525, 5),
         (0.175, 6),
         (0.0625, 7),
-        ])
+    ])
 
 
 def _ridge_alphas(name: str):
@@ -78,7 +78,7 @@ def _ridge_alphas(name: str):
 
 @validate(params=["solver"],
           validation_test=lambda param: not isinstance(param, str) or param in
-                                        ["auto", "svd", "cholesky", "lsqr", "sparse_cg", "sag", "saga", "lbfgs"],
+                                        ["auto", "svd", "cholesky", "lsqr", "sparse_cg", "sag", "saga", "lbfgs"],  # noqa
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga', 'lbfgs'].")
 @validate(params=["alpha"],

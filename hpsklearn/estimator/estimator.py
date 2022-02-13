@@ -175,7 +175,8 @@ class hyperopt_estimator(BaseEstimator):
             })
         else:
             if self._times_fitted == 1:
-                assert all(v is None for v in [self.classifier, self.regressor, self.preprocessing, self.ex_preprocs]), \
+                assert all(v is None for v in [self.classifier, self.regressor, self.preprocessing,
+                                               self.ex_preprocs]), \
                     "Detected a search space. " \
                     "Parameters 'classifier', 'regressor', 'preprocessing' and 'ex_preprocs' " \
                     "should be contained in the space and should not be set in addition to the space."
@@ -471,7 +472,7 @@ class hyperopt_estimator(BaseEstimator):
 
         if self._best_learner is None:
             raise RuntimeError(
-                "All trials failed or timed out. \n" 
+                "All trials failed or timed out. \n"
                 f"Result of last trial: {self.trials.trials[-1]['result']}"
             )
 

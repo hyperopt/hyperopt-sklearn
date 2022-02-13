@@ -29,10 +29,10 @@ def linear_regression(name: str,
         return f"{name}.linear_regression_{msg}"
 
     hp_space = dict(
-            fit_intercept=fit_intercept,
-            copy_X=copy_X,
-            n_jobs=n_jobs,
-            positive=positive
-        )
+        fit_intercept=fit_intercept,
+        copy_X=copy_X,
+        n_jobs=n_jobs,
+        positive=positive
+    )
 
     return scope.sklearn_LinearRegression(**hp_space)
