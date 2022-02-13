@@ -378,7 +378,7 @@ def all_regressors(name):
     return hp.choice(name, regressors)
 
 
-def all_preprocessors(name):
+def all_preprocessing(name):
     """
     All pre-processing
     """
