@@ -30,7 +30,7 @@ generate_attributes(
     TestClass=TestGaussianMixtureRegression,
     fn_list=[gaussian_mixture],
     is_classif=False,
-    )
+)
 
 
 if __name__ == '__main__':

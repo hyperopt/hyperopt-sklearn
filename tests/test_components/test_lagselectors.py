@@ -35,9 +35,9 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from hyperopt import tpe
-from hpsklearn import HyperoptEstimator
-from hpsklearn import linear_svr, ts_lagselector
+from hyperopt import tpe  # noqa
+from hpsklearn import HyperoptEstimator  # noqa
+from hpsklearn import linear_svr, ts_lagselector  # noqa
 
 
 class TimeSeriesForecast(unittest.TestCase):

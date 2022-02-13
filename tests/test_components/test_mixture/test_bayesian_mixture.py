@@ -30,7 +30,7 @@ generate_attributes(
     TestClass=TestBayesianGaussianMixtureRegression,
     fn_list=[bayesian_gaussian_mixture],
     is_classif=False,
-    )
+)
 
 
 if __name__ == '__main__':
