@@ -36,7 +36,7 @@ def elliptic_envelope(name: str,
     hp_space = dict(
         store_precision=store_precision,
         assume_centered=assume_centered,
-        support_fraction=hp.uniform(_name("support_fraction"), 0.0, 1.0)
+        support_fraction=hp.uniform(_name("support_fraction"), 0.05, 0.95)
         if support_fraction is None else support_fraction,
         contamination=hp.uniform(_name("contamination"), 0.0, 0.3) if contamination is None else contamination,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state
