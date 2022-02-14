@@ -35,7 +35,7 @@ def _pls_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return scope.int(hp.qloguniform(name, np.log(350), np.log(650), 1))
+    return scope.int(hp.uniform(name, 350, 650))
 
 
 def _pls_tol(name: str):

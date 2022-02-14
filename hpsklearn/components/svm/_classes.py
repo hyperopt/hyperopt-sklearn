@@ -75,7 +75,7 @@ def _linear_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.uniform(name, 750, 1500)
+    return scope.int(hp.uniform(name, 750, 1500))
 
 
 def _svm_kernel(name: str):

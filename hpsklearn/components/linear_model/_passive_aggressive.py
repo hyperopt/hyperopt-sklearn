@@ -27,7 +27,7 @@ def _passive_aggressive_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.qloguniform(name, low=np.log(750), high=np.log(1250), q=1.0)
+    return scope.int(hp.uniform(name, low=750, high=1250))
 
 
 def _passive_aggressive_tol(name: str):

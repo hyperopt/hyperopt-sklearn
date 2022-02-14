@@ -24,7 +24,7 @@ def _glm_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.uniform(name, low=80, high=120)
+    return scope.int(hp.uniform(name, low=80, high=120))
 
 
 def _glm_alpha(name: str):

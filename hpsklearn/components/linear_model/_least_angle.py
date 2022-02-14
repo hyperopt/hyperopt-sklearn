@@ -52,7 +52,7 @@ def _least_angle_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.qloguniform(name, low=np.log(250), high=np.log(750), q=1.0)
+    return hp.uniform(name, low=250, high=750)
 
 
 def _least_angle_cv(name: str):

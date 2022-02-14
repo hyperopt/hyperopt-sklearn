@@ -90,7 +90,7 @@ def _stochastic_gradient_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.qloguniform(name, np.log(750), np.log(1250), 1)
+    return scope.int(hp.uniform(name, 750, 1250))
 
 
 def _stochastic_gradient_tol(name: str):
