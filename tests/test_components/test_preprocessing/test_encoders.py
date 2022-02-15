@@ -45,7 +45,7 @@ def create_preprocessing_function(pre_fn):
 
 
 # Create unique _data preprocessing algorithms
-#  with test_ prefix so that nose can see them
+#  with test_ prefix so that unittest can see them
 for pre in preprocessors:
     setattr(
         TestEncodersPreprocessing,

@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 
 from hyperopt import rand
+from hyperopt.exceptions import AllTrialsFailed
 from hpsklearn import HyperoptEstimator
 
 from sklearn.datasets import load_iris
@@ -107,26 +108,29 @@ def create_function(fn: callable,
     """
 
     def test_estimator(self):
-        if is_classif:
-            model = HyperoptEstimator(
-                classifier=fn("classifier"),
-                preprocessing=[],
-                algo=rand.suggest,
-                trial_timeout=trial_timeout,
-                max_evals=max_evals,
-            )
-        else:
-            model = HyperoptEstimator(
-                regressor=fn("regressor"),
-                preprocessing=[],
-                algo=rand.suggest,
-                trial_timeout=trial_timeout,
-                max_evals=max_evals,
-            )
-        model.fit(np.abs(self.X_train) if non_negative_input else self.X_train,
-                  np.abs(self.Y_train) if non_negative_output else self.Y_train)
-        model.score(np.abs(self.X_test) if non_negative_input else self.X_test,
-                    np.abs(self.Y_test) if non_negative_output else self.Y_test)
+        try:
+            if is_classif:
+                model = HyperoptEstimator(
+                    classifier=fn("classifier"),
+                    preprocessing=[],
+                    algo=rand.suggest,
+                    trial_timeout=trial_timeout,
+                    max_evals=max_evals,
+                )
+            else:
+                model = HyperoptEstimator(
+                    regressor=fn("regressor"),
+                    preprocessing=[],
+                    algo=rand.suggest,
+                    trial_timeout=trial_timeout,
+                    max_evals=max_evals,
+                )
+            model.fit(np.abs(self.X_train) if non_negative_input else self.X_train,
+                      np.abs(self.Y_train) if non_negative_output else self.Y_train)
+            model.score(np.abs(self.X_test) if non_negative_input else self.X_test,
+                        np.abs(self.Y_test) if non_negative_output else self.Y_test)
+        except AllTrialsFailed:
+            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
 
     test_estimator.__name__ = f"test_{fn.__name__}"
     return test_estimator
@@ -139,22 +143,25 @@ def create_preprocessing_function(pre_fn, classifier):
      fit and score model
     """
     def test_preprocessor(self):
-        model = HyperoptEstimator(
-            classifier=classifier("classifier"),
-            preprocessing=[pre_fn("preprocessing")],
-            algo=rand.suggest,
-            trial_timeout=10.0,
-            max_evals=5,
-        )
-        model.fit(self.X_train, self.Y_train)
-        model.score(self.X_test, self.Y_test)
+        try:
+            model = HyperoptEstimator(
+                classifier=classifier("classifier"),
+                preprocessing=[pre_fn("preprocessing")],
+                algo=rand.suggest,
+                trial_timeout=10.0,
+                max_evals=5,
+            )
+            model.fit(self.X_train, self.Y_train)
+            model.score(self.X_test, self.Y_test)
+        except AllTrialsFailed:
+            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
 
     test_preprocessor.__name__ = f"test_{pre_fn.__name__}"
     return test_preprocessor
 
 
 # Create unique _data preprocessing algorithms
-#  with test_ prefix so that nose can see them
+#  with test_ prefix so that unittest can see them
 def generate_preprocessor_attributes(TestClass,
                                      preprocessor_list: typing.List[callable],
                                      classifier: callable):
@@ -194,7 +201,7 @@ def generate_attributes(TestClass,
         max_evals: evaluate up to this-many configurations | int
     """
     # Create unique testing methods
-    #  with test_ prefix so that nose can see them
+    #  with test_ prefix so that unittest can see them
     for fn in fn_list:
         setattr(
             TestClass,
