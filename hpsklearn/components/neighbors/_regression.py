@@ -128,6 +128,6 @@ def radius_neighbors_regressor(name: str,
         return f"{name}.radius_neighbors_regressor_{msg}"
 
     hp_space = neighbors_hp_space(_name, **kwargs)
-    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 100) if radius is None else radius  # very dependent on data
+    hp_space["radius"] = hp.uniform(_name("radius"), 25, 100) if radius is None else radius  # very dependent on data
 
     return scope.sklearn_RadiusNeighborsRegressor(**hp_space)

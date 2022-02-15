@@ -54,7 +54,7 @@ def _linear_C(name: str):
     """
     Declaration search space 'C' parameter
     """
-    return hp.normal(name, mu=1.0, sigma=0.125)
+    return hp.uniform(name, 0.5, 1.5)
 
 
 def _linear_intercept_scaling(name: str):

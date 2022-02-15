@@ -66,7 +66,7 @@ def radius_neighbors_classifier(name: str,
         return f"{name}.radius_neighbors_classifier_{msg}"
 
     hp_space = neighbors_hp_space(_name, **kwargs)
-    hp_space["radius"] = hp.uniform(_name("radius"), 0.5, 100) if radius is None else radius  # very dependent on data
+    hp_space["radius"] = hp.uniform(_name("radius"), 25, 100) if radius is None else radius  # very dependent on data
     hp_space["outlier_label"] = outlier_label
 
     return scope.sklearn_RadiusNeighborsClassifier(**hp_space)
