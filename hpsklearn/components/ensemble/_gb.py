@@ -163,7 +163,7 @@ def _gb_hp_space(
         min_samples_split: typing.Union[float, Apply] = None,
         min_samples_leaf: typing.Union[float, Apply] = None,
         min_weight_fraction_leaf: typing.Union[float, Apply] = None,
-        max_depth: typing.Union[int, Apply] = None,
+        max_depth: typing.Union[int, Apply] = "Undefined",
         min_impurity_decrease: typing.Union[float, Apply] = None,
         init=None,
         random_state=None,
@@ -192,7 +192,7 @@ def _gb_hp_space(
         if min_samples_leaf is None else min_samples_leaf,
         min_weight_fraction_leaf=_gb_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))
         if min_weight_fraction_leaf is None else min_weight_fraction_leaf,
-        max_depth=_gb_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        max_depth=_gb_max_depth(name_func("max_depth")) if max_depth == "Undefined" else max_depth,
         min_impurity_decrease=_gb_min_impurity_decrease(name_func("min_impurity_decrease"))
         if min_impurity_decrease is None else min_impurity_decrease,
         init=init,

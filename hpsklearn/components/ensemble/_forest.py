@@ -176,7 +176,7 @@ def _forest_random_state(name: str):
 def _forest_hp_space(
         name_func,
         n_estimators: typing.Union[int, Apply] = None,
-        max_depth: typing.Union[int, Apply] = None,
+        max_depth: typing.Union[int, Apply] = "Undefined",
         min_samples_split: typing.Union[float, Apply] = None,
         min_samples_leaf: typing.Union[float, Apply] = None,
         min_weight_fraction_leaf: typing.Union[float, Apply] = None,
@@ -205,7 +205,7 @@ def _forest_hp_space(
                          "parameter 'bootstrap' can not be False.")
     hp_space = dict(
         n_estimators=_forest_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
-        max_depth=_forest_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        max_depth=_forest_max_depth(name_func("max_depth")) if max_depth == "Undefined" else max_depth,
         min_samples_split=_forest_min_samples_split(name_func("min_samples_split"))
         if min_samples_split is None else min_samples_split,
         min_samples_leaf=_forest_min_samples_leaf(name_func("min_samples_leaf"))

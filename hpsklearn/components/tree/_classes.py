@@ -136,7 +136,7 @@ def _tree_max_leaf_nodes(name: str):
 def _tree_hp_space(
         name_func,
         splitter: typing.Union[str, Apply] = None,
-        max_depth: typing.Union[int, Apply] = None,
+        max_depth: typing.Union[int, Apply] = "Undefined",
         min_samples_split: typing.Union[float, Apply] = 2,
         min_samples_leaf: typing.Union[float, Apply] = 1,
         min_weight_fraction_leaf: typing.Union[float, Apply] = 0.0,
@@ -155,7 +155,7 @@ def _tree_hp_space(
     """
     hp_space = dict(
         splitter=_tree_splitter(name_func("splitter")) if splitter is None else splitter,
-        max_depth=_tree_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        max_depth=_tree_max_depth(name_func("max_depth")) if max_depth == "Undefined" else max_depth,
         min_samples_split=_tree_min_samples_split(name_func("min_samples_split"))
         if min_samples_split is None else min_samples_split,
         min_samples_leaf=_tree_min_samples_leaf(name_func("min_samples_leaf"))
