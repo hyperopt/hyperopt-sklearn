@@ -140,10 +140,10 @@ def _tree_hp_space(
         min_samples_split: typing.Union[float, Apply] = 2,
         min_samples_leaf: typing.Union[float, Apply] = 1,
         min_weight_fraction_leaf: typing.Union[float, Apply] = 0.0,
-        max_features: typing.Union[float, str, Apply] = None,
+        max_features: typing.Union[float, str, Apply] = "Undefined",
         random_state=None,
         min_impurity_decrease: typing.Union[float, Apply] = 0.0,
-        max_leaf_nodes: typing.Union[int, Apply] = None,
+        max_leaf_nodes: typing.Union[int, Apply] = "Undefined",
         ccp_alpha: float = 0.0
 ):
     """
@@ -162,11 +162,12 @@ def _tree_hp_space(
         if min_samples_leaf is None else min_samples_leaf,
         min_weight_fraction_leaf=_tree_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))
         if min_weight_fraction_leaf is None else min_weight_fraction_leaf,
-        max_features=_tree_max_features(name_func("max_features")) if max_features is None else max_features,
+        max_features=_tree_max_features(name_func("max_features")) if max_features == "Undefined" else max_features,
         random_state=_tree_random_state(name_func("random_state")) if random_state is None else random_state,
         min_impurity_decrease=_tree_min_impurity_decrease(name_func("min_impurity_decrease"))
         if min_impurity_decrease is None else min_impurity_decrease,
-        max_leaf_nodes=_tree_max_leaf_nodes(name_func("max_leaf_nodes")) if max_leaf_nodes is None else max_leaf_nodes,
+        max_leaf_nodes=_tree_max_leaf_nodes(name_func("max_leaf_nodes"))
+        if max_leaf_nodes == "Undefined" else max_leaf_nodes,
         ccp_alpha=ccp_alpha
     )
     return hp_space

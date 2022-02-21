@@ -82,7 +82,7 @@ def _hist_gradient_boosting_hp_space(
         name_func,
         learning_rate: typing.Union[float, Apply] = None,
         max_iter: typing.Union[int, Apply] = 100,
-        max_leaf_nodes: typing.Union[int, Apply] = None,
+        max_leaf_nodes: typing.Union[int, Apply] = "Undefined",
         max_depth: typing.Union[int, Apply] = "Undefined",
         min_samples_leaf: typing.Union[int, Apply] = None,
         l2_regularization: float = 0,
@@ -114,7 +114,7 @@ def _hist_gradient_boosting_hp_space(
         if learning_rate is None else learning_rate,
         max_iter=max_iter,
         max_leaf_nodes=_hist_gradient_boosting_max_leaf_nodes(name_func("max_leaf_nodes"))
-        if max_leaf_nodes is None else max_leaf_nodes,
+        if max_leaf_nodes == "Undefined" else max_leaf_nodes,
         max_depth=_hist_gradient_boosting_max_depth(name_func("max_depth"))
         if max_depth == "Undefined" else max_depth,
         min_samples_leaf=_hist_gradient_boosting_min_samples_leaf(name_func("min_samples_leaf"))

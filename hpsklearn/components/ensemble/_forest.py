@@ -180,8 +180,8 @@ def _forest_hp_space(
         min_samples_split: typing.Union[float, Apply] = None,
         min_samples_leaf: typing.Union[float, Apply] = None,
         min_weight_fraction_leaf: typing.Union[float, Apply] = None,
-        max_features: typing.Union[str, float, Apply] = None,
-        max_leaf_nodes: typing.Union[int, Apply] = None,
+        max_features: typing.Union[str, float, Apply] = "Undefined",
+        max_leaf_nodes: typing.Union[int, Apply] = "Undefined",
         min_impurity_decrease: typing.Union[float, Apply] = None,
         bootstrap: typing.Union[bool, Apply] = None,
         oob_score: bool = False,
@@ -212,9 +212,9 @@ def _forest_hp_space(
         if min_samples_leaf is None else min_samples_leaf,
         min_weight_fraction_leaf=_forest_min_weight_fraction_leaf(name_func("min_weight_fraction_leaf"))
         if min_weight_fraction_leaf is None else min_weight_fraction_leaf,
-        max_features=_forest_max_features(name_func("max_features")) if max_features is None else max_features,
+        max_features=_forest_max_features(name_func("max_features")) if max_features == "Undefined" else max_features,
         max_leaf_nodes=_forest_max_leaf_nodes(name_func("max_leaf_nodes"))
-        if max_leaf_nodes is None else max_leaf_nodes,
+        if max_leaf_nodes == "Undefined" else max_leaf_nodes,
         min_impurity_decrease=_forest_min_impurity_decrease(name_func("min_impurity_decrease"))
         if min_impurity_decrease is None else min_impurity_decrease,
         bootstrap=_forest_bootstrap(name_func("bootstrap")) if bootstrap is None else bootstrap,
