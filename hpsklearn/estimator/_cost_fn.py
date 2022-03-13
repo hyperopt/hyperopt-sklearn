@@ -12,7 +12,6 @@ from sklearn.model_selection import StratifiedShuffleSplit, \
     PredefinedSplit
 from sklearn.metrics import accuracy_score, r2_score
 
-import multiprocessing
 import numpy as np
 import typing
 import copy
@@ -30,7 +29,7 @@ def _cost_fn(argd,
              use_partial_fit: bool = False,
              info: callable = print,
              timeout: float = float("inf"),
-             _conn: multiprocessing.connection.PipeConnection = None,
+             _conn=None,
              loss_fn: callable = None,
              continuous_loss_fn: bool = False,
              best_loss: float = None,
@@ -79,7 +78,7 @@ def _cost_fn(argd,
         timeout: float (seconds), or None for no timeout, default is None
             Kill trial evaluations after this many seconds.
 
-        _conn: multiprocessing.connection.PipeConnection, default is None
+        _conn: multiprocessing.connection. PipeConnection | Connection, default is None
             PipeConnection object connected to Pipe. Used to send rval to
             duplex PipeConnection object.
 
@@ -210,7 +209,7 @@ def _cost_fn(argd,
                     info("OK trial with accuracy %.1f +- %.1f" % (
                         100 * (1 - loss),
                         100 * np.sqrt(lossvar))
-                    )
+                         )
                 else:
                     loss = 1 - r2_score(cv_y_pool, cv_pred_pool)
                     lossvar = None  # variance of R2 is undefined.
