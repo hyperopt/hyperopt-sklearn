@@ -209,7 +209,7 @@ def _cost_fn(argd,
                     info("OK trial with accuracy %.1f +- %.1f" % (
                         100 * (1 - loss),
                         100 * np.sqrt(lossvar))
-                         )
+                    )
                 else:
                     loss = 1 - r2_score(cv_y_pool, cv_pred_pool)
                     lossvar = None  # variance of R2 is undefined.
