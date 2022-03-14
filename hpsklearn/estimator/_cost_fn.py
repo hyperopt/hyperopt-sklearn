@@ -145,7 +145,7 @@ def _cost_fn(argd,
             if not shuffle:  # always choose the last samples.
                 info(f"Will use the last {valid_size} portion of samples for validation")
                 n_train = int(len(y) * (1 - valid_size))
-                valid_fold = np.ones(len(y), dtype=np.int)
+                valid_fold = np.ones(len(y), dtype=np.int64)
                 valid_fold[:n_train] = -1  # "-1" indicates train fold.
 
                 cv_iter = PredefinedSplit(valid_fold).split()
