@@ -14,7 +14,8 @@ from tests.utils import \
     StandardRegressorTest, \
     StandardClassifierTest, \
     IrisTest, \
-    generate_attributes
+    generate_attributes, \
+    TrialsExceptionHandler
 from sklearn.metrics import accuracy_score
 
 
@@ -34,6 +35,7 @@ class TestOneClassSVM(IrisTest):
     """
     Class for one_class_svm testing
     """
+    @TrialsExceptionHandler
     def test_one_class_svm(self):
         """
         Instantiate one_class_svm hyperopt estimator model

@@ -3,9 +3,10 @@ import unittest
 from hpsklearn import \
     logistic_regression, \
     logistic_regression_cv
-from tests.utils import IrisTest
+from tests.utils import \
+    IrisTest, \
+    TrialsExceptionHandler
 from hyperopt import rand
-from hyperopt.exceptions import AllTrialsFailed
 from hpsklearn import HyperoptEstimator
 from sklearn.metrics import accuracy_score
 
@@ -25,19 +26,17 @@ def create_regression_attr(fn: callable):
 
     fit and score model
     """
+    @TrialsExceptionHandler
     def test_regressor(self):
-        try:
-            model = HyperoptEstimator(
-                regressor=fn(name="regressor"),
-                preprocessing=[],
-                algo=rand.suggest,
-                trial_timeout=10.0,
-                max_evals=5,
-            )
-            model.fit(self.X_train, self.Y_train)
-            accuracy_score(y_true=self.Y_test, y_pred=model.predict(self.X_test))
-        except AllTrialsFailed:
-            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
+        model = HyperoptEstimator(
+            regressor=fn(name="regressor"),
+            preprocessing=[],
+            algo=rand.suggest,
+            trial_timeout=10.0,
+            max_evals=5,
+        )
+        model.fit(self.X_train, self.Y_train)
+        accuracy_score(y_true=self.Y_test, y_pred=model.predict(self.X_test))
 
     test_regressor.__name__ = f"test_{fn.__name__}"
     return test_regressor

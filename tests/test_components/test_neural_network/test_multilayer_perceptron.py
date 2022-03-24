@@ -25,6 +25,8 @@ generate_attributes(
     TestClass=TestMLPClassifier,
     fn_list=[mlp_classifier],
     is_classif=True,
+    non_negative_input=True,
+    non_negative_output=True
 )
 
 
@@ -32,6 +34,8 @@ generate_attributes(
     TestClass=TestMLPRegression,
     fn_list=[mlp_regressor],
     is_classif=False,
+    non_negative_input=True,
+    non_negative_output=True
 )
 
 

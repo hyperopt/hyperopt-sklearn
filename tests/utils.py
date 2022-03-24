@@ -10,6 +10,18 @@ from sklearn.model_selection import train_test_split
 import typing
 
 
+def TrialsExceptionHandler(fn):
+    """
+    Decorator for handling exceptions in trials
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except AllTrialsFailed:
+            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
+    return wrapper
+
+
 class StandardClassifierTest(unittest.TestCase):
     """
     Standard class for classification testing
@@ -107,30 +119,28 @@ def create_function(fn: callable,
      fit and score model
     """
 
+    @TrialsExceptionHandler
     def test_estimator(self):
-        try:
-            if is_classif:
-                model = HyperoptEstimator(
-                    classifier=fn("classifier"),
-                    preprocessing=[],
-                    algo=rand.suggest,
-                    trial_timeout=trial_timeout,
-                    max_evals=max_evals,
-                )
-            else:
-                model = HyperoptEstimator(
-                    regressor=fn("regressor"),
-                    preprocessing=[],
-                    algo=rand.suggest,
-                    trial_timeout=trial_timeout,
-                    max_evals=max_evals,
-                )
-            model.fit(np.abs(self.X_train) if non_negative_input else self.X_train,
-                      np.abs(self.Y_train) if non_negative_output else self.Y_train)
-            model.score(np.abs(self.X_test) if non_negative_input else self.X_test,
-                        np.abs(self.Y_test) if non_negative_output else self.Y_test)
-        except AllTrialsFailed:
-            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
+        if is_classif:
+            model = HyperoptEstimator(
+                classifier=fn("classifier"),
+                preprocessing=[],
+                algo=rand.suggest,
+                trial_timeout=trial_timeout,
+                max_evals=max_evals,
+            )
+        else:
+            model = HyperoptEstimator(
+                regressor=fn("regressor"),
+                preprocessing=[],
+                algo=rand.suggest,
+                trial_timeout=trial_timeout,
+                max_evals=max_evals,
+            )
+        model.fit(np.abs(self.X_train) if non_negative_input else self.X_train,
+                  np.abs(self.Y_train) if non_negative_output else self.Y_train)
+        model.score(np.abs(self.X_test) if non_negative_input else self.X_test,
+                    np.abs(self.Y_test) if non_negative_output else self.Y_test)
 
     test_estimator.__name__ = f"test_{fn.__name__}"
     return test_estimator
@@ -142,19 +152,18 @@ def create_preprocessing_function(pre_fn, classifier):
      'pre_fn' regards the preprocessor
      fit and score model
     """
+
+    @TrialsExceptionHandler
     def test_preprocessor(self):
-        try:
-            model = HyperoptEstimator(
-                classifier=classifier("classifier"),
-                preprocessing=[pre_fn("preprocessing")],
-                algo=rand.suggest,
-                trial_timeout=10.0,
-                max_evals=5,
-            )
-            model.fit(self.X_train, self.Y_train)
-            model.score(self.X_test, self.Y_test)
-        except AllTrialsFailed:
-            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
+        model = HyperoptEstimator(
+            classifier=classifier("classifier"),
+            preprocessing=[pre_fn("preprocessing")],
+            algo=rand.suggest,
+            trial_timeout=10.0,
+            max_evals=5,
+        )
+        model.fit(self.X_train, self.Y_train)
+        model.score(self.X_test, self.Y_test)
 
     test_preprocessor.__name__ = f"test_{pre_fn.__name__}"
     return test_preprocessor

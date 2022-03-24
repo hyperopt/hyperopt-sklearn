@@ -10,7 +10,8 @@ from hpsklearn import \
 from tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_attributes
+    generate_attributes, \
+    TrialsExceptionHandler
 
 
 class TestHistGradientBoostingClassification(StandardClassifierTest):
@@ -23,6 +24,7 @@ class TestHistGradientBoostingRegression(StandardRegressorTest):
     """
     Class for _hist_gradient_boosting regression testing
     """
+    @TrialsExceptionHandler
     def test_poisson_function(self):
         """
         Instantiate hist gradient boosting hyperopt estimator model

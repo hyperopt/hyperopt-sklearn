@@ -3,13 +3,16 @@ import unittest
 from hyperopt import rand
 from hpsklearn import HyperoptEstimator, isolation_forest
 from sklearn.metrics import accuracy_score
-from tests.utils import IrisTest
+from tests.utils import \
+    IrisTest, \
+    TrialsExceptionHandler
 
 
 class TestIsolationForest(IrisTest):
     """
     Class for _iforest testing
     """
+    @TrialsExceptionHandler
     def test_isolation_forest(self):
         """
         Instantiate isolation forest classifier hyperopt estimator model

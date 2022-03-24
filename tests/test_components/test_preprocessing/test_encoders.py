@@ -3,7 +3,9 @@ import numpy as np
 
 from hyperopt import rand
 
-from tests.utils import StandardPreprocessingTest
+from tests.utils import \
+    StandardPreprocessingTest, \
+    TrialsExceptionHandler
 from hpsklearn import HyperoptEstimator, \
     one_hot_encoder, \
     ordinal_encoder, \
@@ -29,6 +31,7 @@ def create_preprocessing_function(pre_fn):
      fit and score model
     """
 
+    @TrialsExceptionHandler
     def test_preprocessor(self):
         model = HyperoptEstimator(
             classifier=multinomial_nb("classifier"),

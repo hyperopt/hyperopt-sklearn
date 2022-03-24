@@ -4,7 +4,8 @@ from hyperopt import rand
 
 from tests.utils import \
     StandardPreprocessingTest, \
-    generate_preprocessor_attributes
+    generate_preprocessor_attributes, \
+    TrialsExceptionHandler
 from hpsklearn import HyperoptEstimator, \
     binarizer, \
     min_max_scaler, \
@@ -23,6 +24,7 @@ class TestDataPreprocessing(StandardPreprocessingTest):
     """
     Class for _data preprocessing testing
     """
+    @TrialsExceptionHandler
     def test_power_transformer(self):
         """
         Instantiate gaussian_nb hyperopt estimator model

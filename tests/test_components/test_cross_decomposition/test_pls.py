@@ -7,7 +7,8 @@ from hpsklearn import \
     pls_regression
 from tests.utils import \
     StandardRegressorTest, \
-    generate_attributes
+    generate_attributes, \
+    TrialsExceptionHandler
 from hyperopt import rand
 
 
@@ -15,6 +16,7 @@ class TestPLSRegression(StandardRegressorTest):
     """
     Class for _pls regression testing
     """
+    @TrialsExceptionHandler
     def test_cca(self):
         """
         Instantiate cca hyperopt estimator model
@@ -30,6 +32,7 @@ class TestPLSRegression(StandardRegressorTest):
         model.fit(self.X_train, self.Y_train)
         model.score(self.X_test, self.Y_test)
 
+    @TrialsExceptionHandler
     def test_pls_canonical(self):
         """
         Instantiate pls canonical hyperopt estimator model

@@ -12,7 +12,8 @@ from hpsklearn import \
 from tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_attributes
+    generate_attributes, \
+    TrialsExceptionHandler
 
 
 class TestForestClassification(StandardClassifierTest):
@@ -25,6 +26,7 @@ class TestForestRegression(StandardRegressorTest):
     """
     Class for _forest regression testing
     """
+    @TrialsExceptionHandler
     def test_poisson_function(self):
         """
         Instantiate random forest regressor hyperopt estimator model

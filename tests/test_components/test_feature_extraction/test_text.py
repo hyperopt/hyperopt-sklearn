@@ -4,7 +4,7 @@ from hpsklearn import \
     HyperoptEstimator, \
     tfidf, \
     multinomial_nb
-
+from tests.utils import TrialsExceptionHandler
 from hyperopt import rand
 
 import numpy as np
@@ -27,6 +27,7 @@ class TestTfidf(unittest.TestCase):
 
         self.Y_test = np.array([0, 1, 2, 0])
 
+    @TrialsExceptionHandler
     def test_tfidf_vectorizer(self):
         """
         Instantiate multinomial_nb hyperopt_estimator model

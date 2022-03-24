@@ -12,7 +12,8 @@ from hpsklearn import \
 from tests.utils import \
     StandardClassifierTest, \
     StandardRegressorTest, \
-    generate_attributes
+    generate_attributes, \
+    TrialsExceptionHandler
 
 
 class TestTreeClassification(StandardClassifierTest):
@@ -25,6 +26,7 @@ class TestTreeRegression(StandardRegressorTest):
     """
     Class for tree._classes regression testing
     """
+    @TrialsExceptionHandler
     def test_poisson_function(self):
         """
         Instantiate decision tree regressor hyperopt estimator model
