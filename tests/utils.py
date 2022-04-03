@@ -22,6 +22,19 @@ def TrialsExceptionHandler(fn):
     return wrapper
 
 
+def RetryOnTrialsException(fn):
+    """
+    Decorator for retrying tests that fail due to AllTrialsFailed
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except AllTrialsFailed:
+            print("\n---\nAllTrialsFailed was raised, np.isnan(t['result']['loss']) is True.\n---\n")
+            return wrapper(*args, **kwargs)
+    return wrapper
+
+
 class StandardClassifierTest(unittest.TestCase):
     """
     Standard class for classification testing

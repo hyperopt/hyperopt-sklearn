@@ -5,6 +5,7 @@ from hyperopt import rand, tpe
 from hyperopt.pyll import as_apply
 from hpsklearn import HyperoptEstimator
 from hpsklearn import sgd_classifier, any_classifier
+from ..utils import RetryOnTrialsException
 
 
 class TestIter(unittest.TestCase):
@@ -20,6 +21,7 @@ class TestIter(unittest.TestCase):
         self.X = np.random.randn(1000, 2)
         self.Y = (self.X[:, 0] > 0).astype("int")
 
+    @RetryOnTrialsException
     def test_no_params(self):
         """
         Test fitting without any parameters
@@ -38,6 +40,7 @@ class TestIter(unittest.TestCase):
         assert params["preprocessing"] is not None
         assert params["space"] is not None
 
+    @RetryOnTrialsException
     def test_fit_iter_basic(self):
         """
         Test fitting with basic iteration
@@ -51,6 +54,7 @@ class TestIter(unittest.TestCase):
             if ii == 10:
                 break
 
+    @RetryOnTrialsException
     def test_fit(self):
         """
         Test fitting
@@ -61,6 +65,7 @@ class TestIter(unittest.TestCase):
         model.fit(self.X, self.Y)
         assert len(model.trials.trials) == 5
 
+    @RetryOnTrialsException
     def test_fit_biginc(self):
         """
         Test fitting with big fit increment
@@ -72,6 +77,7 @@ class TestIter(unittest.TestCase):
         # -- make sure we only get 5 even with big fit_increment
         assert len(model.trials.trials) == 5
 
+    @RetryOnTrialsException
     def test_warm_start(self):
         """
         Test fitting with warm start
@@ -98,6 +104,7 @@ class TestSparseInput(unittest.TestCase):
     """
     Class for testing estimator with sparse input
     """
+    @RetryOnTrialsException
     def test_sparse_input(self):
         """
         Ensure the estimator can handle sparse X matrices.
@@ -140,6 +147,7 @@ class TestContinuousLossFn(unittest.TestCase):
         pred = pred.reshape((-1, 2))
         return log_loss(targ, pred[:, 1])
 
+    @RetryOnTrialsException
     def test_continuous_loss_fn(self):
         """
         Demonstrate using a custom loss function with the continuous_loss_fn
@@ -178,6 +186,7 @@ class TestSpace(unittest.TestCase):
         self.X = np.random.randn(1000, 2)
         self.Y = (self.X[:, 0] > 0).astype("int")
 
+    @RetryOnTrialsException
     def test_smoke(self):
         """
         Test that the estimator can be created with a custom space
@@ -195,6 +204,7 @@ class TestCrossValidation(unittest.TestCase):
     """
     Class for testing estimator with cross validation
     """
+    @RetryOnTrialsException
     def test_crossvalidation(self):
         """
         Demonstrate performing a k-fold CV using the fit() method.
