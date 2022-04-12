@@ -1,3 +1,4 @@
+import warnings
 from hyperopt import hp
 
 from .ensemble import \
@@ -159,6 +160,24 @@ from .ensemble import \
     forest_regressors
 
 
+def xg_boost_check():
+    try:
+        import xgboost
+        return True
+    except ImportError:
+        warnings.warn("xgboost not installed. Skipping xgboost_classification and xgboost_regression.")
+        return False
+
+
+def lightgbm_check():
+    try:
+        import lightgbm
+        return True
+    except ImportError:
+        warnings.warn("lightgbm not installed. Skipping lightgbm_classification and lightgbm_regression.")
+        return False
+
+
 # Legacy any classifier
 def any_classifier(name):
     """
@@ -303,9 +322,13 @@ def all_classifiers(name):
         k_neighbors_classifier(name + ".knn"),
         radius_neighbors_classifier(name + ".radius_neighbors"),
         nearest_centroid(name + ".nearest_centroid"),
-        xgboost_classification(name + ".xgboost"),
-        lightgbm_classification(name + ".lightgbm"),
     ]
+
+    if xg_boost_check():
+        classifiers.append(xgboost_classification(name + ".xgboost"))
+
+    if lightgbm_check():
+        classifiers.append(lightgbm_classification(name + ".lightgbm"))
 
     return hp.choice(name, classifiers)
 
@@ -371,9 +394,13 @@ def all_regressors(name):
         radius_neighbors_regressor(name + ".radius_neighbors"),
         k_means(name + ".k_means"),
         mini_batch_k_means(name + ".mini_batch_k_means"),
-        xgboost_regression(name + ".xgboost"),
-        lightgbm_regression(name + ".lightgbm"),
     ]
+
+    if xg_boost_check():
+        regressors.append(xgboost_regression(name + ".xgboost"))
+
+    if lightgbm_check():
+        regressors.append(lightgbm_regression(name + ".lightgbm"))
 
     return hp.choice(name, regressors)
 
