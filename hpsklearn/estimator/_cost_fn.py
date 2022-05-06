@@ -104,6 +104,8 @@ def _cost_fn(argd,
             Use multiple CPU cores when training estimators which support
             multiprocessing.
     """
+    # scikit-learn needs a legacy `numpy.random.RandomState` RNG
+    random_state = np.random.RandomState(random_state.bit_generator)
     t_start = time.time()
     try:
         if "classifier" in argd:
