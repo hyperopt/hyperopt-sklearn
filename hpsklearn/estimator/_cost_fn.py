@@ -105,7 +105,11 @@ def _cost_fn(argd,
             multiprocessing.
     """
     # scikit-learn needs a legacy `numpy.random.RandomState` RNG
-    random_state = np.random.RandomState(random_state.bit_generator)
+    if isinstance(random_state, np.random.Generator):
+        random_state_sklearn: typing.Union[int, np.random.RandomState] = np.random.RandomState(random_state.bit_generator)
+    else:
+        random_state_sklearn = random_state
+
     t_start = time.time()
     try:
         if "classifier" in argd:
@@ -136,13 +140,13 @@ def _cost_fn(argd,
                 info(f"Will use stratified K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
                 cv_iter = StratifiedKFold(n_splits=n_folds,
                                           shuffle=shuffle,
-                                          random_state=random_state
+                                          random_state=random_state_sklearn
                                           ).split(X, y)
             else:
                 info(f"Will use K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
                 cv_iter = KFold(n_splits=n_folds,
                                 shuffle=shuffle,
-                                random_state=random_state).split(X)
+                                random_state=random_state_sklearn).split(X)
         else:
             if not shuffle:  # always choose the last samples.
                 info(f"Will use the last {valid_size} portion of samples for validation")
@@ -154,12 +158,12 @@ def _cost_fn(argd,
             elif is_classif:
                 info(f"Will use stratified shuffle-and-split with validation portion: {valid_size}")
                 cv_iter = StratifiedShuffleSplit(1, test_size=valid_size,
-                                                 random_state=random_state
+                                                 random_state=random_state_sklearn
                                                  ).split(X, y)
             else:
                 info(f"Will use shuffle-and-split with validation portion: {valid_size}")
                 cv_iter = ShuffleSplit(n_splits=1, test_size=valid_size,
-                                       random_state=random_state).split(X)
+                                       random_state=random_state_sklearn).split(X)
 
         # Use cv_iter for cross-validation prediction.
         cv_y_pool = np.array([])
