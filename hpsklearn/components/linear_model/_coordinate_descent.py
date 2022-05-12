@@ -81,7 +81,7 @@ def _coordinate_descent_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return hp.uniform(name, low=800, high=1200)
+    return scope.int(hp.uniform(name, low=800, high=1200))
 
 
 def _coordinate_descent_tol(name: str):
