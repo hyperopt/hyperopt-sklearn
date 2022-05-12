@@ -106,7 +106,9 @@ def _cost_fn(argd,
     """
     # scikit-learn needs a legacy `numpy.random.RandomState` RNG
     if isinstance(random_state, np.random.Generator):
-        random_state_sklearn: typing.Union[int, np.random.RandomState] = np.random.RandomState(random_state.bit_generator)
+        random_state_sklearn: typing.Union[int, np.random.RandomState] = np.random.RandomState(
+            random_state.bit_generator
+        )
     else:
         random_state_sklearn = random_state
 
