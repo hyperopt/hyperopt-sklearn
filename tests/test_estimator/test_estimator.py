@@ -104,6 +104,13 @@ class TestSparseInput(unittest.TestCase):
     """
     Class for testing estimator with sparse input
     """
+
+    def setUp(self):
+        """
+        Setup the random seed
+        """
+        np.random.seed(123)
+
     @RetryOnTrialsException
     def test_sparse_input(self):
         """
@@ -134,6 +141,13 @@ class TestContinuousLossFn(unittest.TestCase):
     """
     Class for testing estimator with continuous loss function
     """
+
+    def setUp(self):
+        """
+        Setup the random seed
+        """
+        np.random.seed(123)
+
     @staticmethod
     def loss_function(targ, pred):
         """
@@ -204,6 +218,13 @@ class TestCrossValidation(unittest.TestCase):
     """
     Class for testing estimator with cross validation
     """
+
+    def setUp(self):
+        """
+        Setup the random seed
+        """
+        np.random.seed(123)
+
     @RetryOnTrialsException
     def test_crossvalidation(self):
         """

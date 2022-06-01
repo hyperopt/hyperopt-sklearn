@@ -46,6 +46,7 @@ class TimeSeriesForecast(unittest.TestCase):
         Generate a simulated dataset and define utility functions
         """
         ts_size = 1000
+        np.random.seed(123)
         y = np.random.normal(0, 1.5, ts_size)  # white noises, i.e. errors.
         a = np.array([.666, -.333])
         c = -.5

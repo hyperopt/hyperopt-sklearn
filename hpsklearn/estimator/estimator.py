@@ -37,7 +37,7 @@ class hyperopt_estimator(BaseEstimator):
                  trial_timeout: typing.Optional[float] = None,
                  fit_increment: int = 1,
                  fit_increment_dump_filename: typing.Union[str, pathlib.Path] = None,
-                 seed: typing.Union[np.random.RandomState, int] = None,
+                 seed: typing.Union[np.random.Generator, int] = None,
                  use_partial_fit: bool = False,
                  refit: bool = True,
                  n_jobs: int = 1
@@ -104,8 +104,8 @@ class hyperopt_estimator(BaseEstimator):
             Periodically dump self.trials to this file (via cPickle) during
             fit(). Saves after every `fit_increment` trial evaluations.
 
-        seed: numpy.random.RandomState or int or None, default is None
-            If int, the integer will be used to seed a RandomState instance
+        seed: numpy.random.Generator or int or None, default is None
+            If int, the integer will be used to seed a Generator instance
             for use in hyperopt.fmin. Use None to make sure each run is
             independent. Default is None.
 
@@ -198,7 +198,7 @@ class hyperopt_estimator(BaseEstimator):
 
         self.n_ex_pps = len(self.ex_preprocs)
         self.algo = self.algo or hyperopt.rand.suggest
-        self.rstate = np.random.RandomState(self.seed)
+        self.rstate = np.random.default_rng(self.seed)
 
         if self.continuous_loss_fn:
             assert self.space['classifier'] is not None, "Can only use 'continuous_loss_fn' with classifiers."
@@ -217,7 +217,7 @@ class hyperopt_estimator(BaseEstimator):
                  n_folds: int = None,
                  cv_shuffle: bool = False,
                  warm_start: bool = False,
-                 random_state: np.random.RandomState = np.random.RandomState(),
+                 random_state: np.random.Generator = np.random.default_rng(),
                  ) -> typing.Generator:
         """
         Generator of Trials after ever-increasing numbers of evaluations
@@ -250,7 +250,7 @@ class hyperopt_estimator(BaseEstimator):
                 If True, the estimator will start from an existing sequence
                 of trials.
 
-            random_state: RandomState, default is np.random.RandomState()
+            random_state: Generator, default is np.random.default_rng()
                 The random state used to seed the cross-validation shuffling.
         """
         if self._times_fitted == 0:
@@ -400,7 +400,7 @@ class hyperopt_estimator(BaseEstimator):
             n_folds: int = None,
             cv_shuffle: bool = False,
             warm_start: bool = False,
-            random_state: np.random.RandomState = np.random.RandomState()
+            random_state: np.random.Generator = np.random.default_rng()
             ) -> None:
         """
         Search the space of learners and preprocessing steps for a good
@@ -434,7 +434,7 @@ class hyperopt_estimator(BaseEstimator):
                 If True, the estimator will start from an existing sequence
                 of trials.
 
-            random_state: RandomState, default is np.random.RandomState()
+            random_state: Generator, default is np.random.default_rng()
                 The random state used to seed the cross-validation shuffling.
 
         Notes:

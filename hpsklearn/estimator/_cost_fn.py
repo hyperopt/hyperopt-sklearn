@@ -25,7 +25,7 @@ def _cost_fn(argd,
              valid_size: float = 0.2,
              n_folds: int = None,
              shuffle: bool = False,
-             random_state: typing.Union[int, np.random.RandomState] = None,
+             random_state: typing.Union[int, np.random.Generator] = np.random.default_rng(),
              use_partial_fit: bool = False,
              info: callable = print,
              timeout: float = float("inf"),
@@ -61,7 +61,7 @@ def _cost_fn(argd,
             Whether to perform sample shuffling before splitting the
             data into training and validation sets.
 
-        random_state: RandomState, default is np.random.RandomState()
+        random_state: Generator, default is np.random.default_rng()
             The random state used to seed the cross-validation shuffling.
 
         use_partial_fit: bool, default is False
@@ -104,6 +104,14 @@ def _cost_fn(argd,
             Use multiple CPU cores when training estimators which support
             multiprocessing.
     """
+    # scikit-learn needs a legacy `numpy.random.RandomState` RNG
+    if isinstance(random_state, np.random.Generator):
+        random_state_sklearn: typing.Union[int, np.random.RandomState] = np.random.RandomState(
+            random_state.bit_generator
+        )
+    else:
+        random_state_sklearn = random_state
+
     t_start = time.time()
     try:
         if "classifier" in argd:
@@ -134,13 +142,13 @@ def _cost_fn(argd,
                 info(f"Will use stratified K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
                 cv_iter = StratifiedKFold(n_splits=n_folds,
                                           shuffle=shuffle,
-                                          random_state=random_state
+                                          random_state=random_state_sklearn
                                           ).split(X, y)
             else:
                 info(f"Will use K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
                 cv_iter = KFold(n_splits=n_folds,
                                 shuffle=shuffle,
-                                random_state=random_state).split(X)
+                                random_state=random_state_sklearn).split(X)
         else:
             if not shuffle:  # always choose the last samples.
                 info(f"Will use the last {valid_size} portion of samples for validation")
@@ -152,12 +160,12 @@ def _cost_fn(argd,
             elif is_classif:
                 info(f"Will use stratified shuffle-and-split with validation portion: {valid_size}")
                 cv_iter = StratifiedShuffleSplit(1, test_size=valid_size,
-                                                 random_state=random_state
+                                                 random_state=random_state_sklearn
                                                  ).split(X, y)
             else:
                 info(f"Will use shuffle-and-split with validation portion: {valid_size}")
                 cv_iter = ShuffleSplit(n_splits=1, test_size=valid_size,
-                                       random_state=random_state).split(X)
+                                       random_state=random_state_sklearn).split(X)
 
         # Use cv_iter for cross-validation prediction.
         cv_y_pool = np.array([])
