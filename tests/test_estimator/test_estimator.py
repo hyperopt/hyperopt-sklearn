@@ -245,6 +245,36 @@ class TestCrossValidation(unittest.TestCase):
         cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log"), preprocessing=[])
         cls.fit(X, y, cv_shuffle=True, n_folds=5)
 
+class TestGroupCrossValidation(unittest.TestCase):
+    """
+    Class for testing estimator with cross validation
+    """
+
+    def setUp(self):
+        """
+        Setup the random seed
+        """
+        np.random.seed(123)
+
+    @RetryOnTrialsException
+    def test_crossvalidation(self):
+        """
+        Demonstrate performing a group k-fold CV using the fit() method.
+        """
+        # Generate some random data
+        X = np.hstack([
+            np.vstack([
+                np.random.normal(0, 1, size=(1000, 10)),
+                np.random.normal(1, 1, size=(1000, 10)),
+            ]),
+            np.random.normal(0, 1, size=(2000, 10)),
+        ])
+        y = np.zeros(2000)
+        y[:1000] = 1
+
+        # Try to fit a model
+        cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log"), preprocessing=[])
+        cls.fit(X, y, cv_shuffle=True, n_folds=5, kfolds_group=[0]*500 + [1]*500 + [2]*500 + [3]*500 + [4]*500)
 
 if __name__ == '__main__':
     unittest.main()
