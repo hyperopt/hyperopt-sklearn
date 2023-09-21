@@ -215,6 +215,7 @@ class hyperopt_estimator(BaseEstimator):
                  EX_list: typing.Union[list, tuple] = None,
                  valid_size: float = .2,
                  n_folds: int = None,
+                 kfolds_group: typing.Union[list, np.ndarray] = None,
                  cv_shuffle: bool = False,
                  warm_start: bool = False,
                  random_state: np.random.Generator = np.random.default_rng(),
@@ -242,6 +243,11 @@ class hyperopt_estimator(BaseEstimator):
                 n_folds > 2. Or, use leave-one-out cross-validation when
                 n_folds = -1.
 
+            kfolds_group: list or ndarray, default is None
+                When kfolds_group is not None, use Group K-fold cross-validation
+                with the specified groups. The length of kfolds_group must be
+                equal to the number of samples in X.
+            
             cv_shuffle: bool, default is False
                 Whether to perform sample shuffling before splitting the
                 data into training and validation sets.
@@ -277,6 +283,7 @@ class hyperopt_estimator(BaseEstimator):
                      EX_list=EX_list,
                      valid_size=valid_size,
                      n_folds=n_folds,
+                     kfolds_group =kfolds_group,
                      shuffle=cv_shuffle,
                      random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
@@ -398,6 +405,7 @@ class hyperopt_estimator(BaseEstimator):
             EX_list: typing.Union[list, tuple] = None,
             valid_size: float = .2,
             n_folds: int = None,
+            kfolds_group: typing.Union[list, np.ndarray] = None,
             cv_shuffle: bool = False,
             warm_start: bool = False,
             random_state: np.random.Generator = np.random.default_rng()
@@ -426,6 +434,11 @@ class hyperopt_estimator(BaseEstimator):
                 n_folds > 2. Or, use leave-one-out cross-validation when
                 n_folds = -1.
 
+            kfolds_group: list or ndarray, default is None
+                When kfolds_group is not None, use Group K-fold cross-validation
+                with the specified groups. The length of group_kfolds must be
+                equal to the number of samples in X.
+            
             cv_shuffle: bool, default is False
                 Whether to perform sample shuffling before splitting the
                 data into training and validation sets.
@@ -450,6 +463,7 @@ class hyperopt_estimator(BaseEstimator):
                                  EX_list=EX_list,
                                  valid_size=valid_size,
                                  n_folds=n_folds,
+                                 kfolds_group=kfolds_group,
                                  cv_shuffle=cv_shuffle,
                                  warm_start=warm_start,
                                  random_state=random_state)
