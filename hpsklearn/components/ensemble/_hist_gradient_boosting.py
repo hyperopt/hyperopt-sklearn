@@ -26,7 +26,10 @@ def _hist_gradient_boosting_reg_loss(name: str):
      hist gradient boosting regressor
 
     Parameter 'poisson' is also available. Not implemented since
-     'poisson' is only available for non-negative y data
+     'poisson' is only available for non-zero, non-negative y data
+
+    Parameter 'gamma' is also available. Not implemented since
+     'gamma' is only available for non-negative y data
     """
     return hp.choice(name, ["squared_error", "absolute_error"])
 
@@ -165,7 +168,7 @@ def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] 
 
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or param in ("squared_error", "absolute_error",
-                                                                                "poisson"),
+                                                                                "poisson", "quantile", "gamma"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'poisson'")
 def hist_gradient_boosting_regressor(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
