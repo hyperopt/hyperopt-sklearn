@@ -1,4 +1,4 @@
-tox==4.11.3
+tox==4.8.0
 xgboost>=2.0.0
 lightgbm>=4.0.0
 coverage==7.3.1
