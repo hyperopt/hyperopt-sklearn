@@ -43,7 +43,7 @@ def _logistic_max_iter(name: str):
     """
     Declaration search space 'max_iter' parameter
     """
-    return scope.int(hp.uniform(name, 250, 750))
+    return scope.int(hp.uniform(name, 500, 1000))
 
 
 def _logistic_C(name: str):

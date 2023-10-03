@@ -23,7 +23,7 @@ def _gb_clf_loss(name: str):
     """
     Declaration search space 'loss' parameter for _gb classifier
     """
-    return hp.choice(name, ["deviance", "exponential"])
+    return hp.choice(name, ["log_loss", "exponential"])
 
 
 def _gb_reg_loss(name: str):
@@ -211,8 +211,8 @@ def _gb_hp_space(
 
 
 @validate(params=["loss"],
-          validation_test=lambda param: not isinstance(param, str) or param in ("deviance", "exponential"),
-          msg="Invalid parameter '%s' with value '%s'. Choose 'deviance' or 'exponential'.")
+          validation_test=lambda param: not isinstance(param, str) or param in ("log_loss", "exponential"),
+          msg="Invalid parameter '%s' with value '%s'. Choose 'log_loss' or 'exponential'.")
 def gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = None, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -220,7 +220,7 @@ def gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = Non
 
     Args:
         name: name | str
-        loss: choose 'deviance' or 'exponential' | str
+        loss: choose 'log_loss' or 'exponential' | str
 
     See help(hpsklearn.components._gb._gb_hp_space) for info on
     additional available GradientBoosting arguments.

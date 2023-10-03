@@ -134,7 +134,7 @@ class TimeSeriesForecast(unittest.TestCase):
         svr_opt = HyperoptEstimator(
             preprocessing=[ts_lagselector("lag", 1, 10)],
             ex_preprocs=[[]],  # must explicitly set EX preprocessings.
-            regressor=linear_svr("svm", max_iter=1e5),
+            regressor=linear_svr("svm", max_iter=int(1e5)),
             algo=tpe.suggest,
             max_evals=30,
             verbose=True

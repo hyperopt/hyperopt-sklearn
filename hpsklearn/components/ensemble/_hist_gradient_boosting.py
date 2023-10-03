@@ -141,14 +141,14 @@ def _hist_gradient_boosting_hp_space(
                                                                                 "categorical_crossentropy"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'auto', 'binary_crossentropy', 'categorical_crossentropy'")
-def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = "auto", **kwargs):
+def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = "log_loss", **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.HistGradientBoostingClassifier model.
 
     Args:
         name: name | str
-        loss: choose 'auto', 'binary_crossentropy' or 'categorical_crossentropy' | str
+        loss: 'log_loss' | str
 
     See help(hpsklearn.components._hist_gradient_boosting._hist_gradient_boosting_regressor) for info on
     additional available HistGradientBoosting arguments.

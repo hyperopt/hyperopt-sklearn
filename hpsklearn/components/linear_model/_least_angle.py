@@ -38,7 +38,7 @@ def _least_angle_n_nonzero_coefs(name: str):
     """
     Declaration search space 'n_nonzero_coefs' parameter
     """
-    return hp.qloguniform(name, low=np.log(400), high=np.log(600), q=1.0)
+    return scope.int(hp.qloguniform(name, low=np.log(400), high=np.log(600), q=1.0))
 
 
 def _least_angle_alpha(name: str):
@@ -80,7 +80,7 @@ def _least_angle_max_n_alphas(name: str):
     """
     Declaration search space 'max_n_alphas' parameter
     """
-    return hp.loguniform(name, low=np.log(750), high=np.log(1250))
+    return scope.int(hp.loguniform(name, low=np.log(750), high=np.log(1250)))
 
 
 def _least_angle_random_state(name: str):

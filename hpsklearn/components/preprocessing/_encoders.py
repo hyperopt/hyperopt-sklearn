@@ -27,7 +27,7 @@ def sklearn_OrdinalEncoder(*args, **kwargs):
 def one_hot_encoder(name: str,
                     categories: typing.Union[str, list] = "auto",
                     drop: typing.Union[str, np.ndarray, Apply] = None,
-                    sparse: bool = True,
+                    sparse_output: bool = True,
                     dtype: type = np.float64):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -37,13 +37,13 @@ def one_hot_encoder(name: str,
         name: name | str
         categories: categories per feature | str or list
         drop: choose 'first' or 'if_binary' | str or np.ndarray
-        sparse: return sparse matrix or array | bool
+        sparse_output: return sparse_output matrix or array | bool
         dtype: desired dtype of output | type
     """
     rval = scope.sklearn_OneHotEncoder(
         categories=categories,
         drop=hp.choice(name + ".drop", ["first", "if_binary"]) if drop is None else drop,
-        sparse=sparse,
+        sparse_output=sparse_output,
         dtype=dtype
     )
 
