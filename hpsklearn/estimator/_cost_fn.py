@@ -153,10 +153,7 @@ def _cost_fn(argd,
             else:
                 if kfolds_group is not None:
                     info(f"Will use Group K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
-                    cv_iter = GroupKFold(n_splits=n_folds,
-                                         shuffle=shuffle,
-                                         random_state=random_state_sklearn
-                                         ).split(X, y, kfolds_group)
+                    cv_iter = GroupKFold(n_splits=n_folds).split(X, y, kfolds_group)
                 else:
                     info(f"Will use K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
                     cv_iter = KFold(n_splits=n_folds,
