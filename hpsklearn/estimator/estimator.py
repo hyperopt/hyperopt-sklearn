@@ -247,7 +247,6 @@ class hyperopt_estimator(BaseEstimator):
                 When kfolds_group is not None, use Group K-fold cross-validation
                 with the specified groups. The length of kfolds_group must be
                 equal to the number of samples in X.
-            
             cv_shuffle: bool, default is False
                 Whether to perform sample shuffling before splitting the
                 data into training and validation sets.
@@ -283,7 +282,7 @@ class hyperopt_estimator(BaseEstimator):
                      EX_list=EX_list,
                      valid_size=valid_size,
                      n_folds=n_folds,
-                     kfolds_group =kfolds_group,
+                     kfolds_group = kfolds_group,
                      shuffle=cv_shuffle,
                      random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
@@ -438,7 +437,6 @@ class hyperopt_estimator(BaseEstimator):
                 When kfolds_group is not None, use Group K-fold cross-validation
                 with the specified groups. The length of group_kfolds must be
                 equal to the number of samples in X.
-            
             cv_shuffle: bool, default is False
                 Whether to perform sample shuffling before splitting the
                 data into training and validation sets.

@@ -25,7 +25,7 @@ def _cost_fn(argd,
              EX_list: typing.Union[list, tuple] = None,
              valid_size: float = 0.2,
              n_folds: int = None,
-             kfolds_group: typing.Union[list, np.ndarray]  = None,
+             kfolds_group: typing.Union[list, np.ndarray] = None,
              shuffle: bool = False,
              random_state: typing.Union[int, np.random.Generator] = np.random.default_rng(),
              use_partial_fit: bool = False,
@@ -63,7 +63,6 @@ def _cost_fn(argd,
             When kfolds_group is not None, use Group K-fold cross-validation
             with the specified groups. The length of kfolds_group must be
             equal to the number of samples in X.
-            
         shuffle: bool, default is False
             Whether to perform sample shuffling before splitting the
             data into training and validation sets.
@@ -163,7 +162,6 @@ def _cost_fn(argd,
                     cv_iter = KFold(n_splits=n_folds,
                                     shuffle=shuffle,
                                     random_state=random_state_sklearn).split(X)
-            
         else:
             if not shuffle:  # always choose the last samples.
                 info(f"Will use the last {valid_size} portion of samples for validation")
