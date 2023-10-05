@@ -275,7 +275,8 @@ class TestGroupCrossValidation(unittest.TestCase):
 
         # Try to fit a model
         cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log"), preprocessing=[])
-        cls.fit(X, y, cv_shuffle=True, n_folds=5, kfolds_group=np.array([0]*500 + [1]*500 + [2]*500 + [3]*500))  # noqa: E226
+        cls.fit(X, y, cv_shuffle=True, n_folds=5,
+                kfolds_group=np.array([0]*500 + [1]*500 + [2]*500 + [3]*500))  # noqa: E226
 
 
 if __name__ == '__main__':
