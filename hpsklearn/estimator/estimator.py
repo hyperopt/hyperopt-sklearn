@@ -282,7 +282,7 @@ class hyperopt_estimator(BaseEstimator):
                      EX_list=EX_list,
                      valid_size=valid_size,
                      n_folds=n_folds,
-                     kfolds_group = kfolds_group,
+                     kfolds_group=kfolds_group,
                      shuffle=cv_shuffle,
                      random_state=random_state,
                      use_partial_fit=self.use_partial_fit,
