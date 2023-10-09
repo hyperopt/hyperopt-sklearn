@@ -248,7 +248,7 @@ class TestCrossValidation(unittest.TestCase):
 
 class TestGroupCrossValidation(unittest.TestCase):
     """
-    Class for testing estimator with cross validation
+    Class for testing estimator with group cross validation
     """
 
     def setUp(self):
