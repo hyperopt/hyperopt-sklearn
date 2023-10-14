@@ -14,7 +14,7 @@ def sklearn_QuantileRegressor(*args, **kwargs):
 
 @validate(params=["solver"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["highs-ds", "highs-ipm", "highs", "revised simplex"],
+          param in ["highs-ds", "highs-ipm", "highs", "revised simplex"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['highs-ds', 'highs-ipm', 'highs', "
               "'revised simplex'].")
 def quantile_regression(name: str,
