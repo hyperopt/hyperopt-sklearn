@@ -218,10 +218,10 @@ def _stochastic_gradient_hp_space(
 
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["hinge", "log", "modified_huber", "squared_hinge", "perceptron",   # noqa
+                                        param in ["hinge", "log_loss", "modified_huber", "squared_hinge", "perceptron",   # noqa
                                                   "squared_error", "huber", "epsilon_insensitive",
                                                   "squared_epsilon_insensitive"],
-          msg="Invalid parameter '%s' with value '%s'. Value must be in ['hinge', 'log', 'modified_huber', "
+          msg="Invalid parameter '%s' with value '%s'. Value must be in ['hinge', 'log_loss', 'modified_huber', "
               "'squared_hinge', 'perceptron', 'squared_error', 'huber', 'epsilon_insensitive', "
               "'squared_epsilon_insensitive'].")
 @validate(params=["class_weight"],

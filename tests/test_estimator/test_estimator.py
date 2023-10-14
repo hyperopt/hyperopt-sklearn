@@ -132,7 +132,7 @@ class TestSparseInput(unittest.TestCase):
         y[:ntrue] = 1
 
         # Try to fit an SGD model
-        cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log"),
+        cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log_loss"),
                                 preprocessing=[])
         cls.fit(X, y)
 
@@ -180,7 +180,7 @@ class TestContinuousLossFn(unittest.TestCase):
 
         # Try to fit an SGD model using log_loss as the loss function
         cls = HyperoptEstimator(
-            classifier=sgd_classifier("sgd", loss="log"),
+            classifier=sgd_classifier("sgd", loss="log_loss"),
             preprocessing=[],
             loss_fn=TestContinuousLossFn.loss_function,
             continuous_loss_fn=True,
@@ -206,7 +206,7 @@ class TestSpace(unittest.TestCase):
         Test that the estimator can be created with a custom space
         """
         # -- verify the space argument is accepted and runs
-        space = as_apply({"classifier": sgd_classifier("sgd", loss="log"),
+        space = as_apply({"classifier": sgd_classifier("sgd", loss="log_loss"),
                           "regressor": None,
                           "preprocessing": None,
                           "ex_preprocs": []})
@@ -242,7 +242,7 @@ class TestCrossValidation(unittest.TestCase):
         y[:1000] = 1
 
         # Try to fit a model
-        cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log"), preprocessing=[])
+        cls = HyperoptEstimator(classifier=sgd_classifier("sgd", loss="log_loss"), preprocessing=[])
         cls.fit(X, y, cv_shuffle=True, n_folds=5)
 
 
