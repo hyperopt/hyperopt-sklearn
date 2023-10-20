@@ -9,6 +9,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, \
     LeaveOneOut, \
     StratifiedKFold, \
     KFold, \
+    GroupKFold, \
     PredefinedSplit
 from sklearn.metrics import accuracy_score, r2_score
 
@@ -24,6 +25,7 @@ def _cost_fn(argd,
              EX_list: typing.Union[list, tuple] = None,
              valid_size: float = 0.2,
              n_folds: int = None,
+             kfolds_group: typing.Union[list, np.ndarray] = None,
              shuffle: bool = False,
              random_state: typing.Union[int, np.random.Generator] = np.random.default_rng(),
              use_partial_fit: bool = False,
@@ -55,7 +57,13 @@ def _cost_fn(argd,
         n_folds: int, default is None
             When n_folds is not None, use K-fold cross-validation when
             n_folds > 2. Or, use leave-one-out cross-validation when
-            n_folds = -1.
+            n_folds = -1. For Group K-fold cross-validation, functions as
+            `n_splits`.
+
+        kfolds_group: list or ndarray, default is None
+            When kfolds_group is not None, use Group K-fold cross-validation
+            with the specified groups. The length of kfolds_group must be
+            equal to the number of samples in X.
 
         shuffle: bool, default is False
             Whether to perform sample shuffling before splitting the
@@ -145,10 +153,14 @@ def _cost_fn(argd,
                                           random_state=random_state_sklearn
                                           ).split(X, y)
             else:
-                info(f"Will use K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
-                cv_iter = KFold(n_splits=n_folds,
-                                shuffle=shuffle,
-                                random_state=random_state_sklearn).split(X)
+                if kfolds_group is not None:
+                    info(f"Will use Group K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
+                    cv_iter = GroupKFold(n_splits=n_folds).split(X, y, kfolds_group)
+                else:
+                    info(f"Will use K-fold CV with K: {n_folds} and Shuffle: {shuffle}")
+                    cv_iter = KFold(n_splits=n_folds,
+                                    shuffle=shuffle,
+                                    random_state=random_state_sklearn).split(X)
         else:
             if not shuffle:  # always choose the last samples.
                 info(f"Will use the last {valid_size} portion of samples for validation")
