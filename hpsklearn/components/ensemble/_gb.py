@@ -240,7 +240,7 @@ def gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = Non
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be within [0.0, 1.0]")
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or param in ("squared_error", "absolute_error",
-                                                                                "huber" or "quantile"),
+                                                                                "huber", "quantile"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'huber' or 'quantile'.")
 def gradient_boosting_regressor(name: str,
