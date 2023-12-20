@@ -61,8 +61,8 @@ def _kmeans_hp_space(
 
 
 @validate(params=["algorithm"],
-          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "full", "elkan"],
-          msg="Invalid parameter '%s' with value '%s'. Value must be 'auto', 'full' or 'elkan'")
+          validation_test=lambda param: not isinstance(param, str) or param in ["lloyd", "elkan"],
+          msg="Invalid parameter '%s' with value '%s'. Value must be 'lloyd' or 'elkan'")
 def k_means(name: str,
             n_init: typing.Union[int, Apply] = None,
             max_iter: typing.Union[int, Apply] = None,
@@ -94,7 +94,7 @@ def k_means(name: str,
     hp_space["max_iter"] = scope.int(hp.uniform(_name("max_iter"), 100, 500)) if max_iter is None else max_iter
     hp_space["tol"] = hp.uniform(_name("tol"), 1e-5, 1e-3) if tol is None else tol
     hp_space["copy_x"] = copy_x
-    hp_space["algorithm"] = hp.choice(_name("algorithm"), ["auto", "full", "elkan"]) if algorithm is None else algorithm
+    hp_space["algorithm"] = hp.choice(_name("algorithm"), ["lloyd", "elkan"]) if algorithm is None else algorithm
 
     return scope.sklearn_KMeans(**hp_space)
 

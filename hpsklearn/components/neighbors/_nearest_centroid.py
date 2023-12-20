@@ -11,7 +11,7 @@ def sklearn_NearestCentroid(*args, **kwargs):
 
 
 def nearest_centroid(name: str,
-                     metric: typing.Union[str, callable, Apply] = None,
+                     metric: typing.Union[str, Apply] = None,
                      shrink_threshold: float = None):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -27,7 +27,7 @@ def nearest_centroid(name: str,
         return f"{name}.nearest_centroid_{msg}"
 
     hp_space = dict(
-        metric=hp.choice(_name("metric"), ["cityblock", "cosine", "l1", "l2", "minkowski", "euclidean", "manhattan"])
+        metric=hp.choice(_name("metric"), ["euclidean", "manhattan"])
         if metric is None else metric,
         shrink_threshold=shrink_threshold,
     )

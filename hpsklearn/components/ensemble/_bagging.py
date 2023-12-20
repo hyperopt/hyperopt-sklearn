@@ -82,7 +82,7 @@ def _bagging_random_state(name: str):
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 def _bagging_hp_space(
         name_func,
-        base_estimator=None,
+        estimator=None,
         n_estimators: typing.Union[int, Apply] = None,
         max_samples: typing.Union[float, Apply] = None,
         max_features: typing.Union[float, Apply] = None,
@@ -100,7 +100,7 @@ def _bagging_hp_space(
      bagging regressor
     """
     hp_space = dict(
-        base_estimator=base_estimator,
+        estimator=estimator,
         n_estimators=_bagging_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
         max_samples=_bagging_max_samples(name_func("max_samples")) if max_samples is None else max_samples,
         max_features=_bagging_max_features(name_func("max_features")) if max_features is None else max_features,

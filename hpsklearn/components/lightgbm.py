@@ -141,12 +141,14 @@ def _lightgbm_hp_space(
      lightgbm regressor
     """
     hp_space = dict(
-        max_depth=_lightgbm_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        # max_depth=_lightgbm_max_depth(name_func("max_depth")) if max_depth is None else max_depth,
+        max_depth=-1,
         num_leaves=_lightgbm_num_leaves(name_func("num_leaves")) if num_leaves is None else num_leaves,
         learning_rate=_lightgbm_learning_rate(name_func("learning_rate")) if learning_rate is None else learning_rate,
         n_estimators=_lightgbm_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
         min_child_weight=_lightgbm_min_child_weight(name_func("min_child_weight"))
         if min_child_weight is None else min_child_weight,
+        # min_child_samples=5,
         max_delta_step=max_delta_step,
         subsample=_lightgbm_subsample(name_func("subsample")) if subsample is None else subsample,
         colsample_bytree=_lightgbm_colsample_bytree(name_func("colsample_bytree"))

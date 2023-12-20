@@ -14,10 +14,9 @@ def sklearn_QuantileRegressor(*args, **kwargs):
 
 @validate(params=["solver"],
           validation_test=lambda param: not isinstance(param, str) or
-                                        param in ["highs-ds", "highs-ipm", "highs",  # noqa
-                                                  "interior-point", "revised simplex"],
+          param in ["highs-ds", "highs-ipm", "highs", "revised simplex"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['highs-ds', 'highs-ipm', 'highs', "
-              "'interior-point', 'revised simplex'].")
+              "'revised simplex'].")
 def quantile_regression(name: str,
                         quantile: typing.Union[float, Apply] = None,
                         alpha: typing.Union[float, Apply] = None,
@@ -44,7 +43,7 @@ def quantile_regression(name: str,
         quantile=hp.normal(_name("quantile"), 0.5, 0.075) if quantile is None else quantile,
         alpha=hp.normal(_name("alpha"), mu=1.0, sigma=0.1) if alpha is None else alpha,
         fit_intercept=hp.choice(_name("fit_intercept"), [True, False]) if fit_intercept is None else fit_intercept,
-        solver=hp.choice(_name("solver"), ["highs-ds", "highs-ipm", "highs", "interior-point", "revised simplex"])
+        solver=hp.choice(_name("solver"), ["highs-ds", "highs-ipm", "highs", "revised simplex"])
         if solver is None else solver,
         solver_options=solver_options
     )

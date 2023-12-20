@@ -334,7 +334,7 @@ def nu_svc(name: str, nu: typing.Union[float, Apply] = None, **kwargs):
         return f"{name}.nu_svc_{msg}"
 
     hp_space = _svc_hp_space(_name, **kwargs)
-    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 1.0) if nu is None else nu
+    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 0.90) if nu is None else nu
 
     return scope.sklearn_NuSVC(**hp_space)
 
@@ -357,7 +357,7 @@ def nu_svr(name: str, nu: typing.Union[float, Apply] = None, C: typing.Union[flo
         return f"{name}.nu_svr_{msg}"
 
     hp_space = _svr_one_class_hp_space(_name, **kwargs)
-    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 1.0) if nu is None else nu
+    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 0.90) if nu is None else nu
     hp_space["C"] = hp.normal(_name("C"), 1.0, 0.20) if C is None else C
 
     return scope.sklearn_NuSVR(**hp_space)
@@ -380,7 +380,7 @@ def one_class_svm(name: str, nu: typing.Union[float, Apply] = None, **kwargs):
         return f"{name}.one_class_svm_{msg}"
 
     hp_space = _svr_one_class_hp_space(_name, **kwargs)
-    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 1.0) if nu is None else nu
+    hp_space["nu"] = hp.uniform(_name("nu"), 0.01, 0.90) if nu is None else nu
 
     return scope.sklearn_OneClassSVM(**hp_space)
 

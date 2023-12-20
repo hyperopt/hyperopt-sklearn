@@ -26,6 +26,7 @@ def k_bins_discretizer(name: str,
                        n_bins: typing.Union[int, npt.ArrayLike, Apply] = None,
                        encode: typing.Union[str, Apply] = None,
                        strategy: typing.Union[str, Apply] = None,
+                       subsample: typing.Union[int, None, Apply] = None,
                        dtype=None):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -36,12 +37,14 @@ def k_bins_discretizer(name: str,
         n_bins: number of bins | int, npt.ArrayLike
         encode: encoding method | str
         strategy: strategy used to define width of bins | str
+        subsample: subsample size of training data | int, None
         dtype: dtype of output | type
     """
     rval = scope.sklearn_KBinsDiscretizer(
         n_bins=scope.int(hp.uniform(name + ".n_bins", 2, 20)) if n_bins is None else n_bins,
         encode=hp.choice(name + ".encode", ["onehot-dense", "ordinal"]) if encode is None else encode,
         strategy=hp.choice(name + ".strategy", ["uniform", "quantile", "kmeans"]) if strategy is None else strategy,
+        subsample=hp.choice(name + ".subsample", [200000, None] if subsample is None else subsample),
         dtype=dtype
     )
 

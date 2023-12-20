@@ -26,7 +26,10 @@ def _hist_gradient_boosting_reg_loss(name: str):
      hist gradient boosting regressor
 
     Parameter 'poisson' is also available. Not implemented since
-     'poisson' is only available for non-negative y data
+     'poisson' is only available for non-zero, non-negative y data
+
+    Parameter 'gamma' is also available. Not implemented since
+     'gamma' is only available for non-negative y data
     """
     return hp.choice(name, ["squared_error", "absolute_error"])
 
@@ -141,14 +144,14 @@ def _hist_gradient_boosting_hp_space(
                                                                                 "categorical_crossentropy"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'auto', 'binary_crossentropy', 'categorical_crossentropy'")
-def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = "auto", **kwargs):
+def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] = "log_loss", **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.HistGradientBoostingClassifier model.
 
     Args:
         name: name | str
-        loss: choose 'auto', 'binary_crossentropy' or 'categorical_crossentropy' | str
+        loss: 'log_loss' | str
 
     See help(hpsklearn.components._hist_gradient_boosting._hist_gradient_boosting_regressor) for info on
     additional available HistGradientBoosting arguments.
@@ -165,7 +168,7 @@ def hist_gradient_boosting_classifier(name: str, loss: typing.Union[str, Apply] 
 
 @validate(params=["loss"],
           validation_test=lambda param: not isinstance(param, str) or param in ("squared_error", "absolute_error",
-                                                                                "poisson"),
+                                                                                "poisson", "quantile", "gamma"),
           msg="Invalid parameter '%s' with value '%s'. "
               "Choose 'squared_error', 'absolute_error', 'poisson'")
 def hist_gradient_boosting_regressor(name: str, loss: typing.Union[str, Apply] = None, **kwargs):

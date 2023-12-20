@@ -189,7 +189,7 @@ def any_classifier(name):
         random_forest_classifier(name + ".random_forest"),
         extra_tree_classifier(name + ".extra_trees"),
         ada_boost_classifier(name + ".ada_boost"),
-        gradient_boosting_classifier(name + ".grad_boosting", loss="deviance"),
+        gradient_boosting_classifier(name + ".grad_boosting"),
         sgd_classifier(name + ".sgd")
     ]
 
@@ -207,7 +207,7 @@ def any_sparse_classifier(name):
     sparse_classifiers = [
         linear_svc(name + ".linear_svc"),
         sgd_classifier(name + ".sgd"),
-        k_neighbors_classifier(name + ".knn", metric="euclidean", p=2),
+        k_neighbors_classifier(name + ".knn", p=2),
         multinomial_nb(name + ".multinomial_nb")
     ]
 
@@ -242,7 +242,7 @@ def any_sparse_regressor(name):
     """
     sparse_regressors = [
         sgd_regressor(name + ".sgd"),
-        k_neighbors_regressor(name + ".knn", metric="euclidean", p=2)
+        k_neighbors_regressor(name + ".knn", p=2)
     ]
 
     return hp.choice(name, sparse_regressors)

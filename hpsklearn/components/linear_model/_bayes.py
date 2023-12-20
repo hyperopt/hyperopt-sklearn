@@ -18,9 +18,9 @@ def sklearn_ARDRegression(*args, **kwargs):
     return linear_model.ARDRegression(*args, **kwargs)
 
 
-def _bayes_n_iter(name: str):
+def _bayes_max_iter(name: str):
     """
-    Declaration search space 'n_iter' parameter
+    Declaration search space 'max_iter' parameter
     """
     return scope.int(hp.qloguniform(name, low=np.log(150), high=np.log(450), q=1.0))
 
@@ -40,7 +40,7 @@ def _bayes_alpha_lambda(name: str):
     return hp.lognormal(name, mu=np.log(1e-6), sigma=np.log(10))
 
 
-@validate(params=["n_iter"],
+@validate(params=["max_iter"],
           validation_test=lambda param: not isinstance(param, int) or param > 1,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must exceed 1.")
 @validate(params=["alpha_1", "alpha_2", "lambda_1", "lambda_2"],
@@ -48,7 +48,7 @@ def _bayes_alpha_lambda(name: str):
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be equal to or exceed 0.")
 def _bayes_hp_space(
         name_func,
-        n_iter: typing.Union[int, Apply] = None,
+        max_iter: typing.Union[int, Apply] = None,
         tol: typing.Union[float, Apply] = None,
         alpha_1: typing.Union[float, Apply] = None,
         alpha_2: typing.Union[float, Apply] = None,
@@ -65,7 +65,7 @@ def _bayes_hp_space(
      ard regression
     """
     hp_space = dict(
-        n_iter=_bayes_n_iter(name_func("n_iter")) if n_iter is None else n_iter,
+        max_iter=_bayes_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_bayes_tol(name_func("tol")) if tol is None else tol,
         alpha_1=_bayes_alpha_lambda(name_func("alpha_1")) if alpha_1 is None else alpha_1,
         alpha_2=_bayes_alpha_lambda(name_func("alpha_2")) if alpha_2 is None else alpha_2,

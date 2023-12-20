@@ -17,7 +17,7 @@ def sklearn_RANSACRegressor(*args, **kwargs):
           validation_test=lambda param: not isinstance(param, str) or param in ["absolute_error", "squared_error"],
           msg="Invalid parameter '%s' with value '%s'. Value must be in ['absolute_error', 'squared_error'].")
 def ransac_regression(name: str,
-                      base_estimator=None,
+                      estimator=None,
                       min_samples: float = None,
                       residual_threshold: float = None,
                       is_data_valid: callable = None,
@@ -35,7 +35,7 @@ def ransac_regression(name: str,
 
     Args:
         name: name | str
-        base_estimator: base estimator object
+        estimator: base estimator object
         min_samples: minimum number of samples chosen | float
         residual_threshold: maximum residual | float
         is_data_valid: function called before model is fitted | callable
@@ -53,12 +53,12 @@ def ransac_regression(name: str,
         return f"{name}.ransac_regression_{msg}"
 
     hp_space = dict(
-        base_estimator=base_estimator,
+        estimator=estimator,
         min_samples=min_samples,  # default None fits linear model with X.shape[1] + 1
         residual_threshold=residual_threshold,
         is_data_valid=is_data_valid,
         is_model_valid=is_model_valid,
-        max_trials=hp.uniform(_name("max_trials"), 50, 150) if max_trials is None else max_trials,
+        max_trials=scope.int(hp.uniform(_name("max_trials"), 50, 150)) if max_trials is None else max_trials,
         max_skips=np.inf if max_skips is None else max_skips,
         stop_n_inliers=np.inf if stop_n_inliers is None else stop_n_inliers,
         stop_score=np.inf if stop_score is None else stop_score,

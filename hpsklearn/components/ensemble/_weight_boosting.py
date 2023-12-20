@@ -58,7 +58,7 @@ def _weight_boosting_random_state(name: str):
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 def _weight_boosting_hp_space(
         name_func,
-        base_estimator=None,
+        estimator=None,
         n_estimators: typing.Union[int, Apply] = None,
         learning_rate: typing.Union[float, Apply] = None,
         random_state=None
@@ -69,7 +69,7 @@ def _weight_boosting_hp_space(
      AdaBoost regressor
     """
     hp_space = dict(
-        base_estimator=base_estimator,
+        estimator=estimator,
         n_estimators=_weight_boosting_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
         learning_rate=_weight_boosting_learning_rate(name_func("learning_rate"))
         if learning_rate is None else learning_rate,

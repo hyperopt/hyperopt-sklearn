@@ -5,9 +5,6 @@
 [scikit-learn](http://scikit-learn.org/).
 
 See how to use hyperopt-sklearn through [examples](http://hyperopt.github.io/hyperopt-sklearn/#documentation)
-or older
-[notebooks](http://nbviewer.ipython.org/github/hyperopt/hyperopt-sklearn/tree/master/notebooks)
-
 More examples can be found in the Example Usage section of the SciPy paper
 
 Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. http://conference.scipy.org/proceedings/scipy2014/pdfs/komer.pdf
