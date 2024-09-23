@@ -1,13 +1,13 @@
 # hyperopt-sklearn
 
-[Hyperopt-sklearn](http://hyperopt.github.com/hyperopt-sklearn/) is
-[Hyperopt](http://hyperopt.github.com/hyperopt)-based model selection among machine learning algorithms in
-[scikit-learn](http://scikit-learn.org/).
+[Hyperopt-sklearn](https://github.com/hyperopt/hyperopt-sklearn) is
+[Hyperopt](https://github.com/hyperopt/hyperopt)-based model selection among machine learning algorithms in
+[scikit-learn](https://scikit-learn.org/).
 
-See how to use hyperopt-sklearn through [examples](http://hyperopt.github.io/hyperopt-sklearn/#documentation)
-More examples can be found in the Example Usage section of the SciPy paper
+See how to use hyperopt-sklearn through [examples](https://hyperopt.github.io/hyperopt-sklearn/#documentation).
+More examples can be found in the Example Usage section of the SciPy paper:
 
-Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. http://conference.scipy.org/proceedings/scipy2014/pdfs/komer.pdf
+Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. https://proceedings.scipy.org/articles/Majora-14bd3278-006
 
 ## Installation
 
