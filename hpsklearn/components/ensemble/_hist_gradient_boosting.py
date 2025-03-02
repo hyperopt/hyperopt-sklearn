@@ -73,6 +73,13 @@ def _hist_gradient_boosting_random_state(name: str):
     return hp.randint(name, 5)
 
 
+def _hist_gradient_boosting_max_features(name: str):
+    """
+    Declaration search space 'max_features' parameter
+    """
+    return hp.uniform(name + ".frac", 0.5, 1.)
+
+
 @validate(params=["max_bins"],
           validation_test=lambda param: not isinstance(param, int) or 0 < param <= 255,
           msg="Invalid parameter '%s' with value '%s'. "
@@ -89,6 +96,7 @@ def _hist_gradient_boosting_hp_space(
         max_depth: typing.Union[int, Apply] = "Undefined",
         min_samples_leaf: typing.Union[int, Apply] = None,
         l2_regularization: float = 0,
+        max_features: typing.Union[float, Apply] = None,
         max_bins: int = 255,
         categorical_features: npt.ArrayLike = None,
         monotonic_cst: npt.ArrayLike = None,
@@ -123,6 +131,8 @@ def _hist_gradient_boosting_hp_space(
         min_samples_leaf=_hist_gradient_boosting_min_samples_leaf(name_func("min_samples_leaf"))
         if min_samples_leaf is None else min_samples_leaf,
         l2_regularization=l2_regularization,
+        max_features=_hist_gradient_boosting_max_features(name_func("max_features"))
+        if max_features is None else max_features,
         max_bins=max_bins,
         categorical_features=categorical_features,
         monotonic_cst=monotonic_cst,
