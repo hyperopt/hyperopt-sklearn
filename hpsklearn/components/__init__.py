@@ -147,7 +147,9 @@ from .lightgbm import \
     lightgbm_regression
 
 from .feature_extraction import \
-    tfidf
+    tfidf_vectorizer, \
+    hashing_vectorizer, \
+    count_vectorizer
 
 from .decomposition import pca
 
