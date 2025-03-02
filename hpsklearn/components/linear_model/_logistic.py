@@ -89,9 +89,6 @@ def _logistic_random_state(name: str):
                                                                                 "sag", "saga"],
           msg="Invalid parameter '%s' with value '%s'. "
               "Value must be in ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'].")
-@validate(params=["multi_class"],
-          validation_test=lambda param: not isinstance(param, str) or param in ["auto", "ovr", "multinomial"],
-          msg="Invalid parameter '%s' with value '%s'. Value must be in ['auto', 'ovr', 'multinomial'].")
 def _logistic_hp_space(
         name_func,
         fit_intercept: bool = True,
@@ -104,7 +101,6 @@ def _logistic_hp_space(
         n_jobs: int = 1,
         verbose: int = 0,
         intercept_scaling: float = 1,
-        multi_class: str = "auto",
         random_state=None
 ):
     if dual is True and not (penalty == "l2" and solver == "liblinear"):
@@ -125,7 +121,6 @@ def _logistic_hp_space(
         n_jobs=n_jobs,
         verbose=verbose,
         intercept_scaling=intercept_scaling,
-        multi_class=multi_class,
         random_state=_logistic_random_state(name_func("random_state"))
         if random_state is None else random_state,
     )
