@@ -133,7 +133,7 @@ def _linear_hp_space(
         C: typing.Union[float, Apply] = None,
         fit_intercept: bool = True,
         intercept_scaling: typing.Union[float, Apply] = None,
-        dual: bool = True,
+        dual: bool = "auto",
         verbose: int = 0,
         random_state=None,
         max_iter: typing.Union[int, Apply] = None
