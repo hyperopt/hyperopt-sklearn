@@ -36,3 +36,4 @@ nosetests.xml
 
 .idea
 notebooks/.ipynb_checkpoints
+/venv
