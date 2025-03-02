@@ -19,7 +19,6 @@ def sklearn_TheilSenRegressor(*args, **kwargs):
 def theil_sen_regressor(
         name: str,
         fit_intercept: bool = True,
-        copy_X: bool = True,
         max_subpopulation: typing.Union[int, Apply] = None,
         n_subsamples: int = None,
         max_iter: typing.Union[int, Apply] = None,
@@ -34,7 +33,6 @@ def theil_sen_regressor(
     Args:
         name: name | str
         fit_intercept: whether to calculate the intercept | bool
-        copy_X: whether to copy X | bool
         max_subpopulation: consider stochastic subpopulation | int
         n_subsamples: number of samples to calculate parameters | int
         max_iter: maximum number of iterations | int
@@ -49,7 +47,6 @@ def theil_sen_regressor(
 
     hp_space = dict(
         fit_intercept=fit_intercept,
-        copy_X=copy_X,
         max_subpopulation=scope.int(hp.uniform(_name("max_subpopulation"), 7500, 12500))
         if max_subpopulation is None else max_subpopulation,
         n_subsamples=n_subsamples,
