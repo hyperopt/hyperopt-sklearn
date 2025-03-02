@@ -46,11 +46,9 @@ def _weight_boosting_random_state(name: str):
     return hp.randint(name, 5)
 
 
-@validate(
-    params=["n_estimators", "learning_rate"],
-    validation_test=lambda param: not isinstance(param, float) or param > 0,
-    msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.",
-)
+@validate(params=["n_estimators", "learning_rate"],
+          validation_test=lambda param: not isinstance(param, float) or param > 0,
+          msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 def _weight_boosting_hp_space(
     name_func,
     estimator=None,
@@ -65,21 +63,10 @@ def _weight_boosting_hp_space(
     """
     hp_space = dict(
         estimator=estimator,
-        n_estimators=(
-            _weight_boosting_n_estimators(name_func("n_estimators"))
-            if n_estimators is None
-            else n_estimators
-        ),
-        learning_rate=(
-            _weight_boosting_learning_rate(name_func("learning_rate"))
-            if learning_rate is None
-            else learning_rate
-        ),
-        random_state=(
-            _weight_boosting_random_state(name_func("random_state"))
-            if random_state is None
-            else random_state
-        ),
+        n_estimators=_weight_boosting_n_estimators(name_func("n_estimators")) if n_estimators is None else n_estimators,
+        learning_rate=_weight_boosting_learning_rate(name_func("learning_rate"))
+        if learning_rate is None else learning_rate,
+        random_state=_weight_boosting_random_state(name_func("random_state")) if random_state is None else random_state,
     )
     return hp_space
 
