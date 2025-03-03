@@ -120,7 +120,8 @@ def _lightgbm_hp_space(
         reg_lambda: typing.Union[float, Apply] = None,
         boosting_type: typing.Union[str, Apply] = None,
         scale_pos_weight: float = 1,
-        random_state=None):
+        random_state=None,
+        **kwargs):
     """
     Hyper parameter search space for
      lightgbm classifier
@@ -143,7 +144,8 @@ def _lightgbm_hp_space(
         reg_lambda=_lightgbm_reg_lambda(name_func("reg_lambda")) if reg_lambda is None else reg_lambda,
         boosting_type=_lightgbm_boosting_type(name_func("boosting_type")) if boosting_type is None else boosting_type,
         scale_pos_weight=scale_pos_weight,
-        seed=_lightgbm_random_state(name_func("random_state")) if random_state is None else random_state
+        seed=_lightgbm_random_state(name_func("random_state")) if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 
