@@ -54,13 +54,6 @@ def _lightgbm_n_estimators(name):
     return scope.int(hp.quniform(name, 100, 6000, 200))
 
 
-def _lightgbm_gamma(name):
-    """
-    Declaration search space 'gamma' parameter
-    """
-    return hp.loguniform(name, np.log(0.0001), np.log(5)) - 0.0001
-
-
 def _lightgbm_min_child_weight(name):
     """
     Declaration search space 'min_child_weight' parameter
@@ -78,13 +71,6 @@ def _lightgbm_subsample(name):
 def _lightgbm_colsample_bytree(name):
     """
     Declaration search space 'colsample_bytree' parameter
-    """
-    return hp.uniform(name, 0.5, 1)
-
-
-def _lightgbm_colsample_bylevel(name):
-    """
-    Declaration search space 'colsample_bylevel' parameter
     """
     return hp.uniform(name, 0.5, 1)
 
