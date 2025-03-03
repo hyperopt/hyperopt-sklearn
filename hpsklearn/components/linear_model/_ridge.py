@@ -121,7 +121,7 @@ def _ridge_cv_hp_space(
         fit_intercept: bool = True,
         scoring: typing.Union[str, callable] = None,
         cv: typing.Union[int, Iterable, typing.Generator, Apply] = None,
-        store_cv_values: bool = False,
+        store_cv_results: bool = False,
         **kwargs
 ):
     """
@@ -134,7 +134,7 @@ def _ridge_cv_hp_space(
         fit_intercept=fit_intercept,
         scoring=scoring,
         cv=_ridge_cv(name_func("cv")) if cv is None else cv,
-        store_cv_values=store_cv_values,
+        store_cv_restults=store_cv_results,
         **kwargs
     )
     return hp_space
