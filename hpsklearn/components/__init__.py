@@ -255,7 +255,11 @@ def any_text_preprocessing(name):
     """
     Generic pre-processing appropriate for text data
     """
-    return hp.choice(name, [[tfidf(name + '.tfidf')]])
+    return hp.choice(name, [
+        [tfidf_vectorizer(name + ".tfidf")],
+        [hashing_vectorizer(name + ".hashing")],
+        [count_vectorizer(name + ".count")],
+    ])
 
 
 # Legacy any pre-processing as proposed in #137
@@ -425,7 +429,9 @@ def all_preprocessing(name):
         [polynomial_features(name + ".polynomial_features")],
         [spline_transformer(name + ".spline_transformer")],
         [k_bins_discretizer(name + ".k_bins_discretizer")],
-        [tfidf(name + ".tfidf")],
+        [tfidf_vectorizer(name + ".tfidf")],
+        [hashing_vectorizer(name + ".hashing")],
+        [count_vectorizer(name + ".count")],
         [pca(name + ".pca")],
         [ts_lagselector(name + ".ts_lagselector")],
         [colkmeans(name + ".colkmeans")],
