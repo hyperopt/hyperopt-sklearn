@@ -51,7 +51,8 @@ def _pls_hp_space(
         scale: bool = True,
         max_iter: typing.Union[int, Apply] = None,
         tol: typing.Union[float, Apply] = None,
-        copy: bool = True
+        copy: bool = True,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -64,7 +65,8 @@ def _pls_hp_space(
         scale=scale,
         max_iter=_pls_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_pls_tol(name_func("tol")) if tol is None else tol,
-        copy=copy
+        copy=copy,
+        **kwargs
     )
     return hp_space
 

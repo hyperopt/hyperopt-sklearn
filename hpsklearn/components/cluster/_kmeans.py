@@ -44,7 +44,8 @@ def _kmeans_hp_space(
         n_clusters: typing.Union[int, Apply] = None,
         init: typing.Union[str, callable, npt.ArrayLike, Apply] = None,
         verbose: int = 0,
-        random_state=None
+        random_state=None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -55,7 +56,8 @@ def _kmeans_hp_space(
         n_clusters=_kmeans_n_clusters(name_func("n_clusters")) if n_clusters is None else n_clusters,
         init=_kmeans_init(name_func("init")) if init is None else init,
         verbose=verbose,
-        random_state=_kmeans_random_state(name_func("random_state")) if random_state is None else random_state
+        random_state=_kmeans_random_state(name_func("random_state")) if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 

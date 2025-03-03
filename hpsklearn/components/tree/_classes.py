@@ -144,7 +144,8 @@ def _tree_hp_space(
         random_state=None,
         min_impurity_decrease: typing.Union[float, Apply] = 0.0,
         max_leaf_nodes: typing.Union[int, Apply] = "Undefined",
-        ccp_alpha: float = 0.0
+        ccp_alpha: float = 0.0,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -168,7 +169,8 @@ def _tree_hp_space(
         if min_impurity_decrease is None else min_impurity_decrease,
         max_leaf_nodes=_tree_max_leaf_nodes(name_func("max_leaf_nodes"))
         if max_leaf_nodes == "Undefined" else max_leaf_nodes,
-        ccp_alpha=ccp_alpha
+        ccp_alpha=ccp_alpha,
+        **kwargs
     )
     return hp_space
 

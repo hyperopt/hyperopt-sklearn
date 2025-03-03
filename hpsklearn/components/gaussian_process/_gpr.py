@@ -23,7 +23,8 @@ def gaussian_process_regressor(name: str,
                                n_restarts_optimizer: typing.Union[int, Apply] = None,
                                normalize_y: bool = False,
                                copy_X_train: bool = True,
-                               random_state=None):
+                               random_state=None,
+                               **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.gaussian_process.GaussianProcessRegressor model.
@@ -52,5 +53,6 @@ def gaussian_process_regressor(name: str,
         normalize_y=normalize_y,
         copy_X_train=copy_X_train,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
+        **kwargs
     )
     return scope.sklearn_GaussianProcessRegressor(**hp_space)

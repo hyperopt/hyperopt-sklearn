@@ -23,7 +23,8 @@ def sklearn_OutputCodeClassifier(*args, **kwargs):
 
 def one_vs_rest_classifier(name: str,
                            estimator: typing.Union[object, Apply] = None,
-                           n_jobs: int = 1):
+                           n_jobs: int = 1,
+                           **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.multiclass.OneVsRestClassifier model.
@@ -39,14 +40,16 @@ def one_vs_rest_classifier(name: str,
 
     hp_space = dict(
         estimator=any_classifier(_name("estimator")) if estimator is None else estimator,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return scope.sklearn_OneVsRestClassifier(**hp_space)
 
 
 def one_vs_one_classifier(name: str,
                           estimator: typing.Union[object, Apply] = None,
-                          n_jobs: int = 1):
+                          n_jobs: int = 1,
+                          **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.multiclass.OneVsOneClassifier model.
@@ -62,7 +65,8 @@ def one_vs_one_classifier(name: str,
 
     hp_space = dict(
         estimator=any_classifier(_name("estimator")) if estimator is None else estimator,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return scope.sklearn_OneVsOneClassifier(**hp_space)
 
@@ -71,7 +75,8 @@ def output_code_classifier(name: str,
                            estimator: typing.Union[object, Apply] = None,
                            code_size: typing.Union[float, Apply] = None,
                            random_state=None,
-                           n_jobs: int = 1):
+                           n_jobs: int = 1,
+                           **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.multiclass.OutputCodeClassifier model.
@@ -91,6 +96,7 @@ def output_code_classifier(name: str,
         estimator=any_classifier(_name("estimator")) if estimator is None else estimator,
         code_size=hp.uniform(_name("code_size"), 1, 2) if code_size is None else code_size,
         n_jobs=n_jobs,
-        random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state
+        random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
+        **kwargs
     )
     return scope.sklearn_OutputCodeClassifier(**hp_space)

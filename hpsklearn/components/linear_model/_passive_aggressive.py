@@ -68,7 +68,8 @@ def _passive_aggressive_hp_space(
         verbose: int = 0,
         random_state=None,
         warm_start: bool = False,
-        average: typing.Union[bool, int] = False
+        average: typing.Union[bool, int] = False,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -89,7 +90,8 @@ def _passive_aggressive_hp_space(
         random_state=_passive_aggressive_random_state(name_func("random_state"))
         if random_state is None else random_state,
         warm_start=warm_start,
-        average=average
+        average=average,
+        **kwargs
     )
     return hp_space
 

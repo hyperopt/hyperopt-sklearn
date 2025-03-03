@@ -22,7 +22,8 @@ def quantile_regression(name: str,
                         alpha: typing.Union[float, Apply] = None,
                         fit_intercept: typing.Union[bool, Apply] = None,
                         solver: typing.Union[str, Apply] = None,
-                        solver_options: dict = None):
+                        solver_options: dict = None,
+                        **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.QuantileRegression model.
@@ -45,7 +46,8 @@ def quantile_regression(name: str,
         fit_intercept=hp.choice(_name("fit_intercept"), [True, False]) if fit_intercept is None else fit_intercept,
         solver=hp.choice(_name("solver"), ["highs-ds", "highs-ipm", "highs", "revised simplex"])
         if solver is None else solver,
-        solver_options=solver_options
+        solver_options=solver_options,
+        **kwargs
     )
 
     return scope.sklearn_QuantileRegressor(**hp_space)

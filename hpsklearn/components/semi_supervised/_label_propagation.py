@@ -55,7 +55,8 @@ def _label_propagation_hp_space(
         gamma: typing.Union[float, Apply] = None,
         n_neighbors: typing.Union[int, Apply] = None,
         tol: typing.Union[float, Apply] = None,
-        n_jobs: int = 1
+        n_jobs: int = 1,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -67,7 +68,8 @@ def _label_propagation_hp_space(
         gamma=_label_propagation_gamma(name_func("gamma")) if gamma is None else gamma,
         n_neighbors=_label_propagation_n_neighbors(name_func("n_neighbors")) if n_neighbors is None else n_neighbors,
         tol=_label_propagation_n_tol(name_func("tol")) if tol is None else tol,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return hp_space
 

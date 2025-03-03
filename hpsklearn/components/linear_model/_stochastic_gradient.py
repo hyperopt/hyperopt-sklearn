@@ -176,6 +176,7 @@ def _stochastic_gradient_hp_space(
         n_iter_no_change: typing.Union[int, Apply] = None,
         warm_start: bool = False,
         average: typing.Union[bool, int] = False,
+        **kwargs,
 ):
     """
     Hyper parameter search space for
@@ -212,6 +213,7 @@ def _stochastic_gradient_hp_space(
         if n_iter_no_change is None else n_iter_no_change,
         warm_start=warm_start,
         average=average,
+        **kwargs,
     )
     return hp_space
 
@@ -297,8 +299,8 @@ def sgd_one_class_svm(name: str,
                       eta0: typing.Union[float, Apply] = None,
                       power_t: typing.Union[float, Apply] = None,
                       warm_start: bool = False,
-                      average: typing.Union[bool, int] = False
-                      ):
+                      average: typing.Union[bool, int] = False,
+                      **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.SGDOneClassSVM model.
@@ -339,6 +341,7 @@ def sgd_one_class_svm(name: str,
         eta0=_stochastic_gradient_eta0(_name("eta0")) if eta0 is None else eta0,
         power_t=_stochastic_gradient_power_t(_name("power_t")) if power_t is None else power_t,
         warm_start=warm_start,
-        average=average
+        average=average,
+        **kwargs
     )
     return scope.sklearn_SGDOneClassSVM(**hp_space)

@@ -59,7 +59,8 @@ def _iforest_hp_space(
         n_jobs: int = 1,
         random_state=None,
         verbose: int = False,
-        warm_start: bool = False
+        warm_start: bool = False,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -74,7 +75,8 @@ def _iforest_hp_space(
         n_jobs=n_jobs,
         random_state=_iforest_random_state(name_func("random_state")) if random_state is None else random_state,
         verbose=verbose,
-        warm_start=warm_start
+        warm_start=warm_start,
+        **kwargs
     )
     return hp_space
 

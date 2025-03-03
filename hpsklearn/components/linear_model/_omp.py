@@ -20,8 +20,8 @@ def orthogonal_matching_pursuit(name: str,
                                 n_nonzero_coefs: int = None,
                                 tol: typing.Union[float, Apply] = None,
                                 fit_intercept: bool = True,
-                                precompute: typing.Union[str, bool] = "auto"
-                                ):
+                                precompute: typing.Union[str, bool] = "auto",
+                                **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.OrthogonalMatchingPursuit model.
@@ -41,7 +41,8 @@ def orthogonal_matching_pursuit(name: str,
         n_nonzero_coefs=n_nonzero_coefs,
         tol=hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)) if tol is None else tol,
         fit_intercept=fit_intercept,
-        precompute=precompute
+        precompute=precompute,
+        **kwargs
     )
 
     return scope.sklearn_OrthogonalMatchingPursuit(**hp_space)
@@ -53,8 +54,8 @@ def orthogonal_matching_pursuit_cv(name: str,
                                    max_iter: typing.Union[int, Apply] = None,
                                    cv: typing.Union[int, callable, typing.Generator, Apply] = None,
                                    n_jobs: int = 1,
-                                   verbose: typing.Union[bool, int] = False
-                                   ):
+                                   verbose: typing.Union[bool, int] = False,
+                                   **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.OrthogonalMatchingPursuitCV model.
@@ -79,7 +80,8 @@ def orthogonal_matching_pursuit_cv(name: str,
         cv=hp.pchoice(_name("cv"), [(0.0625, 3), (0.175, 4), (0.525, 5), (0.175, 6), (0.0625, 7)])
         if cv is None else cv,
         n_jobs=n_jobs,
-        verbose=verbose
+        verbose=verbose,
+        **kwargs
     )
 
     return scope.sklearn_OrthogonalMatchingPursuitCV(**hp_space)

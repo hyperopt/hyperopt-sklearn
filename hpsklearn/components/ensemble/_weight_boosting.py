@@ -55,6 +55,7 @@ def _weight_boosting_hp_space(
     n_estimators: typing.Union[int, Apply] = None,
     learning_rate: typing.Union[float, Apply] = None,
     random_state=None,
+    **kwargs
 ):
     """
     Hyper parameter search space for
@@ -67,6 +68,7 @@ def _weight_boosting_hp_space(
         learning_rate=_weight_boosting_learning_rate(name_func("learning_rate"))
         if learning_rate is None else learning_rate,
         random_state=_weight_boosting_random_state(name_func("random_state")) if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 

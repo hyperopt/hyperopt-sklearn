@@ -138,7 +138,8 @@ def _coordinate_descent_hp_space(
         tol: typing.Union[float, Apply] = None,
         warm_start: bool = False,
         random_state=None,
-        selection: typing.Union[str, Apply] = None
+        selection: typing.Union[str, Apply] = None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -156,7 +157,8 @@ def _coordinate_descent_hp_space(
         warm_start=warm_start,
         random_state=_coordinate_descent_random_state(name_func("random_state"))
         if random_state is None else random_state,
-        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection
+        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection,
+        **kwargs
     )
     return hp_space
 
@@ -180,7 +182,8 @@ def _coordinate_descent_cv_hp_space(
         verbose: int = False,
         n_jobs: int = 1,
         random_state=None,
-        selection: typing.Union[str, Apply] = None
+        selection: typing.Union[str, Apply] = None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -202,7 +205,8 @@ def _coordinate_descent_cv_hp_space(
         n_jobs=n_jobs,
         random_state=_coordinate_descent_random_state(name_func("random_state"))
         if random_state is None else random_state,
-        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection
+        selection=_coordinate_descent_selection(name_func("selection")) if selection is None else selection,
+        **kwargs
     )
     return hp_space
 

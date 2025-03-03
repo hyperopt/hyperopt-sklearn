@@ -25,7 +25,8 @@ def theil_sen_regressor(
         tol: typing.Union[float, Apply] = None,
         random_state=None,
         n_jobs: int = 1,
-        verbose: bool = False):
+        verbose: bool = False,
+        **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.TheilSenRegressor model.
@@ -54,6 +55,7 @@ def theil_sen_regressor(
         tol=hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)) if tol is None else tol,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
         n_jobs=n_jobs,
-        verbose=verbose
+        verbose=verbose,
+        **kwargs
     )
     return scope.sklearn_TheilSenRegressor(**hp_space)

@@ -174,7 +174,8 @@ def _gb_hp_space(
         validation_fraction: float = 0.1,
         n_iter_no_change: int = None,
         tol: float = 1e-4,
-        ccp_alpha: float = 0.0
+        ccp_alpha: float = 0.0,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -206,6 +207,7 @@ def _gb_hp_space(
         n_iter_no_change=n_iter_no_change,
         tol=tol,
         ccp_alpha=ccp_alpha,
+        **kwargs
     )
     return hp_space
 

@@ -30,7 +30,8 @@ def _discriminant_analysis_hp_space(
         name_func,
         priors: npt.ArrayLike = None,
         store_covariance: bool = False,
-        tol: float = None
+        tol: float = None,
+        **kwargs
 ):
     """
     Common hyper parameter search space
@@ -40,7 +41,8 @@ def _discriminant_analysis_hp_space(
     hp_space = dict(
         priors=priors,
         store_covariance=store_covariance,
-        tol=_discriminant_analysis_tol(name_func("tol")) if tol is None else tol
+        tol=_discriminant_analysis_tol(name_func("tol")) if tol is None else tol,
+        **kwargs
     )
     return hp_space
 

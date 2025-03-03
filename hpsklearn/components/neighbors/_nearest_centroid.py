@@ -12,7 +12,8 @@ def sklearn_NearestCentroid(*args, **kwargs):
 
 def nearest_centroid(name: str,
                      metric: typing.Union[str, Apply] = None,
-                     shrink_threshold: float = None):
+                     shrink_threshold: float = None,
+                     **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.neighbors.NearestCentroid model.
@@ -30,5 +31,6 @@ def nearest_centroid(name: str,
         metric=hp.choice(_name("metric"), ["euclidean", "manhattan"])
         if metric is None else metric,
         shrink_threshold=shrink_threshold,
+        **kwargs,
     )
     return scope.sklearn_NearestCentroid(**hp_space)

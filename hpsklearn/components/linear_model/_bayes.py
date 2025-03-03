@@ -58,6 +58,7 @@ def _bayes_hp_space(
         fit_intercept: bool = True,
         copy_X: bool = True,
         verbose: bool = False,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -75,6 +76,7 @@ def _bayes_hp_space(
         fit_intercept=fit_intercept,
         copy_X=copy_X,
         verbose=verbose,
+        **kwargs
     )
     return hp_space
 

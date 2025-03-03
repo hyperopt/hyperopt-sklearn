@@ -107,7 +107,8 @@ def _hist_gradient_boosting_hp_space(
         n_iter_no_change: int = 10,
         tol: float = 1e-7,
         verbose: int = False,
-        random_state=None
+        random_state=None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -144,7 +145,8 @@ def _hist_gradient_boosting_hp_space(
         tol=tol,
         verbose=verbose,
         random_state=_hist_gradient_boosting_random_state(name_func("random_state"))
-        if random_state is None else random_state
+        if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 

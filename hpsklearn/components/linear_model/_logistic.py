@@ -101,7 +101,8 @@ def _logistic_hp_space(
         n_jobs: int = 1,
         verbose: int = 0,
         intercept_scaling: float = 1,
-        random_state=None
+        random_state=None,
+        **kwargs
 ):
     if dual is True and not (penalty == "l2" and solver == "liblinear"):
         raise ValueError("Dual formulation (implied by parameter 'dual' = 'True') is only implemented for "
@@ -123,6 +124,7 @@ def _logistic_hp_space(
         intercept_scaling=intercept_scaling,
         random_state=_logistic_random_state(name_func("random_state"))
         if random_state is None else random_state,
+        **kwargs,
     )
     return hp_space
 
