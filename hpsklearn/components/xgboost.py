@@ -169,7 +169,6 @@ def xgboost_classification(name: str, objective: typing.Union[str, Apply] = None
 
     hp_space = _xgboost_hp_space(_name, **kwargs)
     hp_space["objective"] = "binary:logistic" if objective is None else objective
-    hp_space["use_label_encoder"] = False
 
     return scope.sklearn_XGBClassifier(**hp_space)
 
