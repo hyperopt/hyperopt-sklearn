@@ -121,7 +121,6 @@ def _ridge_cv_hp_space(
         fit_intercept: bool = True,
         scoring: typing.Union[str, callable] = None,
         cv: typing.Union[int, Iterable, typing.Generator, Apply] = None,
-        store_cv_results: bool = False,
         **kwargs
 ):
     """
@@ -134,7 +133,6 @@ def _ridge_cv_hp_space(
         fit_intercept=fit_intercept,
         scoring=scoring,
         cv=_ridge_cv(name_func("cv")) if cv is None else cv,
-        store_cv_restults=store_cv_results,
         **kwargs
     )
     return hp_space
@@ -166,6 +164,7 @@ def ridge(name: str, **kwargs):
 def ridge_cv(name: str,
              gcv_mode: typing.Union[str, Apply] = "auto",
              alpha_per_target: bool = False,
+             store_cv_results: bool = False,
              **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
@@ -186,6 +185,7 @@ def ridge_cv(name: str,
     hp_space = _ridge_cv_hp_space(_name, **kwargs)
     hp_space["gcv_mode"] = gcv_mode
     hp_space["alpha_per_target"] = alpha_per_target
+    hp_space["store_cv_results"] = store_cv_results
 
     return scope.sklearn_RidgeCV(**hp_space)
 
@@ -218,7 +218,10 @@ def ridge_classifier(name: str, class_weight: typing.Union[dict, str] = None, **
 @validate(params=["class_weight"],
           validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'")
-def ridge_classifier_cv(name: str, class_weight: typing.Union[dict, str] = None, **kwargs):
+def ridge_classifier_cv(name: str,
+                        class_weight: typing.Union[dict, str] = None, 
+                        store_cv_results: bool = False,
+                        **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.RidgeClassifierCV model.
@@ -236,5 +239,6 @@ def ridge_classifier_cv(name: str, class_weight: typing.Union[dict, str] = None,
 
     hp_space = _ridge_cv_hp_space(_name, **kwargs)
     hp_space["class_weight"] = class_weight
+    hp_space["store_cv_results"] = store_cv_results
 
     return scope.sklearn_RidgeClassifierCV(**hp_space)
