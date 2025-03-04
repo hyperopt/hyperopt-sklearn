@@ -86,7 +86,7 @@ def _text_norm(name: str):
     Declaration search space 'norm' parameter
     """
     return hp.choice(name, ["l1", "l2"])
-   
+
 
 @validate(params=["analyzer"],
           validation_test=lambda param: not isinstance(param, str) or param in ["word", "char", "char_wb"],
@@ -147,7 +147,7 @@ def tfidf_vectorizer(
     hp_space["min_df"] = _text_min_df(_name("min_df")) if min_df is None else min_df
     hp_space["norm"] = _text_norm(_name("norm")) if norm is None else norm
     hp_space["max_features"] = _text_max_features(_name("max_features")) \
-    if max_features is not None else max_features
+        if max_features is not None else max_features
 
     return scope.sklearn_TfidfVectorizer(**hp_space)
 
@@ -166,7 +166,7 @@ def hashing_vectorizer(name: str, norm: typing.Union[str, Apply] = None, **kwarg
     """
     def _name(msg):
         return f"{name}.hashing_vectorizer_{msg}"
-    
+
     hp_space = _text_hp_space(_name, **kwargs)
     hp_space["norm"] = _text_norm(_name("norm")) if norm is None else norm
 
@@ -191,11 +191,11 @@ def count_vectorizer(
     """
     def _name(msg):
         return f"{name}.count_vectorizer_{msg}"
-    
+
     hp_space = _text_hp_space(_name, **kwargs)
     hp_space["max_df"] = _text_max_df(_name("max_df")) if max_df is None else max_df
     hp_space["min_df"] = _text_min_df(_name("min_df")) if min_df is None else min_df
     hp_space["max_features"] = _text_max_features(_name("max_features")) \
-    if max_features is not None else max_features
-    
+        if max_features is not None else max_features
+
     return scope.sklearn_CountVectorizer(**hp_space)

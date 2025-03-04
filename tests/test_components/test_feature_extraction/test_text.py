@@ -62,7 +62,7 @@ class TestTfidf(unittest.TestCase):
             max_evals=5,
         )
         model.fit(self.X_test, self.Y_test)
-    
+
     @TrialsExceptionHandler
     def test_count_vectorizer(self):
         """

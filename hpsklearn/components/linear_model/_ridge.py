@@ -219,7 +219,7 @@ def ridge_classifier(name: str, class_weight: typing.Union[dict, str] = None, **
           validation_test=lambda param: not isinstance(param, str) or param == "balanced",
           msg="Invalid parameter '%s' with value '%s'. Value must be 'balanced'")
 def ridge_classifier_cv(name: str,
-                        class_weight: typing.Union[dict, str] = None, 
+                        class_weight: typing.Union[dict, str] = None,
                         store_cv_results: bool = False,
                         **kwargs):
     """
