@@ -2,6 +2,4 @@ tox>=4.20.0
 xgboost>=2.0.0
 lightgbm==4.6.0
 coverage==7.6.12
-pytest==8.3.5
-pytest-xdist==3.6.1
 -r requirements.txt
