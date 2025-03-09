@@ -1,6 +1,6 @@
 hyperopt==0.2.7
-numpy>=2.0.0
+numpy>=2.0.0,<=2.3.0
 scikit-learn>=1.5,<=1.7
-scipy>=1.15.0
-pandas>=2.1.0
+scipy>=1.15.0,<=1.15.3
+pandas>=2.1.0,<=2.3.0
 setuptools>=71.0.0
