@@ -1,21 +1,21 @@
 # hyperopt-sklearn
 
-[Hyperopt-sklearn](http://hyperopt.github.com/hyperopt-sklearn/) is
-[Hyperopt](http://hyperopt.github.com/hyperopt)-based model selection among machine learning algorithms in
-[scikit-learn](http://scikit-learn.org/).
+[Hyperopt-sklearn](https://github.com/hyperopt/hyperopt-sklearn) is
+[Hyperopt](https://github.com/hyperopt/hyperopt)-based model selection among machine learning algorithms in
+[scikit-learn](https://scikit-learn.org/).
 
 See how to use hyperopt-sklearn through [examples](http://hyperopt.github.io/hyperopt-sklearn/#documentation)
 More examples can be found in the Example Usage section of the SciPy paper
 
-Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. http://conference.scipy.org/proceedings/scipy2014/pdfs/komer.pdf
+Komer B., Bergstra J., and Eliasmith C. "Hyperopt-Sklearn: automatic hyperparameter configuration for Scikit-learn" Proc. SciPy 2014. https://proceedings.scipy.org/articles/Majora-14bd3278-006
 
 ## Installation
 
-Installation from the GitHub repository is supported using pip:
+Installation from the GitHub repository is supported using [pip](https://pypi.org/project/hyperopt-sklearn):
 
-    pip install git+https://github.com/hyperopt/hyperopt-sklearn
+    pip install hyperopt-sklearn
     
-Optionally you can install a specific tag, branch or commit:
+Optionally you can install a specific tag, branch or commit from the repository:
 
     pip install git+https://github.com/hyperopt/hyperopt-sklearn@1.0.3
     pip install git+https://github.com/hyperopt/hyperopt-sklearn@master
@@ -328,7 +328,9 @@ polynomial_features
 spline_transformer
 k_bins_discretizer
 
-tfidf
+tfidf_vectorizer
+hashing_vectorizer
+count_vectorizer
 
 pca
 
