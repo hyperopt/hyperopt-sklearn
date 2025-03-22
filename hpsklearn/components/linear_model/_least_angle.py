@@ -97,6 +97,7 @@ def _least_angle_hp_space(
         precompute: typing.Union[bool, str, npt.ArrayLike] = "auto",
         eps: float = np.finfo(float).eps,
         copy_X: bool = True,
+        **kwargs,
 ):
     """
     Hyper parameter of search space of common parameters for
@@ -111,7 +112,8 @@ def _least_angle_hp_space(
         verbose=verbose,
         precompute=precompute,
         eps=eps,
-        copy_X=copy_X
+        copy_X=copy_X,
+        **kwargs
     )
     return hp_space
 
@@ -126,7 +128,7 @@ def _least_angle_cv_shared_space(
         cv: typing.Union[int, callable, typing.Generator, Apply] = None,
         max_n_alphas: typing.Union[int, Apply] = None,
         n_jobs: int = None,
-):
+        **kwargs):
     """
     Declaration shared search space parameters for
      lars cv
@@ -148,8 +150,7 @@ def lars(name: str,
          fit_path: bool = True,
          jitter: float = None,
          random_state=None,
-         **kwargs
-         ):
+         **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.Lars model.
@@ -193,8 +194,7 @@ def lasso_lars(name: str,
                positive: bool = False,
                jitter: float = None,
                random_state=None,
-               **kwargs
-               ):
+               **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.LassoLars model.
@@ -235,8 +235,7 @@ def lars_cv(name: str,
             cv: typing.Union[int, callable, typing.Generator, Apply] = None,
             max_n_alphas: typing.Union[int, Apply] = None,
             n_jobs: int = None,
-            **kwargs
-            ):
+            **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.LarsCV model.
@@ -274,8 +273,7 @@ def lasso_lars_cv(name: str,
                   max_n_alphas: typing.Union[int, Apply] = None,
                   n_jobs: int = None,
                   positive: bool = False,
-                  **kwargs
-                  ):
+                  **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.LassoLarsCV model.
@@ -315,8 +313,7 @@ def lasso_lars_ic(name: str,
                   criterion: typing.Union[str, Apply] = None,
                   max_iter: typing.Union[int, Apply] = None,
                   positive: bool = False,
-                  **kwargs
-                  ):
+                  **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.LassoLarsIC model.

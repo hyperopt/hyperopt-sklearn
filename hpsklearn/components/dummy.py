@@ -26,7 +26,8 @@ def sklearn_DummyRegressor(*args, **kwargs):
 def dummy_classifier(name: str,
                      strategy: typing.Union[str, Apply] = None,
                      random_state=None,
-                     constant: typing.Union[int, str, npt.ArrayLike] = None):
+                     constant: typing.Union[int, str, npt.ArrayLike] = None,
+                     **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.dummy.DummyClassifier model.
@@ -45,7 +46,8 @@ def dummy_classifier(name: str,
         strategy=hp.choice(_name("strategy"), ["stratified", "most_frequent", "prior", "uniform"])
         if strategy is None else strategy,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
-        constant=constant
+        constant=constant,
+        **kwargs
     )
     return scope.sklearn_DummyClassifier(**hp_space)
 
@@ -60,7 +62,8 @@ def dummy_classifier(name: str,
 def dummy_regressor(name: str,
                     strategy: typing.Union[str, Apply] = None,
                     constant: typing.Union[int, str, npt.ArrayLike] = None,
-                    quantile: float = None):
+                    quantile: float = None,
+                    **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.dummy.DummyRegressor model.
@@ -78,6 +81,7 @@ def dummy_regressor(name: str,
     hp_space = dict(
         strategy=hp.choice(_name("strategy"), ["mean", "median"]) if strategy is None else strategy,
         constant=constant,
-        quantile=quantile
+        quantile=quantile,
+        **kwargs
     )
     return scope.sklearn_DummyRegressor(**hp_space)

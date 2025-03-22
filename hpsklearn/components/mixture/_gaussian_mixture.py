@@ -34,7 +34,8 @@ def gaussian_mixture(name: str,
                      random_state=None,
                      warm_start: bool = False,
                      verbose: int = 0,
-                     verbose_interval: int = 10):
+                     verbose_interval: int = 10,
+                     **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.mixture.GaussianMixture model.
@@ -76,5 +77,6 @@ def gaussian_mixture(name: str,
         warm_start=warm_start,
         verbose=verbose,
         verbose_interval=verbose_interval,
+        **kwargs,
     )
     return scope.sklearn_GaussianMixture(**hp_space)

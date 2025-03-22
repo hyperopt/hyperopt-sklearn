@@ -12,7 +12,8 @@ def linear_regression(name: str,
                       fit_intercept: bool = True,
                       copy_X: bool = True,
                       n_jobs: int = 1,
-                      positive: bool = False):
+                      positive: bool = False,
+                      **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.LinearRegression model.
@@ -32,7 +33,8 @@ def linear_regression(name: str,
         fit_intercept=fit_intercept,
         copy_X=copy_X,
         n_jobs=n_jobs,
-        positive=positive
+        positive=positive,
+        **kwargs
     )
 
     return scope.sklearn_LinearRegression(**hp_space)

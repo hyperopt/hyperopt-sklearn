@@ -67,7 +67,8 @@ def neighbors_hp_space(
         p: typing.Union[int, Apply] = None,
         metric: typing.Union[str, callable, Apply] = None,
         metric_params: dict = None,
-        n_jobs: int = 1):
+        n_jobs: int = 1,
+        **kwargs):
     """
     Hyper parameter search space for
      k neighbors regressor
@@ -80,7 +81,8 @@ def neighbors_hp_space(
         p=_neighbors_p(name_func("p")) if p is None else p,
         metric=_neighbors_metric(name_func("metric")) if metric is None else metric,
         metric_params=metric_params,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return hp_space
 

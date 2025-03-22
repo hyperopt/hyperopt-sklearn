@@ -50,7 +50,8 @@ def huber_regressor(name: str,
                     alpha: typing.Union[float, Apply] = None,
                     warm_start: bool = False,
                     fit_intercept: bool = True,
-                    tol: typing.Union[float, Apply] = None):
+                    tol: typing.Union[float, Apply] = None,
+                    **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.HuberRegressor model.
@@ -73,7 +74,8 @@ def huber_regressor(name: str,
         alpha=_glm_alpha(_name("alpha")) if tol is None else alpha,
         warm_start=warm_start,
         fit_intercept=fit_intercept,
-        tol=_glm_tol(_name("tol")) if tol is None else tol
+        tol=_glm_tol(_name("tol")) if tol is None else tol,
+        **kwargs
     )
 
     return scope.sklearn_HuberRegressor(**hp_space)

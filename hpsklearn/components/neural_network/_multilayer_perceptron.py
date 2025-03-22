@@ -177,6 +177,7 @@ def _multilayer_perceptron_hp_space(
         epsilon: typing.Union[float, Apply] = None,
         n_iter_no_change: typing.Union[int, Apply] = None,
         max_fun: typing.Union[int, Apply] = None,
+        **kwargs,
 ):
     """
     Hyper parameter search space for
@@ -214,6 +215,7 @@ def _multilayer_perceptron_hp_space(
         n_iter_no_change=_multilayer_perceptron_n_iter_no_change(name_func("n_iter_no_change"))
         if n_iter_no_change is None else n_iter_no_change,
         max_fun=_multilayer_perceptron_max_fun(name_func("max_fun")) if max_fun is None else max_fun,
+        **kwargs,
     )
     return hp_space
 

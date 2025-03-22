@@ -13,7 +13,8 @@ def transformed_target_regressor(name: str,
                                  transformer: object = None,
                                  func: callable = None,
                                  inverse_func: callable = None,
-                                 check_inverse: bool = True):
+                                 check_inverse: bool = True,
+                                 **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.compose.TransformedTargetRegressor model.
@@ -36,6 +37,7 @@ def transformed_target_regressor(name: str,
         transformer=transformer,
         func=func,
         inverse_func=inverse_func,
-        check_inverse=check_inverse
+        check_inverse=check_inverse,
+        **kwargs
     )
     return scope.sklearn_TransformedTargetRegressor(**hp_space)

@@ -55,6 +55,7 @@ def _glm_hp_space(
         tol: typing.Union[float, Apply] = 1e-4,
         warm_start: bool = False,
         verbose: int = 0,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -68,7 +69,8 @@ def _glm_hp_space(
         max_iter=_glm_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
         tol=_glm_tol(name_func("tol")) if tol is None else tol,
         warm_start=warm_start,
-        verbose=verbose
+        verbose=verbose,
+        **kwargs
     )
     return hp_space
 

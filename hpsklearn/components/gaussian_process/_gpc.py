@@ -27,7 +27,8 @@ def gaussian_process_classifier(name: str,
                                 copy_X_train: bool = True,
                                 random_state=None,
                                 multi_class: typing.Union[str, Apply] = None,
-                                n_jobs: int = 1):
+                                n_jobs: int = 1,
+                                **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.gaussian_process.GaussianProcessClassifier model.
@@ -61,6 +62,7 @@ def gaussian_process_classifier(name: str,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
         multi_class=hp.choice(_name("multi_class"), ["one_vs_rest", "one_vs_one"])
         if multi_class is None else multi_class,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return scope.sklearn_GaussianProcessClassifier(**hp_space)

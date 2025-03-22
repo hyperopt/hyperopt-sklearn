@@ -119,7 +119,8 @@ def _xgboost_hp_space(
         scale_pos_weight: float = 1,
         base_score: float = 0.5,
         random_state=None,
-        n_jobs: int = -1):
+        n_jobs: int = -1,
+        **kwargs):
     """
     Hyper parameter search space for
      xgboost classifier
@@ -143,7 +144,8 @@ def _xgboost_hp_space(
         scale_pos_weight=scale_pos_weight,
         base_score=base_score,
         seed=_xgboost_random_state(name_func("random_state")) if random_state is None else random_state,
-        n_jobs=n_jobs
+        n_jobs=n_jobs,
+        **kwargs
     )
     return hp_space
 
@@ -169,7 +171,6 @@ def xgboost_classification(name: str, objective: typing.Union[str, Apply] = None
 
     hp_space = _xgboost_hp_space(_name, **kwargs)
     hp_space["objective"] = "binary:logistic" if objective is None else objective
-    hp_space["use_label_encoder"] = False
 
     return scope.sklearn_XGBClassifier(**hp_space)
 

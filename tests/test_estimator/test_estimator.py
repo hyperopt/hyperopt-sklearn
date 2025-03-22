@@ -5,7 +5,7 @@ from hyperopt import rand, tpe
 from hyperopt.pyll import as_apply
 from hpsklearn import HyperoptEstimator
 from hpsklearn import sgd_classifier, any_classifier
-from ..utils import RetryOnTrialsException
+from tests.utils import RetryOnTrialsException
 
 
 class TestIter(unittest.TestCase):

@@ -133,10 +133,11 @@ def _linear_hp_space(
         C: typing.Union[float, Apply] = None,
         fit_intercept: bool = True,
         intercept_scaling: typing.Union[float, Apply] = None,
-        dual: bool = True,
+        dual: bool = "auto",
         verbose: int = 0,
         random_state=None,
-        max_iter: typing.Union[int, Apply] = None
+        max_iter: typing.Union[int, Apply] = None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -152,7 +153,8 @@ def _linear_hp_space(
         dual=dual,
         verbose=verbose,
         random_state=_svm_random_state(name_func("random_state")) if random_state is None else random_state,
-        max_iter=_linear_max_iter(name_func("max_iter")) if max_iter is None else max_iter
+        max_iter=_linear_max_iter(name_func("max_iter")) if max_iter is None else max_iter,
+        **kwargs
     )
     return hp_space
 
@@ -185,7 +187,8 @@ def _svc_hp_space(name_func,
                   max_iter: typing.Union[int, Apply] = None,
                   decision_function_shape: typing.Union[str, Apply] = None,
                   break_ties: bool = False,
-                  random_state=None):
+                  random_state=None,
+                  **kwargs):
     """
     Hyper parameter search space for
      nu svc
@@ -206,7 +209,8 @@ def _svc_hp_space(name_func,
         decision_function_shape=_svc_decision_function_shape(name_func("decision_function_shape"))
         if decision_function_shape is None else decision_function_shape,
         break_ties=break_ties,
-        random_state=_svm_random_state(name_func("random_state")) if random_state is None else random_state
+        random_state=_svm_random_state(name_func("random_state")) if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 
@@ -220,7 +224,8 @@ def _svr_one_class_hp_space(name_func,
                             shrinking: typing.Union[bool, Apply] = None,
                             cache_size: int = 200,
                             verbose: bool = False,
-                            max_iter: int = None):
+                            max_iter: int = None,
+                            **kwargs):
     """
     Hyper parameter search space for
      nu svr
@@ -237,6 +242,7 @@ def _svr_one_class_hp_space(name_func,
         cache_size=cache_size,
         verbose=verbose,
         max_iter=-1 if max_iter is None else max_iter,
+        **kwargs,
     )
     return hp_space
 

@@ -32,8 +32,8 @@ def perceptron(name: str,
                validation_fraction: typing.Union[float, Apply] = None,
                n_iter_no_change: typing.Union[int, Apply] = 5,
                class_weight: typing.Union[dict, str] = None,
-               warm_start: bool = False
-               ):
+               warm_start: bool = False,
+               **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.Perceptron model.
@@ -78,7 +78,8 @@ def perceptron(name: str,
         n_iter_no_change=hp.pchoice(_name("n_iter_no_change"), [(0.25, 4), (0.50, 5), (0.25, 6)])
         if n_iter_no_change is None else n_iter_no_change,
         class_weight=class_weight,
-        warm_start=warm_start
+        warm_start=warm_start,
+        **kwargs
     )
 
     return scope.sklearn_Perceptron(**hp_space)

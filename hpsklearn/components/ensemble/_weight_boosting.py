@@ -32,13 +32,6 @@ def _weight_boosting_learning_rate(name: str):
     return hp.lognormal(name, np.log(0.01), np.log(10.0))
 
 
-def _weight_boosting_algorithm(name: str):
-    """
-    Declaration search space 'algorithm' parameter
-    """
-    return hp.choice(name, ["SAMME", "SAMME.R"])
-
-
 def _weight_boosting_loss(name: str):
     """
     Declaration search space 'loss' parameter
@@ -57,11 +50,12 @@ def _weight_boosting_random_state(name: str):
           validation_test=lambda param: not isinstance(param, float) or param > 0,
           msg="Invalid parameter '%s' with value '%s'. Parameter value must be non-negative and greater than 0.")
 def _weight_boosting_hp_space(
-        name_func,
-        estimator=None,
-        n_estimators: typing.Union[int, Apply] = None,
-        learning_rate: typing.Union[float, Apply] = None,
-        random_state=None
+    name_func,
+    estimator=None,
+    n_estimators: typing.Union[int, Apply] = None,
+    learning_rate: typing.Union[float, Apply] = None,
+    random_state=None,
+    **kwargs
 ):
     """
     Hyper parameter search space for
@@ -74,18 +68,18 @@ def _weight_boosting_hp_space(
         learning_rate=_weight_boosting_learning_rate(name_func("learning_rate"))
         if learning_rate is None else learning_rate,
         random_state=_weight_boosting_random_state(name_func("random_state")) if random_state is None else random_state,
+        **kwargs
     )
     return hp_space
 
 
-def ada_boost_classifier(name: str, algorithm: typing.Union[str, Apply] = None, **kwargs):
+def ada_boost_classifier(name: str, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.ensemble.AdaBoostClassifier model.
 
     Args:
         name: name | str
-        algorithm: choose 'SAMME' or 'SAMME.R' | str
 
     See help(hpsklearn.components.ensemble._weight_boosting._weight_boosting_hp_space)
     for info on additional available AdaBoost arguments.
@@ -95,7 +89,6 @@ def ada_boost_classifier(name: str, algorithm: typing.Union[str, Apply] = None, 
         return f"{name}.ada_boost_{msg}"
 
     hp_space = _weight_boosting_hp_space(_name, **kwargs)
-    hp_space["algorithm"] = _weight_boosting_algorithm(_name("algorithm")) if algorithm is None else algorithm
 
     return scope.sklearn_AdaBoostClassifier(**hp_space)
 

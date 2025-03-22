@@ -37,6 +37,7 @@ def _nb_hp_space(
         alpha: typing.Union[float, Apply] = None,
         fit_prior: typing.Union[bool, Apply] = None,
         class_prior: npt.ArrayLike = None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -48,7 +49,8 @@ def _nb_hp_space(
     hp_space = dict(
         alpha=hp.quniform(name_func("alpha"), 0, 1, 0.001) if alpha is None else alpha,
         fit_prior=hp.choice(name_func("fit_prior"), [True, False]) if fit_prior is None else fit_prior,
-        class_prior=class_prior
+        class_prior=class_prior,
+        **kwargs
     )
     return hp_space
 
@@ -119,7 +121,7 @@ def complement_nb(name: str, norm: typing.Union[bool, Apply] = None, **kwargs):
     return scope.sklearn_ComplementNB(**hp_space)
 
 
-def gaussian_nb(name: str, var_smoothing: float = 1e-9):
+def gaussian_nb(name: str, var_smoothing: float = 1e-9, **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.naive_bayes.GaussianNB model.
@@ -133,7 +135,8 @@ def gaussian_nb(name: str, var_smoothing: float = 1e-9):
         return f"{name}.gaussian_nb_{msg}"
 
     hp_space = dict(
-        var_smoothing=var_smoothing
+        var_smoothing=var_smoothing,
+        **kwargs
     )
     return scope.sklearn_GaussianNB(**hp_space)
 

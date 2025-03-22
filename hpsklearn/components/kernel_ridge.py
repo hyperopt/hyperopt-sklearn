@@ -25,7 +25,8 @@ def hp_sklearn_kernel_ridge(name: str,
                             gamma: typing.Union[float, Apply] = None,
                             degree: typing.Union[float, Apply] = None,
                             coef0: typing.Union[float, Apply] = None,
-                            kernel_params: map = None):
+                            kernel_params: map = None,
+                            **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.kernel_ridge.KernelRidge model.
@@ -51,5 +52,6 @@ def hp_sklearn_kernel_ridge(name: str,
         degree=scope.int(hp.uniform(_name("degree"), 1, 7)) if degree is None else degree,
         coef0=hp.uniform(_name("coef0"), 0.0, 1.0) if coef0 is None else coef0,
         kernel_params=kernel_params,
+        **kwargs
     )
     return scope.sklearn_KernelRidge(**hp_space)

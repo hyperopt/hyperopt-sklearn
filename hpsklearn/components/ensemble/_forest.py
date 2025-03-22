@@ -190,7 +190,8 @@ def _forest_hp_space(
         verbose: int = False,
         warm_start: bool = False,
         ccp_alpha: float = 0.0,
-        max_samples: float = None
+        max_samples: float = None,
+        **kwargs
 ):
     """
     Hyper parameter search space for
@@ -224,7 +225,8 @@ def _forest_hp_space(
         verbose=verbose,
         warm_start=warm_start,
         ccp_alpha=ccp_alpha,
-        max_samples=max_samples
+        max_samples=max_samples,
+        **kwargs
     )
     return hp_space
 

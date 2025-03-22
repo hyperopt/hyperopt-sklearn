@@ -19,14 +19,14 @@ def sklearn_TheilSenRegressor(*args, **kwargs):
 def theil_sen_regressor(
         name: str,
         fit_intercept: bool = True,
-        copy_X: bool = True,
         max_subpopulation: typing.Union[int, Apply] = None,
         n_subsamples: int = None,
         max_iter: typing.Union[int, Apply] = None,
         tol: typing.Union[float, Apply] = None,
         random_state=None,
         n_jobs: int = 1,
-        verbose: bool = False):
+        verbose: bool = False,
+        **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.TheilSenRegressor model.
@@ -34,7 +34,6 @@ def theil_sen_regressor(
     Args:
         name: name | str
         fit_intercept: whether to calculate the intercept | bool
-        copy_X: whether to copy X | bool
         max_subpopulation: consider stochastic subpopulation | int
         n_subsamples: number of samples to calculate parameters | int
         max_iter: maximum number of iterations | int
@@ -49,7 +48,6 @@ def theil_sen_regressor(
 
     hp_space = dict(
         fit_intercept=fit_intercept,
-        copy_X=copy_X,
         max_subpopulation=scope.int(hp.uniform(_name("max_subpopulation"), 7500, 12500))
         if max_subpopulation is None else max_subpopulation,
         n_subsamples=n_subsamples,
@@ -57,6 +55,7 @@ def theil_sen_regressor(
         tol=hp.loguniform(_name("tol"), np.log(1e-5), np.log(1e-2)) if tol is None else tol,
         random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
         n_jobs=n_jobs,
-        verbose=verbose
+        verbose=verbose,
+        **kwargs
     )
     return scope.sklearn_TheilSenRegressor(**hp_space)

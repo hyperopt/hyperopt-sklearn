@@ -28,7 +28,8 @@ def ransac_regression(name: str,
                       stop_score: typing.Union[float, Apply] = None,
                       stop_probability: typing.Union[float, Apply] = None,
                       loss: typing.Union[callable, str, Apply] = None,
-                      random_state=None):
+                      random_state=None,
+                      **kwargs):
     """
     Return a pyll graph with hyperparameters that will construct
     a sklearn.linear_model.RANSACRegressor model.
@@ -65,7 +66,8 @@ def ransac_regression(name: str,
         stop_probability=hp.uniform(_name("stop_probability"), 0.90, 0.99)
         if stop_probability is None else stop_probability,
         loss=hp.choice(_name("loss"), ["absolute_error", "squared_error"]) if loss is None else loss,
-        random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state
+        random_state=hp.randint(_name("random_state"), 5) if random_state is None else random_state,
+        **kwargs
     )
 
     return scope.sklearn_RANSACRegressor(**hp_space)

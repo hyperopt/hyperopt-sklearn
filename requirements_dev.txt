@@ -1,5 +1,5 @@
-tox==4.8.0,<=4.11.3
-xgboost==1.6.2
-lightgbm>=4.0.0,<4.1.0
-coverage==7.3.1
+tox>=4.20.0
+xgboost>=2.0.0,<=2.2.0
+lightgbm==4.6.0
+coverage==7.6.12
 -r requirements.txt
